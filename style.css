@@ -243,8 +243,10 @@ html, body {
         #210000 95%,
         #120000 100%
     );
+    /* Box shadow overlay for deep background depth casting */
     transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
     z-index: 10000;
+    will-change: transform;
 }
 
 /* Top & Bottom Vignette Shadow for Stage Framing */
@@ -287,20 +289,23 @@ html, body {
 
 .curtain.left {
     left: 0;
-    transform: translateX(0);
+    transform: translateX(0) scaleX(1);
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
 }
 
 .curtain.right {
     right: 0;
-    transform: translateX(0);
+    transform: translateX(0) scaleX(1);
+    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.8);
 }
 
+/* Opening state: slides out and compresses gradient scale */
 .curtain-overlay.open .curtain.left {
-    transform: translateX(-100%);
+    transform: translateX(-100%) scaleX(0.7);
 }
 
 .curtain-overlay.open .curtain.right {
-    transform: translateX(100%);
+    transform: translateX(100%) scaleX(0.7);
 }
 
 .spotlight-content {
