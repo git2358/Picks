@@ -21,7 +21,6 @@ async function loadMoviesDatabase() {
             return;
         }
 
-        // Page Load: Curtains are closed by default in HTML/CSS, spotlight is on.
         await fetchNextMovie(true);
     } catch (error) {
         console.error("Error loading movies.txt:", error);
@@ -40,7 +39,7 @@ async function fetchNextMovie(isInitial = false) {
 
         const overlay = document.getElementById('curtainOverlay');
         overlay.classList.remove('open');
-        overlay.classList.remove('no-light'); // Turn spotlight back on for the wrap message
+        overlay.classList.remove('no-light');
         stopSpeech();
         
         await new Promise(resolve => setTimeout(resolve, 600));
@@ -50,7 +49,7 @@ async function fetchNextMovie(isInitial = false) {
     }
 
     if (!isInitial) {
-        // 1. When clicking next: Turn spotlight on first
+        // 1. Turn spotlight on first
         const overlay = document.getElementById('curtainOverlay');
         overlay.classList.remove('open');
         overlay.classList.remove('no-light');
@@ -62,11 +61,11 @@ async function fetchNextMovie(isInitial = false) {
             synopsisArea.scrollTop = 0;
         }
 
-        // 2. Then curtains close (wait for spotlight to activate & curtains to close)
+        // 2. Curtains close over the lit stage
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    // 3. Next movie is loaded in the background while closed
+    // 3. Next movie loads in background
     let randomIndex;
     do {
         randomIndex = Math.floor(Math.random() * movies.length);
@@ -125,14 +124,14 @@ async function fetchNextMovie(isInitial = false) {
 
     await new Promise(resolve => setTimeout(resolve, 150));
 
-    // 4. Curtains open all the way
+    // 4. Curtains open
     const overlay = document.getElementById('curtainOverlay');
     overlay.classList.add('open');
 
-    // 5. Spotlight turns off AFTER the curtains finish opening all the way (1 second transition duration)
+    // 5. Spotlight fades away 250ms BEFORE the curtains finish opening (750ms instead of 1000ms)
     setTimeout(() => {
         overlay.classList.add('no-light');
-    }, 1000);
+    }, 750);
 }
 
 function preloadImage(url) {
