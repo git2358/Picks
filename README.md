@@ -26,19 +26,19 @@ The background dynamically uses the selected movie's poster to create a blurred,
 
 ## Features
 
-- 🎬 Random movie selection
-- 🖼️ Movie posters
-- 📅 Release years
-- 📖 Movie synopses
-- 🔊 Text-to-speech
-- 🎭 Cinematic curtain animation
-- 💡 Spotlight effect
-- 🌄 Dynamic blurred movie background
-- 📱 Responsive mobile layout
-- 💻 Desktop and tablet support
-- ✨ Smooth animations and transitions
-- 🌐 Works as a static GitHub Pages website
-- 🚫 No backend required
+- Random movie selection
+- Movie posters
+- Release years
+- Movie synopses
+- Text-to-speech
+- Cinematic curtain animation
+- Spotlight effect
+- Dynamic blurred movie background
+- Responsive mobile layout
+- Desktop and tablet support
+- Smooth animations and transitions
+- Works as a static GitHub Pages website
+- No backend required
 
 ## Design
 
