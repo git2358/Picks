@@ -309,7 +309,7 @@ html, body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 200vw; /* Spans full screen width relative to viewport scaling */
+    width: 200vw;
     height: 100%;
     background: radial-gradient(circle at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 75%);
     backdrop-filter: brightness(1.35) contrast(1.1);
@@ -318,7 +318,6 @@ html, body {
     z-index: 4;
 }
 
-/* Position the lighting correctly inside left/right panels */
 .curtain.left .stage-lighting {
     left: 0;
 }
@@ -327,7 +326,6 @@ html, body {
     left: -100vw;
 }
 
-/* Spotlight Content Text Box (Only appears when all movies are finished) */
 .spotlight-content {
     position: absolute;
     top: 0;
