@@ -98,6 +98,22 @@ overlay.classList.add('no-light');
 },500);
 }
 
+function normaliseTitle(title){
+return title
+.toLowerCase()
+.replace(/\([^)]*\)/g,'')
+.replace(/[^a-z0-9]+/g,' ')
+.replace(/\s+/g,' ')
+.trim();
+}
+
+function titleMatches(requestedTitle,resultTitle){
+const requested=normaliseTitle(requestedTitle);
+const result=normaliseTitle(resultTitle);
+
+return result===requested||result.startsWith(requested+' ')||requested.startsWith(result+' ');
+}
+
 async function fetchMovieDetailsFromWikipedia(title,year){
 try{
 const searchQuery=`${title} ${year?year+' ':''}film`.trim();
@@ -108,19 +124,36 @@ const searchData=await searchRes.json();
 if(searchData.query&&searchData.query.search.length>0){
 let results=searchData.query.search;
 
-if(year){
-const yearMatch=results.find(result=>{
-const resultYear=result.title.match(/\b(19|20)\d{2}\b/);
-return resultYear&&resultYear[0]===year;
-});
+results.sort((a,b)=>{
+const aTitle=normaliseTitle(a.title);
+const bTitle=normaliseTitle(b.title);
+const requested=normaliseTitle(title);
 
-if(yearMatch){
-results=[yearMatch,...results.filter(result=>result!==yearMatch)];
-}
-}
+const score=result=>{
+let value=0;
+
+if(a.title===title)value+=100;
+if(normaliseTitle(result.title)===requested)value+=90;
+if(result.title.match(new RegExp(`\\b${year}\\b`)))value+=20;
+if(result.title.toLowerCase().includes('(film)'))value+=10;
+if(result.title.toLowerCase().includes('film'))value+=5;
+
+return value;
+};
+
+return score(b)-score(a);
+});
 
 for(const result of results){
 const pageTitle=result.title;
+
+if(!titleMatches(title,pageTitle))continue;
+
+if(year){
+const titleYear=pageTitle.match(/\b(19|20)\d{2}\b/);
+
+if(titleYear&&titleYear[0]!==year)continue;
+}
 
 const summaryRes=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`);
 const summaryData=await summaryRes.json();
@@ -130,11 +163,16 @@ if(summaryData.type==='disambiguation'||!summaryData.extract)continue;
 if(year){
 const titleYear=pageTitle.match(/\b(19|20)\d{2}\b/);
 
-if(titleYear&&titleYear[0]!==year)continue;
+if(titleYear&&titleYear[0]!==year){
+continue;
+}
 
 if(!titleYear){
 const extractYear=summaryData.extract.match(/\b(19|20)\d{2}\b/);
-if(extractYear&&extractYear[0]!==year)continue;
+
+if(extractYear&&extractYear[0]!==year){
+continue;
+}
 }
 }
 
