@@ -12,13 +12,11 @@ const text=await response.text();
 movies=text.split(/\r?\n/)
 .map(line=>line.trim())
 .filter(line=>line.length>0&&!line.startsWith('#'));
-
 if(!movies.length){
 document.getElementById('movieTitle').innerText='No Movies Found';
 document.getElementById('movieSynopsis').innerText='Please add items to your movies.txt file!';
 return;
 }
-
 await fetchNextMovie(true);
 }catch(error){
 console.error('Error loading movies.txt:',error);
@@ -37,7 +35,6 @@ window.scrollTo({top:0,behavior:'smooth'});
 
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
 if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
-
 await new Promise(resolve=>setTimeout(resolve,600));
 overlay.classList.add('show-spotlight');
 document.getElementById('reloadBtn').style.display='none';
@@ -53,7 +50,6 @@ window.scrollTo({top:0,behavior:'smooth'});
 
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
 if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
-
 await new Promise(resolve=>setTimeout(resolve,1000));
 }
 
@@ -79,7 +75,6 @@ year=match[2]?match[2].trim():'';
 currentMovie=await fetchMovieDetailsFromWikipedia(title,year);
 
 await preloadImage(currentMovie.poster);
-
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
 document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
@@ -88,7 +83,6 @@ document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie
 document.getElementById('speakBtn').style.display='inline-block';
 
 await new Promise(resolve=>setTimeout(resolve,150));
-
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.add('open');
 
@@ -99,18 +93,44 @@ overlay.classList.add('no-light');
 
 async function fetchMovieDetailsFromWikipedia(title,year){
 try{
-const searchQuery=`${title} ${year?year:''} film`.trim();
+const searchQuery=`${title} ${year?year+' ':''}film movie`.trim();
 
-const searchRes=await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&format=json&origin=*`);
+const searchRes=await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&srlimit=10&format=json&origin=*`);
 const searchData=await searchRes.json();
 
 if(searchData.query&&searchData.query.search.length>0){
-const pageTitle=searchData.query.search[0].title;
+let results=searchData.query.search;
+
+if(year){
+const yearMatch=results.find(result=>{
+const resultYear=result.title.match(/\b(19|20)\d{2}\b/);
+return resultYear&&resultYear[0]===year;
+});
+
+if(yearMatch){
+results=[yearMatch,...results.filter(result=>result!==yearMatch)];
+}
+}
+
+for(const result of results){
+const pageTitle=result.title;
 
 const summaryRes=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`);
 const summaryData=await summaryRes.json();
 
-if(summaryData.type!=='disambiguation'&&summaryData.extract){
+if(summaryData.type==='disambiguation'||!summaryData.extract)continue;
+
+if(year){
+const titleYear=pageTitle.match(/\b(19|20)\d{2}\b/);
+
+if(titleYear&&titleYear[0]!==year)continue;
+
+if(!titleYear){
+const extractYear=summaryData.extract.match(/\b(19|20)\d{2}\b/);
+if(extractYear&&extractYear[0]!==year)continue;
+}
+}
+
 return{
 title:title,
 year:year||'N/A',
@@ -151,7 +171,6 @@ stopSpeech();
 }else{
 const utterance=new SpeechSynthesisUtterance(currentMovie.synopsis);
 utterance.rate=1;
-
 utterance.onend=()=>{
 isSpeaking=false;
 document.getElementById('speakBtn').classList.remove('speaking');
@@ -171,7 +190,6 @@ if('speechSynthesis' in window)window.speechSynthesis.cancel();
 isSpeaking=false;
 
 const btn=document.getElementById('speakBtn');
-
 if(btn){
 btn.classList.remove('speaking');
 btn.innerText='🔊 Listen';
