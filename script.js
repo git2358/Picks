@@ -61,7 +61,7 @@ async function fetchNextMovie(isInitial = false) {
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    // 3. Next movie loads in background
+    // 3. Pick random movie
     let randomIndex;
     do {
         randomIndex = Math.floor(Math.random() * movies.length);
@@ -80,34 +80,8 @@ async function fetchNextMovie(isInitial = false) {
         year = match[2] ? match[2].trim() : '';
     }
 
-    try {
-        const apiKey = 'trilogy';
-        const omdbRes = await fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(title)}${year ? '&y=' + year : ''}&apikey=${apiKey}`);
-        const data = await omdbRes.json();
-
-        if (data.Response === "True") {
-            currentMovie = {
-                title: data.Title,
-                year: data.Year,
-                synopsis: data.Plot,
-                poster: data.Poster !== "N/A" ? data.Poster : 'https://via.placeholder.com/400x600?text=No+Poster'
-            };
-        } else {
-            currentMovie = {
-                title: title,
-                year: year || 'N/A',
-                synopsis: 'Synopsis currently unavailable.',
-                poster: 'https://via.placeholder.com/400x600?text=No+Poster'
-            };
-        }
-    } catch (err) {
-        currentMovie = {
-            title: title,
-            year: year || 'N/A',
-            synopsis: 'Failed to fetch movie details.',
-            poster: 'https://via.placeholder.com/400x600?text=No+Poster'
-        };
-    }
+    // 4. Fetch details using Title + Year via Wikipedia's open public service
+    currentMovie = await fetchMovieDetailsFromWikipedia(title, year);
 
     await preloadImage(currentMovie.poster);
 
@@ -120,14 +94,52 @@ async function fetchNextMovie(isInitial = false) {
 
     await new Promise(resolve => setTimeout(resolve, 150));
 
-    // 4. Curtains open
+    // 5. Curtains open
     const overlay = document.getElementById('curtainOverlay');
     overlay.classList.add('open');
 
-    // 5. Spotlight fades away 500ms (half a second) before the curtains finish opening
+    // 6. Spotlight fades away 500ms before curtains finish opening
     setTimeout(() => {
         overlay.classList.add('no-light');
     }, 500);
+}
+
+async function fetchMovieDetailsFromWikipedia(title, year) {
+    try {
+        // Construct search query incorporating title and year
+        let searchQuery = `${title} ${year ? year : ''} film`.trim();
+        
+        // Step 1: Query Wikipedia's open search endpoint to find the right page title
+        let searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&format=json&origin=*`);
+        let searchData = await searchRes.json();
+
+        if (searchData.query && searchData.query.search.length > 0) {
+            let pageTitle = searchData.query.search[0].title;
+
+            // Step 2: Fetch the page summary (extract + thumbnail image) using the page title
+            let summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`);
+            let summaryData = await summaryRes.json();
+
+            if (summaryData.type !== "disambiguation" && summaryData.extract) {
+                return {
+                    title: title,
+                    year: year || 'N/A',
+                    synopsis: summaryData.extract,
+                    poster: summaryData.thumbnail ? summaryData.thumbnail.source : 'https://via.placeholder.com/400x600?text=No+Poster'
+                };
+            }
+        }
+    } catch (err) {
+        console.error("Error fetching from Wikipedia:", err);
+    }
+
+    // Fallback if lookup fails
+    return {
+        title: title,
+        year: year || 'N/A',
+        synopsis: 'Synopsis currently unavailable.',
+        poster: 'https://via.placeholder.com/400x600?text=No+Poster'
+    };
 }
 
 function preloadImage(url) {
