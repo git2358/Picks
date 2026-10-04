@@ -78,7 +78,7 @@ year=match[2]?match[2].trim():'';
 
 currentMovie=await fetchMovieDetailsFromWikipedia(title,year);
 
-await preloadImage(currentMovie.poster);
+await loadPoster(currentMovie);
 
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
@@ -137,15 +137,12 @@ if(extractYear&&extractYear[0]!==year)continue;
 }
 }
 
-const poster=summaryData.originalimage?.source||
-summaryData.thumbnail?.source||
-'https://via.placeholder.com/400x600?text=No+Poster';
-
 return{
 title:title,
 year:year||'N/A',
 synopsis:summaryData.extract,
-poster:poster
+poster:summaryData.originalimage?.source||null,
+thumbnail:summaryData.thumbnail?.source||null
 };
 }
 }
@@ -157,16 +154,39 @@ return{
 title:title,
 year:year||'N/A',
 synopsis:'Synopsis currently unavailable.',
-poster:'https://via.placeholder.com/400x600?text=No+Poster'
+poster:null,
+thumbnail:null
 };
 }
 
-function preloadImage(url){
+function loadPoster(movie){
 return new Promise(resolve=>{
 const img=new Image();
-img.src=url;
-img.onload=resolve;
-img.onerror=resolve;
+
+const fallback='https://via.placeholder.com/400x600?text=No+Poster';
+
+img.onload=()=>{
+movie.poster=img.src;
+resolve();
+};
+
+img.onerror=()=>{
+if(movie.thumbnail&&img.src!==movie.thumbnail){
+img.src=movie.thumbnail;
+}else{
+movie.poster=fallback;
+resolve();
+}
+};
+
+if(movie.poster){
+img.src=movie.poster;
+}else if(movie.thumbnail){
+img.src=movie.thumbnail;
+}else{
+movie.poster=fallback;
+resolve();
+}
 });
 }
 
