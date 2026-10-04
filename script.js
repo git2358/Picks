@@ -99,7 +99,7 @@ overlay.classList.add('no-light');
 
 async function fetchMovieDetailsFromWikipedia(title,year){
 try{
-const searchQuery=`${title} ${year?year+' ':''}film movie`.trim();
+const searchQuery=`${title} ${year?year+' ':''}film`.trim();
 
 const searchRes=await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&srlimit=10&format=json&origin=*`);
 const searchData=await searchRes.json();
@@ -162,7 +162,6 @@ thumbnail:null
 function loadPoster(movie){
 return new Promise(resolve=>{
 const img=new Image();
-
 const fallback='https://via.placeholder.com/400x600?text=No+Poster';
 
 img.onload=()=>{
