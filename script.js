@@ -38,16 +38,17 @@ async function fetchNextMovie(isInitial = false) {
     }
 
     if (!isInitial) {
+        // Scroll back to top FIRST before closing the curtains
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const synopsisArea = document.querySelector('.synopsis-scroll-area');
+        if (synopsisArea) {
+            synopsisArea.scrollTop = 0;
+        }
+
+        // Then close curtains and stop speech
         document.getElementById('curtainOverlay').classList.remove('open');
         stopSpeech();
         await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-
-    // Scroll back to top when getting a new movie
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    const synopsisArea = document.querySelector('.synopsis-scroll-area');
-    if (synopsisArea) {
-        synopsisArea.scrollTop = 0;
     }
 
     let randomIndex;
