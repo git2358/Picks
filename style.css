@@ -226,7 +226,6 @@ html, body {
     top: 0;
     width: 50%;
     height: 100%;
-    /* Velvet gradient ripples */
     background: linear-gradient(
         90deg,
         #2a0404 0%,
@@ -248,7 +247,6 @@ html, body {
     will-change: transform;
 }
 
-/* Top & Bottom Vignette Shadow for Stage Framing */
 .curtain::before {
     content: '';
     position: absolute;
@@ -261,7 +259,6 @@ html, body {
     z-index: 2;
 }
 
-/* Inner Edge Center Drop Shadows for 3D Overlap Depth */
 .curtain.left::after {
     content: '';
     position: absolute;
@@ -298,7 +295,6 @@ html, body {
     box-shadow: -12px 0 25px rgba(0, 0, 0, 0.85), -4px 0 8px rgba(0, 0, 0, 0.6);
 }
 
-/* Opening state: slides out and compresses gradient scale */
 .curtain-overlay.open .curtain.left {
     transform: translateX(-100%) scaleX(0.7);
 }
@@ -307,7 +303,7 @@ html, body {
     transform: translateX(100%) scaleX(0.7);
 }
 
-/* Permanent Stage Lighting / Spotlight Effect (Always active on the curtains and view) */
+/* Permanent Stage Lighting / Spotlight Effect */
 .stage-lighting {
     position: absolute;
     top: 0;
