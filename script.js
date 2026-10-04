@@ -32,13 +32,11 @@ async function loadMoviesDatabase() {
             pickRandomMovie();
         } else {
             document.getElementById('movieTitle').innerText = "Database Empty";
-            hideLoaders();
             document.getElementById('movieSynopsis').innerText = "No movies matching the 'Title YYYY' format were found in movies.txt.";
         }
     } catch (error) {
         document.getElementById('movieTitle').innerText = "Loading Error";
-        hideLoaders();
-        document.getElementById('movieSynopsis').innerText = "Could not load movies.txt. Make sure you are running this through a local server (like Live Server in VS Code).";
+        document.getElementById('movieSynopsis').innerText = "Could not load movies.txt. Make sure you are running this through a local server.";
     }
 }
 
@@ -51,96 +49,98 @@ async function pickRandomMovie() {
     let availableMovies = movies.filter(m => !viewedMovies.has(`${m.title} (${m.year})`));
 
     if (availableMovies.length === 0) {
-        viewedMovies.clear();
-        availableMovies = [...movies];
+        showFinalCurtains();
+        return;
     }
 
-    const randomMovie = availableMovies[Math.floor(Math.random() * availableMovies.length)];
-    viewedMovies.add(`${randomMovie.title} (${randomMovie.year})`);
-    
-    document.getElementById('movieTitle').innerText = randomMovie.title;
-    document.getElementById('movieYear').innerText = randomMovie.year ? randomMovie.year : '';
-    
-    showLoaders();
-    
-    const posterImg = document.getElementById('moviePoster');
-    const bgBackdrop = document.getElementById('bgBackdrop');
-    
-    posterImg.src = "";
-    posterImg.style.display = "none";
-    bgBackdrop.style.backgroundImage = "none";
+    // Close curtains before fetching the next movie card
+    showCurtains();
 
-    try {
-        const query = encodeURIComponent(`${randomMovie.title} ${randomMovie.year}`);
-        const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*`);
-        const data = await res.json();
+    setTimeout(async () => {
+        const randomMovie = availableMovies[Math.floor(Math.random() * availableMovies.length)];
+        viewedMovies.add(`${randomMovie.title} (${randomMovie.year})`);
         
-        if (data.query && data.query.search.length > 0) {
-            const pageTitle = data.query.search[0].title;
-            const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`);
-            const summaryData = await summaryRes.json();
+        document.getElementById('movieTitle').innerText = randomMovie.title;
+        document.getElementById('movieYear').innerText = randomMovie.year ? randomMovie.year : '';
+        document.getElementById('speakBtn').style.display = 'inline-block';
+        
+        const posterImg = document.getElementById('moviePoster');
+        const bgBackdrop = document.getElementById('bgBackdrop');
+        
+        posterImg.src = "";
+        bgBackdrop.style.backgroundImage = "none";
 
-            hideLoaders();
+        try {
+            const query = encodeURIComponent(`${randomMovie.title} ${randomMovie.year}`);
+            const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*`);
+            const data = await res.json();
+            
+            if (data.query && data.query.search.length > 0) {
+                const pageTitle = data.query.search[0].title;
+                const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`);
+                const summaryData = await summaryRes.json();
 
-            if (summaryData.extract) {
-                currentSynopsisText = summaryData.extract;
-                document.getElementById('movieSynopsis').innerText = currentSynopsisText;
-            } else {
-                currentSynopsisText = "No detailed synopsis available for this selection.";
-                document.getElementById('movieSynopsis').innerText = currentSynopsisText;
-            }
-
-            // Ensure Wikipedia image is strictly portrait/poster oriented before applying
-            if (summaryData.thumbnail && summaryData.thumbnail.source) {
-                const imgUrl = summaryData.thumbnail.source;
-                const imgWidth = summaryData.thumbnail.width || 0;
-                const imgHeight = summaryData.thumbnail.height || 0;
-
-                // Check if dimensions indicate a vertical poster (Height > Width)
-                if (imgHeight > imgWidth) {
-                    applyPoster(imgUrl);
+                if (summaryData.extract) {
+                    currentSynopsisText = summaryData.extract;
+                    document.getElementById('movieSynopsis').innerText = currentSynopsisText;
                 } else {
-                    // Fallback to placeholder if Wikipedia returned a landscape image/still
+                    currentSynopsisText = "No detailed synopsis available for this selection.";
+                    document.getElementById('movieSynopsis').innerText = currentSynopsisText;
+                }
+
+                if (summaryData.thumbnail && summaryData.thumbnail.source) {
+                    const imgUrl = summaryData.thumbnail.source;
+                    const imgWidth = summaryData.thumbnail.width || 0;
+                    const imgHeight = summaryData.thumbnail.height || 0;
+
+                    if (imgHeight > imgWidth) {
+                        applyPoster(imgUrl);
+                    } else {
+                        setDefaultPoster(randomMovie.title);
+                    }
+                } else {
                     setDefaultPoster(randomMovie.title);
                 }
             } else {
+                currentSynopsisText = "Synopsis could not be found automatically for this title.";
+                document.getElementById('movieSynopsis').innerText = currentSynopsisText;
                 setDefaultPoster(randomMovie.title);
             }
-        } else {
-            hideLoaders();
-            currentSynopsisText = "Synopsis could not be found automatically for this title.";
+        } catch (error) {
+            currentSynopsisText = "Could not load data connection. Try clicking reload again!";
             document.getElementById('movieSynopsis').innerText = currentSynopsisText;
             setDefaultPoster(randomMovie.title);
         }
-    } catch (error) {
-        hideLoaders();
-        currentSynopsisText = "Could not load data connection. Try clicking reload again!";
-        document.getElementById('movieSynopsis').innerText = currentSynopsisText;
-        setDefaultPoster(randomMovie.title);
+
+        // Open curtains to reveal the newly loaded movie card
+        openCurtains();
+
+    }, 800);
+}
+
+function showCurtains() {
+    const overlay = document.getElementById('curtainOverlay');
+    const spotlight = document.getElementById('spotlightContent');
+    if (overlay) {
+        if (spotlight) spotlight.style.display = 'none';
+        overlay.classList.add('active');
     }
 }
 
-function showLoaders() {
-    document.getElementById('posterLoader').style.display = 'flex';
-    document.getElementById('moviePoster').style.display = 'none';
-    document.getElementById('speakBtn').style.display = 'none';
-    
-    const synopsisContainer = document.getElementById('movieSynopsis');
-    synopsisContainer.innerHTML = `
-        <span id="synopsisLoader" class="loader-container inline-loader">
-            <span class="dot-pulse"></span>
-        </span>
-    `;
+function openCurtains() {
+    const overlay = document.getElementById('curtainOverlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
 }
 
-function hideLoaders() {
-    document.getElementById('posterLoader').style.display = 'none';
-    document.getElementById('moviePoster').style.display = 'block';
-    document.getElementById('speakBtn').style.display = 'inline-block';
-    
-    const synopsisLoader = document.getElementById('synopsisLoader');
-    if (synopsisLoader) {
-        synopsisLoader.remove();
+function showFinalCurtains() {
+    stopSpeech();
+    const overlay = document.getElementById('curtainOverlay');
+    const spotlight = document.getElementById('spotlightContent');
+    if (overlay) {
+        if (spotlight) spotlight.style.display = 'flex';
+        overlay.classList.add('active');
     }
 }
 
@@ -157,7 +157,7 @@ function setDefaultPoster(title) {
     applyPoster(fallback);
 }
 
-// Text-to-Speech logic: Warmer tone (pitch 0.95, speed 1.05) using standard female system voice
+// Text-to-Speech logic
 let isSpeaking = false;
 
 function toggleSpeech() {
@@ -176,11 +176,10 @@ function toggleSpeech() {
     if (!currentSynopsisText) return;
 
     const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
-    utterance.rate = 1.05;  // 5% faster than normal speed
-    utterance.pitch = 0.95; // Lower, warmer, more natural tone
+    utterance.rate = 1.05;
+    utterance.pitch = 0.95;
 
     const voices = window.speechSynthesis.getVoices();
-    
     let selectedVoice = voices.find(v => 
         v.lang.startsWith('en') && 
         (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('karen') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('hazel'))
