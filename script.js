@@ -147,7 +147,7 @@ function setDefaultPoster(title) {
     applyPoster(fallback);
 }
 
-// Text-to-Speech logic for Irish Female Voice at 20% faster rate (1.2 speed)
+// Text-to-Speech logic for Irish Female Voice at 10% faster rate (1.1 speed)
 let isSpeaking = false;
 
 function toggleSpeech() {
@@ -166,17 +166,25 @@ function toggleSpeech() {
     if (!currentSynopsisText) return;
 
     const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
-    utterance.rate = 1.2; // 20% faster than normal speed
+    utterance.rate = 1.1; // 10% faster than normal speed
 
-    // Look for Irish Female voice (en-IE)
+    // Explicitly find Irish Female Voice (en-IE)
     const voices = window.speechSynthesis.getVoices();
-    let selectedVoice = voices.find(v => v.lang.includes('en-IE') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('moira') || v.name.toLowerCase().includes('ora')));
     
+    // 1. Try to find an explicit Irish voice with female identifier keywords or standard Irish names
+    let selectedVoice = voices.find(v => 
+        (v.lang === 'en-IE' || v.lang.toLowerCase().includes('ga-ie') || v.lang.toLowerCase().includes('irish')) && 
+        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('moira') || v.name.toLowerCase().includes('ora') || v.name.toLowerCase().includes('niamh') || v.name.toLowerCase().includes('ciara'))
+    );
+    
+    // 2. If not found, fall back to any voice matching Irish locale code (en-IE)
     if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.lang.includes('en-IE'));
+        selectedVoice = voices.find(v => v.lang.replace('_', '-').toLowerCase() === 'en-ie');
     }
+
+    // 3. If still not found on this specific operating system/browser, fall back to any English female voice
     if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman')));
+        selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('susan')));
     }
 
     if (selectedVoice) {
