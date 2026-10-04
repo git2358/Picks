@@ -21,6 +21,7 @@ async function loadMoviesDatabase() {
             return;
         }
 
+        // Page Load: Curtains are closed by default in HTML/CSS, spotlight is on.
         await fetchNextMovie(true);
     } catch (error) {
         console.error("Error loading movies.txt:", error);
@@ -37,31 +38,35 @@ async function fetchNextMovie(isInitial = false) {
             synopsisArea.scrollTop = 0;
         }
 
-        // Close curtains & ensure spotlight is fully visible on the closed curtains
-        document.getElementById('curtainOverlay').classList.remove('open');
+        const overlay = document.getElementById('curtainOverlay');
+        overlay.classList.remove('open');
+        overlay.classList.remove('no-light'); // Turn spotlight back on for the wrap message
         stopSpeech();
         
         await new Promise(resolve => setTimeout(resolve, 600));
-        document.getElementById('curtainOverlay').classList.add('show-spotlight');
+        overlay.classList.add('show-spotlight');
         document.getElementById('reloadBtn').style.display = 'none';
         return;
     }
 
     if (!isInitial) {
+        // 1. When clicking next: Turn spotlight on first
+        const overlay = document.getElementById('curtainOverlay');
+        overlay.classList.remove('open');
+        overlay.classList.remove('no-light');
+        stopSpeech();
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
         const synopsisArea = document.querySelector('.synopsis-scroll-area');
         if (synopsisArea) {
             synopsisArea.scrollTop = 0;
         }
 
-        // 1. First fade spotlight in & close curtains
-        document.getElementById('curtainOverlay').classList.remove('open');
-        stopSpeech();
-        
-        // Wait for curtains to close and spotlight to fully illuminate them (1 second)
+        // 2. Then curtains close (wait for spotlight to activate & curtains to close)
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
+    // 3. Next movie is loaded in the background while closed
     let randomIndex;
     do {
         randomIndex = Math.floor(Math.random() * movies.length);
@@ -119,14 +124,15 @@ async function fetchNextMovie(isInitial = false) {
     document.getElementById('speakBtn').style.display = 'inline-block';
 
     await new Promise(resolve => setTimeout(resolve, 150));
-    
-    // 2. Open curtains while spotlight stays on the closed/opening curtains
-    document.getElementById('curtainOverlay').classList.add('open');
 
-    // 3. Fade away the spotlight AFTER the curtains have parted
+    // 4. Curtains open all the way
+    const overlay = document.getElementById('curtainOverlay');
+    overlay.classList.add('open');
+
+    // 5. Spotlight turns off AFTER the curtains finish opening all the way (1 second transition duration)
     setTimeout(() => {
-        // Spotlight fades out automatically via CSS transition when .open is present
-    }, 400);
+        overlay.classList.add('no-light');
+    }, 1000);
 }
 
 function preloadImage(url) {
