@@ -304,12 +304,11 @@ html, body {
     transform: translateX(100%) scaleX(0.7);
 }
 
-/* Stage Lighting / Spotlight Effect (Scoped inside individual curtains) */
+/* Uniform Stage Lighting / Spotlight Effect */
 .stage-lighting {
     position: absolute;
     top: 0;
-    left: 0;
-    width: 200vw;
+    width: 100vw;
     height: 100%;
     background: radial-gradient(circle at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 75%);
     backdrop-filter: brightness(1.35) contrast(1.1);
@@ -323,7 +322,7 @@ html, body {
 }
 
 .curtain.right .stage-lighting {
-    left: -100vw;
+    right: 0;
 }
 
 .spotlight-content {
