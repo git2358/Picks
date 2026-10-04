@@ -239,11 +239,10 @@ html, body {
     -webkit-backdrop-filter: brightness(1.35) contrast(1.1);
     pointer-events: none;
     z-index: 10001;
-    opacity: 1; /* Default on for page load */
-    transition: opacity 0.6s ease;
+    opacity: 1;
+    transition: opacity 0.5s ease;
 }
 
-/* Fades out spotlight when .no-light class is applied */
 .curtain-overlay.no-light .stage-lighting {
     opacity: 0;
 }
