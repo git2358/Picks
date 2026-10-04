@@ -141,8 +141,8 @@ return{
 title:title,
 year:year||'N/A',
 synopsis:summaryData.extract,
-poster:summaryData.originalimage?.source||null,
-thumbnail:summaryData.thumbnail?.source||null
+poster:summaryData.thumbnail?.source||null,
+original:summaryData.originalimage?.source||null
 };
 }
 }
@@ -155,7 +155,7 @@ title:title,
 year:year||'N/A',
 synopsis:'Synopsis currently unavailable.',
 poster:null,
-thumbnail:null
+original:null
 };
 }
 
@@ -170,8 +170,8 @@ resolve();
 };
 
 img.onerror=()=>{
-if(movie.thumbnail&&img.src!==movie.thumbnail){
-img.src=movie.thumbnail;
+if(movie.original&&img.src!==movie.original){
+img.src=movie.original;
 }else{
 movie.poster=fallback;
 resolve();
@@ -180,8 +180,8 @@ resolve();
 
 if(movie.poster){
 img.src=movie.poster;
-}else if(movie.thumbnail){
-img.src=movie.thumbnail;
+}else if(movie.original){
+img.src=movie.original;
 }else{
 movie.poster=fallback;
 resolve();
