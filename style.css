@@ -245,6 +245,7 @@ html, body {
     transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
     z-index: 10000;
     will-change: transform;
+    overflow: hidden;
 }
 
 .curtain::before {
@@ -303,18 +304,27 @@ html, body {
     transform: translateX(100%) scaleX(0.7);
 }
 
-/* Permanent Stage Lighting / Spotlight Effect */
+/* Stage Lighting / Spotlight Effect (Scoped inside individual curtains) */
 .stage-lighting {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 200vw; /* Spans full screen width relative to viewport scaling */
     height: 100%;
     background: radial-gradient(circle at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 75%);
     backdrop-filter: brightness(1.35) contrast(1.1);
     -webkit-backdrop-filter: brightness(1.35) contrast(1.1);
     pointer-events: none;
-    z-index: 10001;
+    z-index: 4;
+}
+
+/* Position the lighting correctly inside left/right panels */
+.curtain.left .stage-lighting {
+    left: 0;
+}
+
+.curtain.right .stage-lighting {
+    left: -100vw;
 }
 
 /* Spotlight Content Text Box (Only appears when all movies are finished) */
