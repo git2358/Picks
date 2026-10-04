@@ -7,7 +7,7 @@
 html, body {
     width: 100%;
     height: 100vh;
-    overflow: hidden; /* Default desktop view locks page bounds */
+    overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #fff;
     background-color: transparent;
@@ -15,7 +15,6 @@ html, body {
     scroll-behavior: smooth;
 }
 
-/* Full window background container */
 .bg-backdrop {
     position: fixed;
     top: 0;
@@ -30,7 +29,6 @@ html, body {
     transition: background-image 0.6s ease-in-out;
 }
 
-/* Soft dark overlay to keep foreground text legible */
 .bg-overlay {
     position: fixed;
     top: 0;
@@ -41,7 +39,6 @@ html, body {
     z-index: 1;
 }
 
-/* Main layout container */
 .wrapper {
     width: 100%;
     height: 100%;
@@ -68,7 +65,6 @@ html, body {
     position: relative;
 }
 
-/* Poster Area - Desktop/Tablet Default */
 .poster-container {
     width: 360px;
     flex-shrink: 0;
@@ -88,7 +84,6 @@ html, body {
     box-shadow: 0 8px 20px rgba(0,0,0,0.6);
 }
 
-/* Information Area */
 .info-container {
     display: flex;
     flex-direction: column;
@@ -122,7 +117,6 @@ html, body {
     line-height: 1.2;
 }
 
-/* Text to Speech Button */
 .speak-btn {
     background: rgba(255, 255, 255, 0.1);
     color: #fff;
@@ -156,7 +150,6 @@ html, body {
     flex-shrink: 0;
 }
 
-/* Only the synopsis area scrolls on desktop */
 .synopsis-scroll-area {
     overflow-y: auto;
     flex-grow: 1;
@@ -184,13 +177,11 @@ html, body {
     flex-direction: column;
 }
 
-/* Pinned Bottom Area for Button */
 .info-bottom {
     flex-shrink: 0;
     padding-top: 0.5rem;
 }
 
-/* Reload Button */
 .reload-btn {
     background: #e50914;
     color: white;
@@ -213,7 +204,6 @@ html, body {
     transform: translateY(0);
 }
 
-/* Perfect Centered Animated Loading Dots Component */
 .loader-container {
     display: flex;
     justify-content: center;
@@ -283,7 +273,6 @@ html, body {
     60%, 100% { transform: scale(1); }
 }
 
-/* Responsive Layout Handling for Mobile */
 @media (max-width: 767px) {
     html, body {
         height: auto;
@@ -299,21 +288,23 @@ html, body {
         flex-direction: column;
         height: auto;
         max-height: none;
-        overflow: visible;
+        overflow: hidden; /* Ensures outer card masks inner contents to match outer border radius */
     }
 
     .poster-container {
         width: 100%;
         height: 380px;
-        padding: 1rem 1rem 0 1rem;
+        padding: 0; /* Remove internal padding so poster reaches the exact top corners */
         background: rgba(0, 0, 0, 0.4);
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
     }
 
     .poster-container img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        border-radius: 8px;
+        object-fit: cover;
+        border-radius: 0; /* Match card top corners cleanly */
     }
 
     .info-container {
