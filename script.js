@@ -53,10 +53,10 @@ async function pickRandomMovie() {
         return;
     }
 
-    // 1. Close curtains first
-    showCurtains();
+    // 1. Close curtains first (remove open class)
+    closeCurtains();
 
-    // Give curtain close animation time to finish before fetching & preloading data
+    // Wait for the closing transition (1000ms) before fetching data
     setTimeout(async () => {
         const randomMovie = availableMovies[Math.floor(Math.random() * availableMovies.length)];
         viewedMovies.add(`${randomMovie.title} (${randomMovie.year})`);
@@ -109,7 +109,7 @@ async function pickRandomMovie() {
             targetImgUrl = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(randomMovie.title)}`;
         }
 
-        // 2. Preload the poster image behind the closed curtains before opening them
+        // 2. Preload poster image behind closed curtains before opening them
         const preloadImg = new Image();
         preloadImg.src = targetImgUrl;
         preloadImg.onload = () => {
@@ -122,32 +122,32 @@ async function pickRandomMovie() {
             openCurtains();
         };
 
-    }, 800);
+    }, 1000);
 }
 
-function showCurtains() {
+function closeCurtains() {
     const overlay = document.getElementById('curtainOverlay');
-    const spotlight = document.getElementById('spotlightContent');
     if (overlay) {
-        if (spotlight) spotlight.style.display = 'none';
-        overlay.classList.add('active');
+        overlay.classList.remove('show-spotlight');
+        overlay.classList.remove('open');
     }
 }
 
 function openCurtains() {
     const overlay = document.getElementById('curtainOverlay');
     if (overlay) {
-        overlay.classList.remove('active');
+        overlay.classList.add('open');
     }
 }
 
 function showFinalCurtains() {
     stopSpeech();
     const overlay = document.getElementById('curtainOverlay');
-    const spotlight = document.getElementById('spotlightContent');
     if (overlay) {
-        if (spotlight) spotlight.style.display = 'flex';
-        overlay.classList.add('active');
+        overlay.classList.remove('open');
+        setTimeout(() => {
+            overlay.classList.add('show-spotlight');
+        }, 1000); // Show spotlight after curtains finish closing
     }
 }
 
