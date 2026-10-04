@@ -4,9 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Picker</title>
-    <link rel="stylesheet" href="style.css?v=20261004190000">
+    <link rel="stylesheet" href="style.css?v=20261004193000">
 </head>
 <body>
+
+    <!-- Full-Screen Theatre Curtain Overlay (Placed first in body) -->
+    <div id="curtainOverlay" class="curtain-overlay">
+        <div class="curtain left"></div>
+        <div class="curtain right"></div>
+        <div class="spotlight-content" id="spotlightContent">
+            <div class="spotlight-text">That’s a wrap! Every movie has been featured.</div>
+            <button class="reload-btn" onclick="location.reload()">Refresh to Start Over</button>
+        </div>
+    </div>
 
     <!-- Background Backdrop with Blur -->
     <div id="bgBackdrop" class="bg-backdrop"></div>
@@ -40,19 +50,9 @@
                 </div>
             </div>
 
-            <!-- Theatre Curtain Overlay (Starts active/closed on page load) -->
-            <div id="curtainOverlay" class="curtain-overlay active">
-                <div class="curtain left"></div>
-                <div class="curtain right"></div>
-                <div class="spotlight-content" id="spotlightContent" style="display: none;">
-                    <div class="spotlight-text">That’s a wrap! Every movie has been featured.</div>
-                    <button class="reload-btn" onclick="location.reload()">Refresh to Start Over</button>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <script src="script.js?v=20261004190000"></script>
+    <script src="script.js?v=20261004193000"></script>
 </body>
 </html>
