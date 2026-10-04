@@ -156,7 +156,6 @@ function toggleSpeech() {
     if (isSpeaking) {
         stopSpeech();
     } else {
-        // Reads ONLY the synopsis text
         const utterance = new SpeechSynthesisUtterance(currentMovie.synopsis);
         utterance.rate = 1.0;
         
