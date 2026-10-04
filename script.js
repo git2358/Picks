@@ -31,18 +31,15 @@ async function loadMoviesDatabase() {
 
 async function fetchNextMovie(isInitial = false) {
     if (watchedIndices.length >= movies.length) {
-        // Scroll to top first when reaching the end
         window.scrollTo({ top: 0, behavior: 'smooth' });
         const synopsisArea = document.querySelector('.synopsis-scroll-area');
         if (synopsisArea) {
             synopsisArea.scrollTop = 0;
         }
 
-        // Fade in spotlight and close curtains
         document.getElementById('curtainOverlay').classList.remove('open');
         stopSpeech();
         
-        // Wait for fade and curtains to fully close (1 second) before showing the wrap message
         await new Promise(resolve => setTimeout(resolve, 1000));
         document.getElementById('curtainOverlay').classList.add('show-spotlight');
         document.getElementById('reloadBtn').style.display = 'none';
@@ -50,18 +47,15 @@ async function fetchNextMovie(isInitial = false) {
     }
 
     if (!isInitial) {
-        // 1. Scroll back to top & fade in spotlight simultaneously
         window.scrollTo({ top: 0, behavior: 'smooth' });
         const synopsisArea = document.querySelector('.synopsis-scroll-area');
         if (synopsisArea) {
             synopsisArea.scrollTop = 0;
         }
 
-        // Close curtains & stop speech
         document.getElementById('curtainOverlay').classList.remove('open');
         stopSpeech();
         
-        // Wait for spotlight to fade in and curtains to close
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
@@ -122,8 +116,6 @@ async function fetchNextMovie(isInitial = false) {
     document.getElementById('speakBtn').style.display = 'inline-block';
 
     await new Promise(resolve => setTimeout(resolve, 150));
-    
-    // Open curtains and let spotlight fade away
     document.getElementById('curtainOverlay').classList.add('open');
 }
 
