@@ -3,56 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Picker</title>
-    <link rel="stylesheet" href="style.css?v=20261004200003">
+    <title>Random Movie Picker</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Full-Screen Theatre Curtain Overlay (Placed first in body) -->
+    <div id="bgBackdrop" class="bg-backdrop"></div>
+    <div class="bg-overlay"></div>
+
+    <div class="wrapper">
+        <div class="content-card">
+            <div class="poster-container">
+                <img id="moviePoster" src="" alt="Movie Poster">
+            </div>
+            <div class="info-container">
+                <div class="info-top">
+                    <div class="title-speech-row">
+                        <h1 id="movieTitle" class="movie-title">Loading...</h1>
+                        <button id="speakBtn" class="speak-btn" onclick="toggleSpeech()" style="display:none;">🔊 Listen</button>
+                    </div>
+                    <div id="movieYear" class="movie-year"></div>
+                    <div class="synopsis-scroll-area">
+                        <p id="movieSynopsis" class="movie-synopsis">Please ensure movies.txt is loaded correctly.</p>
+                    </div>
+                </div>
+                <div class="info-bottom">
+                    <button id="reloadBtn" class="reload-btn" onclick="fetchNextMovie()">Get Another Movie</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theatre Curtains & Stage Lighting Overlay -->
     <div id="curtainOverlay" class="curtain-overlay">
         <div class="curtain left"></div>
         <div class="curtain right"></div>
+        <div class="stage-lighting"></div>
         <div class="spotlight-content" id="spotlightContent">
             <div class="spotlight-text">That’s a wrap! Every movie has been featured.</div>
             <button class="reload-btn" onclick="location.reload()">Refresh to Start Over</button>
         </div>
     </div>
 
-    <!-- Background Backdrop with Blur -->
-    <div id="bgBackdrop" class="bg-backdrop"></div>
-    <div class="bg-overlay"></div>
-
-    <!-- Main Content Layout -->
-    <div class="wrapper">
-        <div class="content-card">
-            
-            <!-- Poster Display -->
-            <div class="poster-container">
-                <img id="moviePoster" src="" alt="Movie Poster">
-            </div>
-
-            <!-- Movie Info Section -->
-            <div class="info-container">
-                <div class="info-top">
-                    <div class="title-speech-row">
-                        <h1 id="movieTitle" class="movie-title">Loading...</h1>
-                        <button id="speakBtn" class="speak-btn" onclick="toggleSpeech()" style="display: none;">🔊 Read Synopsis</button>
-                    </div>
-                    <div id="movieYear" class="movie-year"></div>
-                    
-                    <div class="synopsis-scroll-area">
-                        <p id="movieSynopsis" class="movie-synopsis">Please wait while we pick a movie for you...</p>
-                    </div>
-                </div>
-
-                <div class="info-bottom">
-                    <button class="reload-btn" onclick="pickRandomMovie()">Get Another Movie</button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <script src="script.js?v=20261004200003"></script>
+    <script src="script.js"></script>
 </body>
 </html>
