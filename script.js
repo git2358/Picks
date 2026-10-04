@@ -147,7 +147,7 @@ function setDefaultPoster(title) {
     applyPoster(fallback);
 }
 
-// Text-to-Speech logic: 90s Movie Trailer Voice (Deep pitch 0.65, deliberate slow pace 0.9)
+// Reverted Text-to-Speech logic: Female voice settings (5% faster speed 1.05, perky pitch 1.2)
 let isSpeaking = false;
 
 function toggleSpeech() {
@@ -166,18 +166,18 @@ function toggleSpeech() {
     if (!currentSynopsisText) return;
 
     const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
-    utterance.rate = 0.9;   // Deliberate, slightly slow trailer pacing
-    utterance.pitch = 0.65; // Deep, resonant cinematic male trailer voice pitch
+    utterance.rate = 1.05;  // 5% faster than normal speed
+    utterance.pitch = 1.2;  // Bright, perky pitch
 
     const voices = window.speechSynthesis.getVoices();
     
-    // Target a deep male voice (e.g. David, George, James, or generic male identifiers)
+    // Look for any standard English female voice available on the user's system
     let selectedVoice = voices.find(v => 
         v.lang.startsWith('en') && 
-        (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('george') || v.name.toLowerCase().includes('mark') || v.name.toLowerCase().includes('brian') || v.name.toLowerCase().includes('daniel') || v.name.toLowerCase().includes('oliver'))
+        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('karen') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('hazel'))
     );
     
-    // Fallback to the first available English voice if no specific male keyword matches
+    // Fallback to the first available English voice if no specific female keyword matches
     if (!selectedVoice) {
         selectedVoice = voices.find(v => v.lang.startsWith('en'));
     }
