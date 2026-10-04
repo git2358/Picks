@@ -3,6 +3,8 @@ let watchedIndices=[];
 let currentMovie=null;
 let isSpeaking=false;
 
+const fallbackPoster='https://upload.wikimedia.org/wikipedia/commons/2/29/ButterflyDancebis.jpg';
+
 async function loadMoviesDatabase(){
 try{
 const response=await fetch('movies.txt');
@@ -77,8 +79,7 @@ year=match[2]?match[2].trim():'';
 }
 
 currentMovie=await fetchMovieDetailsFromWikipedia(title,year);
-
-await loadPoster(currentMovie);
+currentMovie.poster=await preloadImage(currentMovie.poster);
 
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
@@ -141,8 +142,7 @@ return{
 title:title,
 year:year||'N/A',
 synopsis:summaryData.extract,
-poster:summaryData.thumbnail?.source||null,
-original:summaryData.originalimage?.source||null
+poster:summaryData.thumbnail?.source||summaryData.originalimage?.source||fallbackPoster
 };
 }
 }
@@ -154,38 +154,18 @@ return{
 title:title,
 year:year||'N/A',
 synopsis:'Synopsis currently unavailable.',
-poster:null,
-original:null
+poster:fallbackPoster
 };
 }
 
-function loadPoster(movie){
+function preloadImage(url){
 return new Promise(resolve=>{
 const img=new Image();
-const fallback='https://via.placeholder.com/400x600?text=No+Poster';
 
-img.onload=()=>{
-movie.poster=img.src;
-resolve();
-};
+img.onload=()=>resolve(url);
+img.onerror=()=>resolve(fallbackPoster);
 
-img.onerror=()=>{
-if(movie.original&&img.src!==movie.original){
-img.src=movie.original;
-}else{
-movie.poster=fallback;
-resolve();
-}
-};
-
-if(movie.poster){
-img.src=movie.poster;
-}else if(movie.original){
-img.src=movie.original;
-}else{
-movie.poster=fallback;
-resolve();
-}
+img.src=url||fallbackPoster;
 });
 }
 
