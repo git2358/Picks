@@ -147,7 +147,7 @@ function setDefaultPoster(title) {
     applyPoster(fallback);
 }
 
-// Text-to-Speech logic for a softer, younger, perky Irish female voice at 1.1x speed
+// Optimized native speech synthesis tuned for a brighter, perky delivery at 1.1x speed
 let isSpeaking = false;
 
 function toggleSpeech() {
@@ -166,25 +166,24 @@ function toggleSpeech() {
     if (!currentSynopsisText) return;
 
     const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
-    utterance.rate = 1.1; // 10% faster than normal speed
-    utterance.pitch = 1.15; // Slightly elevated pitch for a brighter, younger, perkier tone
+    utterance.rate = 1.1;  // 10% faster than normal
+    utterance.pitch = 1.25; // Higher pitch to make the tone brighter and perkier
 
     const voices = window.speechSynthesis.getVoices();
     
-    // Prioritize softer/perky Irish female identifiers (Orla, Niamh, Ciara, Moira, or general en-IE female)
+    // Look strictly for Irish English voice models
     let selectedVoice = voices.find(v => 
-        (v.lang.includes('en-IE') || v.lang.toLowerCase().includes('irish')) && 
-        (v.name.toLowerCase().includes('orla') || v.name.toLowerCase().includes('niamh') || v.name.toLowerCase().includes('ciara') || v.name.toLowerCase().includes('moira') || v.name.toLowerCase().includes('female'))
+        (v.lang.replace('_', '-').toLowerCase() === 'en-ie' || v.lang.toLowerCase().includes('irish')) && 
+        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('moira') || v.name.toLowerCase().includes('orla') || v.name.toLowerCase().includes('niamh') || v.name.toLowerCase().includes('ciara'))
     );
     
-    // Fallback to any Irish English (en-IE) voice available
     if (!selectedVoice) {
         selectedVoice = voices.find(v => v.lang.replace('_', '-').toLowerCase() === 'en-ie');
     }
 
-    // Fallback to a bright/young English female voice if no Irish voice is installed on the system
+    // Fallback to a bright, crisp English accent if no local Irish voice package is installed
     if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('perky') || v.name.toLowerCase().includes('bright') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('karen')));
+        selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('karen') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('zira')));
     }
 
     if (selectedVoice) {
