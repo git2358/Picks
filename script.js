@@ -45,16 +45,11 @@ async function loadMoviesDatabase() {
 async function pickRandomMovie() {
     if (movies.length === 0) return;
 
-    // Stop any active speech when switching movies
     stopSpeech();
-
-    // Smooth scroll back to top on mobile when picking a new movie
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Filter out movies already viewed in this session
     let availableMovies = movies.filter(m => !viewedMovies.has(`${m.title} (${m.year})`));
 
-    // If all movies have been viewed, reset the session tracker
     if (availableMovies.length === 0) {
         viewedMovies.clear();
         availableMovies = [...movies];
@@ -66,7 +61,6 @@ async function pickRandomMovie() {
     document.getElementById('movieTitle').innerText = randomMovie.title;
     document.getElementById('movieYear').innerText = randomMovie.year ? `Released: ${randomMovie.year}` : '';
     
-    // Show loading animations and hide speech button temporarily
     showLoaders();
     
     const posterImg = document.getElementById('moviePoster');
@@ -153,7 +147,7 @@ function setDefaultPoster(title) {
     applyPoster(fallback);
 }
 
-// Text-to-Speech logic for Irish Female Voice at 20% rate
+// Text-to-Speech logic for Irish Female Voice at 20% faster rate (1.2 speed)
 let isSpeaking = false;
 
 function toggleSpeech() {
@@ -172,17 +166,15 @@ function toggleSpeech() {
     if (!currentSynopsisText) return;
 
     const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
-    utterance.rate = 0.2; // 20% speaking rate
+    utterance.rate = 1.2; // 20% faster than normal speed
 
     // Look for Irish Female voice (en-IE)
     const voices = window.speechSynthesis.getVoices();
     let selectedVoice = voices.find(v => v.lang.includes('en-IE') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('moira') || v.name.toLowerCase().includes('ora')));
     
-    // Fallback to any en-IE voice
     if (!selectedVoice) {
         selectedVoice = voices.find(v => v.lang.includes('en-IE'));
     }
-    // Fallback to any English female voice
     if (!selectedVoice) {
         selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman')));
     }
@@ -220,7 +212,6 @@ function stopSpeech() {
     }
 }
 
-// Preload voices if available
 if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = () => {
         window.speechSynthesis.getVoices();
