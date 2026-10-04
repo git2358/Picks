@@ -79,7 +79,7 @@ year=match[2]?match[2].trim():'';
 }
 
 currentMovie=await fetchMovieDetailsFromWikipedia(title,year);
-currentMovie.poster=await preloadImage(currentMovie.poster);
+await loadPoster(currentMovie);
 
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
@@ -102,108 +102,217 @@ function normaliseTitle(title){
 return title
 .toLowerCase()
 .replace(/\([^)]*\)/g,'')
+.replace(/\b(19|20)\d{2}\b/g,'')
 .replace(/[^a-z0-9]+/g,' ')
 .replace(/\s+/g,' ')
 .trim();
 }
 
-function titleMatches(requestedTitle,resultTitle){
-const requested=normaliseTitle(requestedTitle);
-const result=normaliseTitle(resultTitle);
-
-return result===requested||result.startsWith(requested+' ')||requested.startsWith(result+' ');
+function exactTitleMatch(requested,result){
+return normaliseTitle(requested)===normaliseTitle(result);
 }
 
-async function fetchMovieDetailsFromWikipedia(title,year){
-try{
-const searchQuery=`${title} ${year?year+' ':''}film`.trim();
-
-const searchRes=await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&srlimit=10&format=json&origin=*`);
-const searchData=await searchRes.json();
-
-if(searchData.query&&searchData.query.search.length>0){
-let results=searchData.query.search;
-
-results.sort((a,b)=>{
-const aTitle=normaliseTitle(a.title);
-const bTitle=normaliseTitle(b.title);
+function getTitleScore(title,year,result){
+let score=0;
 const requested=normaliseTitle(title);
+const candidate=normaliseTitle(result);
 
-const score=result=>{
-let value=0;
+if(candidate===requested)score+=1000;
 
-if(a.title===title)value+=100;
-if(normaliseTitle(result.title)===requested)value+=90;
-if(result.title.match(new RegExp(`\\b${year}\\b`)))value+=20;
-if(result.title.toLowerCase().includes('(film)'))value+=10;
-if(result.title.toLowerCase().includes('film'))value+=5;
+const lower=result.toLowerCase();
 
-return value;
-};
-
-return score(b)-score(a);
-});
-
-for(const result of results){
-const pageTitle=result.title;
-
-if(!titleMatches(title,pageTitle))continue;
+if(lower===title.toLowerCase())score+=500;
+if(lower===`${title.toLowerCase()} (film)`)score+=400;
+if(year&&lower===`${title.toLowerCase()} (${year} film)`)score+=450;
 
 if(year){
-const titleYear=pageTitle.match(/\b(19|20)\d{2}\b/);
+const match=result.match(/\b(19|20)\d{2}\b/);
+if(match&&match[0]===year)score+=100;
+}
+
+if(lower.includes('(film)'))score+=25;
+if(lower.includes('film'))score+=10;
+
+return score;
+}
+
+async function getWikipediaSummary(pageTitle){
+try{
+const response=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`);
+if(!response.ok)return null;
+
+const data=await response.json();
+
+if(data.type==='disambiguation'||!data.extract)return null;
+
+return data;
+}catch(error){
+console.error('Wikipedia summary error:',error);
+return null;
+}
+}
+
+async function tryWikipediaTitle(title,year){
+const candidates=[
+title,
+`${title} (film)`,
+year?`${title} (${year} film)`:null
+].filter(Boolean);
+
+const seen=new Set();
+
+for(const pageTitle of candidates){
+const key=pageTitle.toLowerCase();
+
+if(seen.has(key))continue;
+seen.add(key);
+
+const summaryData=await getWikipediaSummary(pageTitle);
+
+if(!summaryData)continue;
+
+if(!exactTitleMatch(title,summaryData.title||pageTitle))continue;
+
+if(year){
+const titleYear=(summaryData.title||pageTitle).match(/\b(19|20)\d{2}\b/);
 
 if(titleYear&&titleYear[0]!==year)continue;
-}
-
-const summaryRes=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`);
-const summaryData=await summaryRes.json();
-
-if(summaryData.type==='disambiguation'||!summaryData.extract)continue;
-
-if(year){
-const titleYear=pageTitle.match(/\b(19|20)\d{2}\b/);
-
-if(titleYear&&titleYear[0]!==year){
-continue;
-}
 
 if(!titleYear){
 const extractYear=summaryData.extract.match(/\b(19|20)\d{2}\b/);
 
-if(extractYear&&extractYear[0]!==year){
-continue;
-}
+if(extractYear&&extractYear[0]!==year)continue;
 }
 }
 
+return summaryData;
+}
+
+return null;
+}
+
+async function searchWikipedia(title,year){
+const queries=[
+`"${title}" ${year?year+' ':''}film`,
+`"${title}" film`,
+`"${title}"`
+];
+
+const results=[];
+const seen=new Set();
+
+for(const query of queries){
+try{
+const response=await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=10&format=json&origin=*`);
+
+if(!response.ok)continue;
+
+const data=await response.json();
+
+if(!data.query?.search)continue;
+
+for(const result of data.query.search){
+if(seen.has(result.title))continue;
+
+seen.add(result.title);
+results.push(result);
+}
+}catch(error){
+console.error('Wikipedia search error:',error);
+}
+}
+
+results.sort((a,b)=>getTitleScore(title,year,b.title)-getTitleScore(title,year,a.title));
+
+for(const result of results){
+if(!exactTitleMatch(title,result.title))continue;
+
+if(year){
+const resultYear=result.title.match(/\b(19|20)\d{2}\b/);
+
+if(resultYear&&resultYear[0]!==year)continue;
+}
+
+const summaryData=await getWikipediaSummary(result.title);
+
+if(!summaryData)continue;
+
+if(!exactTitleMatch(title,summaryData.title||result.title))continue;
+
+if(year){
+const titleYear=(summaryData.title||result.title).match(/\b(19|20)\d{2}\b/);
+
+if(titleYear&&titleYear[0]!==year)continue;
+
+if(!titleYear){
+const extractYear=summaryData.extract.match(/\b(19|20)\d{2}\b/);
+
+if(extractYear&&extractYear[0]!==year)continue;
+}
+}
+
+return summaryData;
+}
+
+return null;
+}
+
+async function fetchMovieDetailsFromWikipedia(title,year){
+try{
+let summaryData=await tryWikipediaTitle(title,year);
+
+if(!summaryData){
+summaryData=await searchWikipedia(title,year);
+}
+
+if(summaryData){
 return{
 title:title,
 year:year||'N/A',
 synopsis:summaryData.extract,
-poster:summaryData.thumbnail?.source||summaryData.originalimage?.source||fallbackPoster
+poster:summaryData.thumbnail?.source||summaryData.originalimage?.source||fallbackPoster,
+original:summaryData.originalimage?.source||null
 };
 }
-}
-}catch(err){
-console.error('Error fetching from Wikipedia:',err);
+}catch(error){
+console.error('Error fetching from Wikipedia:',error);
 }
 
 return{
 title:title,
 year:year||'N/A',
 synopsis:'Synopsis currently unavailable.',
-poster:fallbackPoster
+poster:fallbackPoster,
+original:null
 };
 }
 
-function preloadImage(url){
+function loadPoster(movie){
 return new Promise(resolve=>{
 const img=new Image();
 
-img.onload=()=>resolve(url);
-img.onerror=()=>resolve(fallbackPoster);
+img.onload=()=>{
+movie.poster=img.src;
+resolve();
+};
 
-img.src=url||fallbackPoster;
+img.onerror=()=>{
+if(movie.original&&img.src!==movie.original){
+img.src=movie.original;
+}else{
+movie.poster=fallbackPoster;
+resolve();
+}
+};
+
+if(movie.poster){
+img.src=movie.poster;
+}else if(movie.original){
+img.src=movie.original;
+}else{
+movie.poster=fallbackPoster;
+resolve();
+}
 });
 }
 
