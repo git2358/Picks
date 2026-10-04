@@ -3,17 +3,22 @@ let watchedIndices = [];
 let currentMovie = null;
 let isSpeaking = false;
 
-async function loadMovies() {
+async function loadMoviesDatabase() {
     try {
         const response = await fetch('movies.txt');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const text = await response.text();
-        movies = text.split('\n')
+        
+        // Handle both Windows (\r\n) and Unix (\n) line endings cleanly
+        movies = text.split(/\r?\n/)
             .map(line => line.trim())
-            .filter(line => line.length > 0);
+            .filter(line => line.length > 0 && !line.startsWith('#')); // Ignore comments/empty rows
 
         if (movies.length === 0) {
             document.getElementById('movieTitle').innerText = "No Movies Found";
-            document.getElementById('movieSynopsis').innerText = "Add items to movies.txt!";
+            document.getElementById('movieSynopsis').innerText = "Please add items to your movies.txt file!";
             return;
         }
 
@@ -22,13 +27,13 @@ async function loadMovies() {
     } catch (error) {
         console.error("Error loading movies.txt:", error);
         document.getElementById('movieTitle').innerText = "Error Loading File";
-        document.getElementById('movieSynopsis').innerText = "Make sure you are running via a local server (like VS Code Live Server) so movies.txt can be read.";
+        document.getElementById('movieSynopsis').innerText = "Make sure you are running via a local web server (like VS Code Live Server) so movies.txt can be read correctly.";
     }
 }
 
 async function fetchNextMovie(isInitial = false) {
     if (watchedIndices.length >= movies.length) {
-        // All movies watched - close curtains and dim into final spotlight text
+        // All movies watched - close curtains and trigger spotlight text
         document.getElementById('curtainOverlay').classList.remove('open');
         document.getElementById('curtainOverlay').classList.add('show-spotlight');
         document.getElementById('reloadBtn').style.display = 'none';
@@ -51,20 +56,21 @@ async function fetchNextMovie(isInitial = false) {
     watchedIndices.push(randomIndex);
     let rawLine = movies[randomIndex];
 
-    // Parse title & year format e.g. "- Inception 2010" or "Inception (2010)"
-    let cleaned = rawLine.replace(/^[-–*#]+\s*/, '');
+    // Clean up typical formatting markers (-, *, numbers, etc.)
+    let cleaned = rawLine.replace(/^[-–*#\d.]+\s*/, '').trim();
     let title = cleaned;
     let year = '';
 
-    let match = cleaned.match(/(.*)\s+(\d{4})\s*$/);
+    // Match year format at the end of the line (e.g., "Inception 2010" or "Inception (2010)")
+    let match = cleaned.match(/^(.*?)(?:\s+\(?(\d{4})\)?)?\s*$/);
     if (match) {
         title = match[1].trim();
-        year = match[2].trim();
+        year = match[2] ? match[2].trim() : '';
     }
 
     // Fetch details from OMDB API
     try {
-        const apiKey = 'trilogy'; // Public backup key or replace with yours
+        const apiKey = 'trilogy'; // Public backup key or replace with your own
         const omdbRes = await fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(title)}${year ? '&y=' + year : ''}&apikey=${apiKey}`);
         const data = await omdbRes.json();
 
@@ -92,7 +98,7 @@ async function fetchNextMovie(isInitial = false) {
         };
     }
 
-    // Preload image before revealing
+    // Preload poster image before opening curtains
     await preloadImage(currentMovie.poster);
 
     // Update DOM content
@@ -149,8 +155,10 @@ function stopSpeech() {
     }
     isSpeaking = false;
     const btn = document.getElementById('speakBtn');
-    btn.classList.remove('speaking');
-    btn.innerText = '🔊 Listen';
+    if (btn) {
+        btn.classList.remove('speaking');
+        btn.innerText = '🔊 Listen';
+    }
 }
 
-window.onload = loadMovies;
+window.onload = loadMoviesDatabase;
