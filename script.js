@@ -1,166 +1,121 @@
 let movies = [];
-let viewedMovies = new Set();
-let currentSynopsisText = "";
+let watchedIndices = [];
+let currentMovie = null;
+let isSpeaking = false;
 
-async function loadMoviesDatabase() {
+async function loadMovies() {
     try {
         const response = await fetch('movies.txt');
         const text = await response.text();
-        
-        const lines = text.split('\n');
-        const parsedMovies = [];
+        movies = text.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
 
-        for (let line of lines) {
-            let cleanLine = line.trim();
-
-            if (cleanLine.startsWith('-')) {
-                cleanLine = cleanLine.replace(/^-\s*/, '');
-            }
-
-            const match = cleanLine.match(/^(.*?)\s+(\d{4})$/);
-            if (match) {
-                parsedMovies.push({
-                    title: match[1].trim(),
-                    year: match[2]
-                });
-            }
+        if (movies.length === 0) {
+            document.getElementById('movieTitle').innerText = "No Movies Found";
+            document.getElementById('movieSynopsis').innerText = "Add items to movies.txt!";
+            return;
         }
 
-        movies = Array.from(new Set(parsedMovies.map(m => JSON.stringify(m)))).map(m => JSON.parse(m));
-
-        if (movies.length > 0) {
-            pickRandomMovie();
-        } else {
-            document.getElementById('movieTitle').innerText = "Database Empty";
-            document.getElementById('movieSynopsis').innerText = "No movies matching the 'Title YYYY' format were found in movies.txt.";
-        }
+        // Initial load
+        await fetchNextMovie(true);
     } catch (error) {
-        document.getElementById('movieTitle').innerText = "Loading Error";
-        document.getElementById('movieSynopsis').innerText = "Could not load movies.txt. Make sure you are running this through a local server.";
+        console.error("Error loading movies.txt:", error);
+        document.getElementById('movieTitle').innerText = "Error Loading File";
+        document.getElementById('movieSynopsis').innerText = "Make sure you are running via a local server (like VS Code Live Server) so movies.txt can be read.";
     }
 }
 
-async function pickRandomMovie() {
-    if (movies.length === 0) return;
-
-    stopSpeech();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    let availableMovies = movies.filter(m => !viewedMovies.has(`${m.title} (${m.year})`));
-
-    if (availableMovies.length === 0) {
-        showFinalCurtains();
+async function fetchNextMovie(isInitial = false) {
+    if (watchedIndices.length >= movies.length) {
+        // All movies watched - close curtains and dim into final spotlight text
+        document.getElementById('curtainOverlay').classList.remove('open');
+        document.getElementById('curtainOverlay').classList.add('show-spotlight');
+        document.getElementById('reloadBtn').style.display = 'none';
         return;
     }
 
-    // 1. Close curtains first (remove open class)
-    closeCurtains();
+    if (!isInitial) {
+        // Close curtains before fetching the next movie
+        document.getElementById('curtainOverlay').classList.remove('open');
+        stopSpeech();
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for curtains to close
+    }
 
-    // Wait for the closing transition (1000ms) before fetching data
-    setTimeout(async () => {
-        const randomMovie = availableMovies[Math.floor(Math.random() * availableMovies.length)];
-        viewedMovies.add(`${randomMovie.title} (${randomMovie.year})`);
-        
-        document.getElementById('movieTitle').innerText = randomMovie.title;
-        document.getElementById('movieYear').innerText = randomMovie.year ? randomMovie.year : '';
-        document.getElementById('speakBtn').style.display = 'inline-block';
-        
-        let targetImgUrl = "";
+    // Pick a random unwatched movie
+    let randomIndex;
+    do {
+        randomIndex = Math.floor(Math.random() * movies.length);
+    } while (watchedIndices.includes(randomIndex));
 
-        try {
-            const query = encodeURIComponent(`${randomMovie.title} ${randomMovie.year}`);
-            const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*`);
-            const data = await res.json();
-            
-            if (data.query && data.query.search.length > 0) {
-                const pageTitle = data.query.search[0].title;
-                const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`);
-                const summaryData = await summaryRes.json();
+    watchedIndices.push(randomIndex);
+    let rawLine = movies[randomIndex];
 
-                if (summaryData.extract) {
-                    currentSynopsisText = summaryData.extract;
-                    document.getElementById('movieSynopsis').innerText = currentSynopsisText;
-                } else {
-                    currentSynopsisText = "No detailed synopsis available for this selection.";
-                    document.getElementById('movieSynopsis').innerText = currentSynopsisText;
-                }
+    // Parse title & year format e.g. "- Inception 2010" or "Inception (2010)"
+    let cleaned = rawLine.replace(/^[-–*#]+\s*/, '');
+    let title = cleaned;
+    let year = '';
 
-                if (summaryData.thumbnail && summaryData.thumbnail.source) {
-                    const imgUrl = summaryData.thumbnail.source;
-                    const imgWidth = summaryData.thumbnail.width || 0;
-                    const imgHeight = summaryData.thumbnail.height || 0;
+    let match = cleaned.match(/(.*)\s+(\d{4})\s*$/);
+    if (match) {
+        title = match[1].trim();
+        year = match[2].trim();
+    }
 
-                    if (imgHeight > imgWidth) {
-                        targetImgUrl = imgUrl;
-                    } else {
-                        targetImgUrl = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(randomMovie.title)}`;
-                    }
-                } else {
-                    targetImgUrl = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(randomMovie.title)}`;
-                }
-            } else {
-                currentSynopsisText = "Synopsis could not be found automatically for this title.";
-                document.getElementById('movieSynopsis').innerText = currentSynopsisText;
-                targetImgUrl = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(randomMovie.title)}`;
-            }
-        } catch (error) {
-            currentSynopsisText = "Could not load data connection. Try clicking reload again!";
-            document.getElementById('movieSynopsis').innerText = currentSynopsisText;
-            targetImgUrl = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(randomMovie.title)}`;
+    // Fetch details from OMDB API
+    try {
+        const apiKey = 'trilogy'; // Public backup key or replace with yours
+        const omdbRes = await fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(title)}${year ? '&y=' + year : ''}&apikey=${apiKey}`);
+        const data = await omdbRes.json();
+
+        if (data.Response === "True") {
+            currentMovie = {
+                title: data.Title,
+                year: data.Year,
+                synopsis: data.Plot,
+                poster: data.Poster !== "N/A" ? data.Poster : 'https://via.placeholder.com/400x600?text=No+Poster'
+            };
+        } else {
+            currentMovie = {
+                title: title,
+                year: year || 'N/A',
+                synopsis: 'Synopsis currently unavailable.',
+                poster: 'https://via.placeholder.com/400x600?text=No+Poster'
+            };
         }
-
-        // 2. Preload poster image behind closed curtains before opening them
-        const preloadImg = new Image();
-        preloadImg.src = targetImgUrl;
-        preloadImg.onload = () => {
-            applyPoster(targetImgUrl);
-            // 3. Open curtains once data and image are fully loaded
-            openCurtains();
+    } catch (err) {
+        currentMovie = {
+            title: title,
+            year: year || 'N/A',
+            synopsis: 'Failed to fetch movie details.',
+            poster: 'https://via.placeholder.com/400x600?text=No+Poster'
         };
-        preloadImg.onerror = () => {
-            applyPoster(targetImgUrl);
-            openCurtains();
-        };
-
-    }, 1000);
-}
-
-function closeCurtains() {
-    const overlay = document.getElementById('curtainOverlay');
-    if (overlay) {
-        overlay.classList.remove('show-spotlight');
-        overlay.classList.remove('open');
     }
+
+    // Preload image before revealing
+    await preloadImage(currentMovie.poster);
+
+    // Update DOM content
+    document.getElementById('movieTitle').innerText = currentMovie.title;
+    document.getElementById('movieYear').innerText = currentMovie.year;
+    document.getElementById('movieSynopsis').innerText = currentMovie.synopsis;
+    document.getElementById('moviePoster').src = currentMovie.poster;
+    document.getElementById('bgBackdrop').style.backgroundImage = `url('${currentMovie.poster}')`;
+    document.getElementById('speakBtn').style.display = 'inline-block';
+
+    // Slight pause to ensure render, then open curtains
+    await new Promise(resolve => setTimeout(resolve, 150));
+    document.getElementById('curtainOverlay').classList.add('open');
 }
 
-function openCurtains() {
-    const overlay = document.getElementById('curtainOverlay');
-    if (overlay) {
-        overlay.classList.add('open');
-    }
+function preloadImage(url) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = url;
+        img.onload = resolve;
+        img.onerror = resolve;
+    });
 }
-
-function showFinalCurtains() {
-    stopSpeech();
-    const overlay = document.getElementById('curtainOverlay');
-    if (overlay) {
-        overlay.classList.remove('open');
-        setTimeout(() => {
-            overlay.classList.add('show-spotlight');
-        }, 1000); // Show spotlight after curtains finish closing
-    }
-}
-
-function applyPoster(url) {
-    const posterImg = document.getElementById('moviePoster');
-    const bgBackdrop = document.getElementById('bgBackdrop');
-    
-    posterImg.src = url;
-    bgBackdrop.style.backgroundImage = `url("${url}")`;
-}
-
-// Text-to-Speech logic
-let isSpeaking = false;
 
 function toggleSpeech() {
     if (!('speechSynthesis' in window)) {
@@ -168,48 +123,24 @@ function toggleSpeech() {
         return;
     }
 
-    const speakBtn = document.getElementById('speakBtn');
-
     if (isSpeaking) {
         stopSpeech();
-        return;
-    }
+    } else {
+        const textToSpeak = `${currentMovie.title}, released in ${currentMovie.year}. ${currentMovie.synopsis}`;
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 1.0;
+        
+        utterance.onend = () => {
+            isSpeaking = false;
+            document.getElementById('speakBtn').classList.remove('speaking');
+            document.getElementById('speakBtn').innerText = '🔊 Listen';
+        };
 
-    if (!currentSynopsisText) return;
-
-    const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
-    utterance.rate = 1.05;
-    utterance.pitch = 0.95;
-
-    const voices = window.speechSynthesis.getVoices();
-    let selectedVoice = voices.find(v => 
-        v.lang.startsWith('en') && 
-        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('karen') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('hazel'))
-    );
-    
-    if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.lang.startsWith('en'));
-    }
-
-    if (selectedVoice) {
-        utterance.voice = selectedVoice;
-    }
-
-    utterance.onstart = () => {
+        window.speechSynthesis.speak(utterance);
         isSpeaking = true;
-        speakBtn.classList.add('speaking');
-        speakBtn.innerText = "⏹ Stop Reading";
-    };
-
-    utterance.onend = () => {
-        stopSpeech();
-    };
-
-    utterance.onerror = () => {
-        stopSpeech();
-    };
-
-    window.speechSynthesis.speak(utterance);
+        document.getElementById('speakBtn').classList.add('speaking');
+        document.getElementById('speakBtn').innerText = '⏹ Stop';
+    }
 }
 
 function stopSpeech() {
@@ -217,17 +148,9 @@ function stopSpeech() {
         window.speechSynthesis.cancel();
     }
     isSpeaking = false;
-    const speakBtn = document.getElementById('speakBtn');
-    if (speakBtn) {
-        speakBtn.classList.remove('speaking');
-        speakBtn.innerText = "🔊 Read Synopsis";
-    }
+    const btn = document.getElementById('speakBtn');
+    btn.classList.remove('speaking');
+    btn.innerText = '🔊 Listen';
 }
 
-if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.getVoices();
-    };
-}
-
-window.onload = loadMoviesDatabase;
+window.onload = loadMovies;
