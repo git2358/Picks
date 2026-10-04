@@ -90,9 +90,19 @@ async function pickRandomMovie() {
                 document.getElementById('movieSynopsis').innerText = currentSynopsisText;
             }
 
+            // Ensure Wikipedia image is strictly portrait/poster oriented before applying
             if (summaryData.thumbnail && summaryData.thumbnail.source) {
-                const posterUrl = summaryData.thumbnail.source;
-                applyPoster(posterUrl);
+                const imgUrl = summaryData.thumbnail.source;
+                const imgWidth = summaryData.thumbnail.width || 0;
+                const imgHeight = summaryData.thumbnail.height || 0;
+
+                // Check if dimensions indicate a vertical poster (Height > Width)
+                if (imgHeight > imgWidth) {
+                    applyPoster(imgUrl);
+                } else {
+                    // Fallback to placeholder if Wikipedia returned a landscape image/still
+                    setDefaultPoster(randomMovie.title);
+                }
             } else {
                 setDefaultPoster(randomMovie.title);
             }
@@ -147,7 +157,7 @@ function setDefaultPoster(title) {
     applyPoster(fallback);
 }
 
-// Text-to-Speech logic: Warmer tone (pitch 0.95, speed 1.05) using standard female/neutral system voice
+// Text-to-Speech logic: Warmer tone (pitch 0.95, speed 1.05) using standard female system voice
 let isSpeaking = false;
 
 function toggleSpeech() {
@@ -171,13 +181,11 @@ function toggleSpeech() {
 
     const voices = window.speechSynthesis.getVoices();
     
-    // Look for any standard English female voice available on the user's system
     let selectedVoice = voices.find(v => 
         v.lang.startsWith('en') && 
         (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('karen') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('hazel'))
     );
     
-    // Fallback to the first available English voice if no specific female keyword matches
     if (!selectedVoice) {
         selectedVoice = voices.find(v => v.lang.startsWith('en'));
     }
