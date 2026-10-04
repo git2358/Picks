@@ -22,7 +22,10 @@
             </div>
             <div class="info-container">
                 <div class="info-top">
-                    <h1 id="movieTitle" class="movie-title">Loading...</h1>
+                    <div class="title-speech-row">
+                        <h1 id="movieTitle" class="movie-title">Loading...</h1>
+                        <button id="speakBtn" class="speak-btn" onclick="toggleSpeech()" title="Read Synopsis Aloud" style="display: none;">🔊 Read Synopsis</button>
+                    </div>
                     <div id="movieYear" class="movie-year"></div>
                     <div class="synopsis-scroll-area">
                         <p id="movieSynopsis" class="movie-synopsis">
