@@ -106,17 +106,14 @@ async function fetchNextMovie(isInitial = false) {
 
 async function fetchMovieDetailsFromWikipedia(title, year) {
     try {
-        // Construct search query incorporating title and year
         let searchQuery = `${title} ${year ? year : ''} film`.trim();
         
-        // Step 1: Query Wikipedia's open search endpoint to find the right page title
         let searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&format=json&origin=*`);
         let searchData = await searchRes.json();
 
         if (searchData.query && searchData.query.search.length > 0) {
             let pageTitle = searchData.query.search[0].title;
 
-            // Step 2: Fetch the page summary (extract + thumbnail image) using the page title
             let summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`);
             let summaryData = await summaryRes.json();
 
@@ -133,7 +130,6 @@ async function fetchMovieDetailsFromWikipedia(title, year) {
         console.error("Error fetching from Wikipedia:", err);
     }
 
-    // Fallback if lookup fails
     return {
         title: title,
         year: year || 'N/A',
@@ -160,8 +156,8 @@ function toggleSpeech() {
     if (isSpeaking) {
         stopSpeech();
     } else {
-        const textToSpeak = `${currentMovie.title}, released in ${currentMovie.year}. ${currentMovie.synopsis}`;
-        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        // Reads ONLY the synopsis text
+        const utterance = new SpeechSynthesisUtterance(currentMovie.synopsis);
         utterance.rate = 1.0;
         
         utterance.onend = () => {
