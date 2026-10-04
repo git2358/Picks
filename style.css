@@ -226,24 +226,23 @@ html, body {
     top: 0;
     width: 50%;
     height: 100%;
-    /* Rich velvet gradient with many wavy ripple folds */
+    /* Brighter velvet gradient ripples keeping inner folds visible */
     background: linear-gradient(
         90deg,
-        #120000 0%,
-        #330101 8%,
-        #610808 16%,
-        #9c1515 25%,
-        #4a0303 34%,
-        #9c1515 43%,
-        #570606 52%,
-        #a81b1b 61%,
-        #610808 70%,
-        #871010 79%,
-        #420202 88%,
-        #210000 95%,
-        #120000 100%
+        #2a0404 0%,
+        #520b0b 8%,
+        #8a1818 16%,
+        #b82323 25%,
+        #6e1010 34%,
+        #b82323 43%,
+        #7a1313 52%,
+        #cc2b2b 61%,
+        #8a1818 70%,
+        #a82020 79%,
+        #610e0e 88%,
+        #3d0606 95%,
+        #2a0404 100%
     );
-    /* Box shadow overlay for deep background depth casting */
     transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
     z-index: 10000;
     will-change: transform;
@@ -257,7 +256,7 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 15%, rgba(0,0,0,0) 85%, rgba(0,0,0,0.8) 100%);
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 15%, rgba(0,0,0,0) 85%, rgba(0,0,0,0.7) 100%);
     pointer-events: none;
     z-index: 2;
 }
@@ -270,7 +269,7 @@ html, body {
     right: 0;
     width: 45px;
     height: 100%;
-    background: linear-gradient(270deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0) 100%);
+    background: linear-gradient(270deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 100%);
     pointer-events: none;
     z-index: 3;
 }
@@ -282,7 +281,7 @@ html, body {
     left: 0;
     width: 45px;
     height: 100%;
-    background: linear-gradient(90deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0) 100%);
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 100%);
     pointer-events: none;
     z-index: 3;
 }
@@ -290,13 +289,15 @@ html, body {
 .curtain.left {
     left: 0;
     transform: translateX(0) scaleX(1);
-    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
+    /* Crisp layered drop shadow separating curtain from background */
+    box-shadow: 12px 0 25px rgba(0, 0, 0, 0.85), 4px 0 8px rgba(0, 0, 0, 0.6);
 }
 
 .curtain.right {
     right: 0;
     transform: translateX(0) scaleX(1);
-    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.8);
+    /* Crisp layered drop shadow separating curtain from background */
+    box-shadow: -12px 0 25px rgba(0, 0, 0, 0.85), -4px 0 8px rgba(0, 0, 0, 0.6);
 }
 
 /* Opening state: slides out and compresses gradient scale */
