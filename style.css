@@ -213,17 +213,12 @@ html, body {
     height: 100vh;
     z-index: 9999;
     display: flex;
-    pointer-events: none;
+    pointer-events: auto;
     overflow: hidden;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-.curtain-overlay.active {
-    pointer-events: auto;
-    opacity: 1;
-    visibility: visible;
+.curtain-overlay.open {
+    pointer-events: none;
 }
 
 .curtain {
@@ -231,34 +226,52 @@ html, body {
     top: 0;
     width: 50%;
     height: 100%;
-    /* Rich velvet gradient with multiple repeating folds for curves */
-    background: repeating-linear-gradient(
+    /* Rich velvet gradient with multiple smooth wavy folds */
+    background: linear-gradient(
         90deg,
-        #380000 0px,
-        #790606 35px,
-        #b21818 70px,
-        #520202 105px,
-        #991313 140px,
-        #380000 175px
+        #150000 0%,
+        #3d0202 10%,
+        #750b0b 22%,
+        #b81c1c 36%,
+        #5e0505 50%,
+        #b81c1c 64%,
+        #750b0b 78%,
+        #3d0202 90%,
+        #150000 100%
     );
     box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.95);
     transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
     z-index: 10000;
 }
 
+/* Depth shadow overlay for stage curtains */
+.curtain::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 15%, rgba(0,0,0,0) 85%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+}
+
 .curtain.left {
     left: 0;
-    transform: translateX(-100%);
+    transform: translateX(0);
 }
 
 .curtain.right {
     right: 0;
-    transform: translateX(100%);
+    transform: translateX(0);
 }
 
-.curtain-overlay.active .curtain.left,
-.curtain-overlay.active .curtain.right {
-    transform: translateX(0);
+.curtain-overlay.open .curtain.left {
+    transform: translateX(-100%);
+}
+
+.curtain-overlay.open .curtain.right {
+    transform: translateX(100%);
 }
 
 .spotlight-content {
@@ -267,20 +280,23 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.18) 0%, rgba(0, 0, 0, 0.92) 70%);
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.18) 0%, rgba(0, 0, 0, 0.95) 70%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 10001;
     opacity: 0;
-    transition: opacity 0.5s ease 0.7s;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
     text-align: center;
     padding: 2rem;
+    pointer-events: auto;
 }
 
-.curtain-overlay.active .spotlight-content {
+.curtain-overlay.show-spotlight .spotlight-content {
     opacity: 1;
+    visibility: visible;
 }
 
 .spotlight-text {
