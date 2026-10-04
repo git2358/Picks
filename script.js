@@ -1,4 +1,6 @@
 let movies = [];
+let viewedMovies = new Set();
+let currentSynopsisText = "";
 
 async function loadMoviesDatabase() {
     try {
@@ -43,15 +45,28 @@ async function loadMoviesDatabase() {
 async function pickRandomMovie() {
     if (movies.length === 0) return;
 
+    // Stop any active speech when switching movies
+    stopSpeech();
+
     // Smooth scroll back to top on mobile when picking a new movie
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    const randomMovie = movies[Math.floor(Math.random() * movies.length)];
+    // Filter out movies already viewed in this session
+    let availableMovies = movies.filter(m => !viewedMovies.has(`${m.title} (${m.year})`));
+
+    // If all movies have been viewed, reset the session tracker
+    if (availableMovies.length === 0) {
+        viewedMovies.clear();
+        availableMovies = [...movies];
+    }
+
+    const randomMovie = availableMovies[Math.floor(Math.random() * availableMovies.length)];
+    viewedMovies.add(`${randomMovie.title} (${randomMovie.year})`);
     
     document.getElementById('movieTitle').innerText = randomMovie.title;
     document.getElementById('movieYear').innerText = randomMovie.year ? `Released: ${randomMovie.year}` : '';
     
-    // Show loading animations
+    // Show loading animations and hide speech button temporarily
     showLoaders();
     
     const posterImg = document.getElementById('moviePoster');
@@ -74,9 +89,11 @@ async function pickRandomMovie() {
             hideLoaders();
 
             if (summaryData.extract) {
-                document.getElementById('movieSynopsis').innerText = summaryData.extract;
+                currentSynopsisText = summaryData.extract;
+                document.getElementById('movieSynopsis').innerText = currentSynopsisText;
             } else {
-                document.getElementById('movieSynopsis').innerText = "No detailed synopsis available for this selection.";
+                currentSynopsisText = "No detailed synopsis available for this selection.";
+                document.getElementById('movieSynopsis').innerText = currentSynopsisText;
             }
 
             if (summaryData.thumbnail && summaryData.thumbnail.source) {
@@ -87,12 +104,14 @@ async function pickRandomMovie() {
             }
         } else {
             hideLoaders();
-            document.getElementById('movieSynopsis').innerText = "Synopsis could not be found automatically for this title.";
+            currentSynopsisText = "Synopsis could not be found automatically for this title.";
+            document.getElementById('movieSynopsis').innerText = currentSynopsisText;
             setDefaultPoster(randomMovie.title);
         }
     } catch (error) {
         hideLoaders();
-        document.getElementById('movieSynopsis').innerText = "Could not load data connection. Try clicking reload again!";
+        currentSynopsisText = "Could not load data connection. Try clicking reload again!";
+        document.getElementById('movieSynopsis').innerText = currentSynopsisText;
         setDefaultPoster(randomMovie.title);
     }
 }
@@ -100,6 +119,7 @@ async function pickRandomMovie() {
 function showLoaders() {
     document.getElementById('posterLoader').style.display = 'flex';
     document.getElementById('moviePoster').style.display = 'none';
+    document.getElementById('speakBtn').style.display = 'none';
     
     const synopsisContainer = document.getElementById('movieSynopsis');
     synopsisContainer.innerHTML = `
@@ -112,6 +132,7 @@ function showLoaders() {
 function hideLoaders() {
     document.getElementById('posterLoader').style.display = 'none';
     document.getElementById('moviePoster').style.display = 'block';
+    document.getElementById('speakBtn').style.display = 'inline-block';
     
     const synopsisLoader = document.getElementById('synopsisLoader');
     if (synopsisLoader) {
@@ -130,6 +151,80 @@ function applyPoster(url) {
 function setDefaultPoster(title) {
     const fallback = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(title)}`;
     applyPoster(fallback);
+}
+
+// Text-to-Speech logic for Irish Female Voice at 20% rate
+let isSpeaking = false;
+
+function toggleSpeech() {
+    if (!('speechSynthesis' in window)) {
+        alert("Text-to-speech is not supported in your browser.");
+        return;
+    }
+
+    const speakBtn = document.getElementById('speakBtn');
+
+    if (isSpeaking) {
+        stopSpeech();
+        return;
+    }
+
+    if (!currentSynopsisText) return;
+
+    const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
+    utterance.rate = 0.2; // 20% speaking rate
+
+    // Look for Irish Female voice (en-IE)
+    const voices = window.speechSynthesis.getVoices();
+    let selectedVoice = voices.find(v => v.lang.includes('en-IE') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('moira') || v.name.toLowerCase().includes('ora')));
+    
+    // Fallback to any en-IE voice
+    if (!selectedVoice) {
+        selectedVoice = voices.find(v => v.lang.includes('en-IE'));
+    }
+    // Fallback to any English female voice
+    if (!selectedVoice) {
+        selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman')));
+    }
+
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
+    }
+
+    utterance.onstart = () => {
+        isSpeaking = true;
+        speakBtn.classList.add('speaking');
+        speakBtn.innerText = "⏹ Stop Reading";
+    };
+
+    utterance.onend = () => {
+        stopSpeech();
+    };
+
+    utterance.onerror = () => {
+        stopSpeech();
+    };
+
+    window.speechSynthesis.speak(utterance);
+}
+
+function stopSpeech() {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+    isSpeaking = false;
+    const speakBtn = document.getElementById('speakBtn');
+    if (speakBtn) {
+        speakBtn.classList.remove('speaking');
+        speakBtn.innerText = "🔊 Read Synopsis";
+    }
+}
+
+// Preload voices if available
+if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+    };
 }
 
 window.onload = loadMoviesDatabase;
