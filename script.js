@@ -147,7 +147,7 @@ function setDefaultPoster(title) {
     applyPoster(fallback);
 }
 
-// Optimized native speech synthesis tuned for a brighter, perky delivery at 1.1x speed
+// Text-to-Speech logic tuned for a bright, perky delivery at 1.05x speed (5% faster)
 let isSpeaking = false;
 
 function toggleSpeech() {
@@ -166,12 +166,11 @@ function toggleSpeech() {
     if (!currentSynopsisText) return;
 
     const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
-    utterance.rate = 1.1;  // 10% faster than normal
-    utterance.pitch = 1.25; // Higher pitch to make the tone brighter and perkier
+    utterance.rate = 1.05;  // 5% faster than normal speed
+    utterance.pitch = 1.2;  // Slightly elevated pitch for a brighter tone
 
     const voices = window.speechSynthesis.getVoices();
     
-    // Look strictly for Irish English voice models
     let selectedVoice = voices.find(v => 
         (v.lang.replace('_', '-').toLowerCase() === 'en-ie' || v.lang.toLowerCase().includes('irish')) && 
         (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('moira') || v.name.toLowerCase().includes('orla') || v.name.toLowerCase().includes('niamh') || v.name.toLowerCase().includes('ciara'))
@@ -181,7 +180,6 @@ function toggleSpeech() {
         selectedVoice = voices.find(v => v.lang.replace('_', '-').toLowerCase() === 'en-ie');
     }
 
-    // Fallback to a bright, crisp English accent if no local Irish voice package is installed
     if (!selectedVoice) {
         selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('karen') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('zira')));
     }
