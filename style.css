@@ -10,7 +10,7 @@ html, body {
     overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #fff;
-    background-color: transparent;
+    background-color: #0b0b0b;
     position: relative;
     scroll-behavior: smooth;
 }
@@ -204,25 +204,26 @@ html, body {
     transform: translateY(0);
 }
 
-/* Theatre Curtains Overlay */
+/* Full-Screen Theatre Curtains Overlay */
 .curtain-overlay {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
     display: flex;
     pointer-events: none;
     overflow: hidden;
-    border-radius: 16px;
     opacity: 0;
-    transition: opacity 0.4s ease;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .curtain-overlay.active {
     pointer-events: auto;
     opacity: 1;
+    visibility: visible;
 }
 
 .curtain {
@@ -230,10 +231,19 @@ html, body {
     top: 0;
     width: 50%;
     height: 100%;
-    background: linear-gradient(90deg, #5b0000 0%, #a4161a 50%, #5b0000 100%);
-    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+    /* Rich velvet gradient with multiple repeating folds for curves */
+    background: repeating-linear-gradient(
+        90deg,
+        #380000 0px,
+        #790606 35px,
+        #b21818 70px,
+        #520202 105px,
+        #991313 140px,
+        #380000 175px
+    );
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.95);
     transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
-    z-index: 11;
+    z-index: 10000;
 }
 
 .curtain.left {
@@ -257,12 +267,12 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.18) 0%, rgba(0, 0, 0, 0.9) 70%);
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.18) 0%, rgba(0, 0, 0, 0.92) 70%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 12;
+    z-index: 10001;
     opacity: 0;
     transition: opacity 0.5s ease 0.7s;
     text-align: center;
@@ -274,7 +284,7 @@ html, body {
 }
 
 .spotlight-text {
-    font-size: 1.7rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: #fff;
     margin-bottom: 1.5rem;
