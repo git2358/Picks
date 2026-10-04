@@ -31,14 +31,26 @@ async function loadMoviesDatabase() {
 
 async function fetchNextMovie(isInitial = false) {
     if (watchedIndices.length >= movies.length) {
+        // Scroll to top first when reaching the end
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const synopsisArea = document.querySelector('.synopsis-scroll-area');
+        if (synopsisArea) {
+            synopsisArea.scrollTop = 0;
+        }
+
+        // Close curtains
         document.getElementById('curtainOverlay').classList.remove('open');
+        stopSpeech();
+        
+        // Wait for curtains to fully close (1 second) before showing the spotlight content
+        await new Promise(resolve => setTimeout(resolve, 1000));
         document.getElementById('curtainOverlay').classList.add('show-spotlight');
         document.getElementById('reloadBtn').style.display = 'none';
         return;
     }
 
     if (!isInitial) {
-        // Scroll back to top FIRST before closing the curtains
+        // Scroll back to top first before closing the curtains
         window.scrollTo({ top: 0, behavior: 'smooth' });
         const synopsisArea = document.querySelector('.synopsis-scroll-area');
         if (synopsisArea) {
