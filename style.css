@@ -88,6 +88,9 @@ height:100%;
 object-fit:cover;
 border-radius:8px;
 box-shadow:0 8px 20px rgba(0,0,0,.6);
+image-rendering:pixelated;
+image-rendering:crisp-edges;
+filter:contrast(1.1) brightness(1.02);
 }
 
 .info-container {
