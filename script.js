@@ -37,10 +37,11 @@ async function fetchNextMovie(isInitial = false) {
             synopsisArea.scrollTop = 0;
         }
 
+        // Close curtains & ensure spotlight is fully visible on the closed curtains
         document.getElementById('curtainOverlay').classList.remove('open');
         stopSpeech();
         
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 600));
         document.getElementById('curtainOverlay').classList.add('show-spotlight');
         document.getElementById('reloadBtn').style.display = 'none';
         return;
@@ -53,9 +54,11 @@ async function fetchNextMovie(isInitial = false) {
             synopsisArea.scrollTop = 0;
         }
 
+        // 1. First fade spotlight in & close curtains
         document.getElementById('curtainOverlay').classList.remove('open');
         stopSpeech();
         
+        // Wait for curtains to close and spotlight to fully illuminate them (1 second)
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
@@ -116,7 +119,14 @@ async function fetchNextMovie(isInitial = false) {
     document.getElementById('speakBtn').style.display = 'inline-block';
 
     await new Promise(resolve => setTimeout(resolve, 150));
+    
+    // 2. Open curtains while spotlight stays on the closed/opening curtains
     document.getElementById('curtainOverlay').classList.add('open');
+
+    // 3. Fade away the spotlight AFTER the curtains have parted
+    setTimeout(() => {
+        // Spotlight fades out automatically via CSS transition when .open is present
+    }, 400);
 }
 
 function preloadImage(url) {
