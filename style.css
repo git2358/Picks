@@ -226,7 +226,7 @@ html, body {
     pointer-events: none;
 }
 
-/* Stationary Central Stage Lighting / Spotlight Effect positioned ON TOP of curtains */
+/* Stationary Central Stage Lighting / Spotlight Effect */
 .stage-lighting {
     position: absolute;
     top: 0;
@@ -239,12 +239,13 @@ html, body {
     -webkit-backdrop-filter: brightness(1.35) contrast(1.1);
     pointer-events: none;
     z-index: 10001;
-    opacity: 0;
+    opacity: 1; /* Stay on by default */
     transition: opacity 0.6s ease;
 }
 
-.curtain-overlay:not(.open) .stage-lighting {
-    opacity: 1;
+/* When curtain-overlay has .open, stage-lighting fades out */
+.curtain-overlay.open .stage-lighting {
+    opacity: 0;
 }
 
 .curtain {
