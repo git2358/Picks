@@ -147,7 +147,7 @@ function setDefaultPoster(title) {
     applyPoster(fallback);
 }
 
-// Reverted Text-to-Speech logic: Female voice settings (5% faster speed 1.05, perky pitch 1.2)
+// Text-to-Speech logic: Warmer tone (pitch 0.95, speed 1.05) using standard female/neutral system voice
 let isSpeaking = false;
 
 function toggleSpeech() {
@@ -167,7 +167,7 @@ function toggleSpeech() {
 
     const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
     utterance.rate = 1.05;  // 5% faster than normal speed
-    utterance.pitch = 1.2;  // Bright, perky pitch
+    utterance.pitch = 0.95; // Lower, warmer, more natural tone
 
     const voices = window.speechSynthesis.getVoices();
     
