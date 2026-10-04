@@ -11,10 +11,9 @@ async function loadMoviesDatabase() {
         }
         const text = await response.text();
         
-        // Handle both Windows (\r\n) and Unix (\n) line endings cleanly
         movies = text.split(/\r?\n/)
             .map(line => line.trim())
-            .filter(line => line.length > 0 && !line.startsWith('#')); // Ignore comments/empty rows
+            .filter(line => line.length > 0 && !line.startsWith('#'));
 
         if (movies.length === 0) {
             document.getElementById('movieTitle').innerText = "No Movies Found";
@@ -22,7 +21,6 @@ async function loadMoviesDatabase() {
             return;
         }
 
-        // Initial load
         await fetchNextMovie(true);
     } catch (error) {
         console.error("Error loading movies.txt:", error);
@@ -33,7 +31,6 @@ async function loadMoviesDatabase() {
 
 async function fetchNextMovie(isInitial = false) {
     if (watchedIndices.length >= movies.length) {
-        // All movies watched - close curtains and trigger spotlight text
         document.getElementById('curtainOverlay').classList.remove('open');
         document.getElementById('curtainOverlay').classList.add('show-spotlight');
         document.getElementById('reloadBtn').style.display = 'none';
@@ -41,13 +38,18 @@ async function fetchNextMovie(isInitial = false) {
     }
 
     if (!isInitial) {
-        // Close curtains before fetching the next movie
         document.getElementById('curtainOverlay').classList.remove('open');
         stopSpeech();
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for curtains to close
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    // Pick a random unwatched movie
+    // Scroll back to top when getting a new movie
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const synopsisArea = document.querySelector('.synopsis-scroll-area');
+    if (synopsisArea) {
+        synopsisArea.scrollTop = 0;
+    }
+
     let randomIndex;
     do {
         randomIndex = Math.floor(Math.random() * movies.length);
@@ -56,21 +58,18 @@ async function fetchNextMovie(isInitial = false) {
     watchedIndices.push(randomIndex);
     let rawLine = movies[randomIndex];
 
-    // Clean up typical formatting markers (-, *, numbers, etc.)
     let cleaned = rawLine.replace(/^[-–*#\d.]+\s*/, '').trim();
     let title = cleaned;
     let year = '';
 
-    // Match year format at the end of the line (e.g., "Inception 2010" or "Inception (2010)")
     let match = cleaned.match(/^(.*?)(?:\s+\(?(\d{4})\)?)?\s*$/);
     if (match) {
         title = match[1].trim();
         year = match[2] ? match[2].trim() : '';
     }
 
-    // Fetch details from OMDB API
     try {
-        const apiKey = 'trilogy'; // Public backup key or replace with your own
+        const apiKey = 'trilogy';
         const omdbRes = await fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(title)}${year ? '&y=' + year : ''}&apikey=${apiKey}`);
         const data = await omdbRes.json();
 
@@ -98,10 +97,8 @@ async function fetchNextMovie(isInitial = false) {
         };
     }
 
-    // Preload poster image before opening curtains
     await preloadImage(currentMovie.poster);
 
-    // Update DOM content
     document.getElementById('movieTitle').innerText = currentMovie.title;
     document.getElementById('movieYear').innerText = currentMovie.year;
     document.getElementById('movieSynopsis').innerText = currentMovie.synopsis;
@@ -109,7 +106,6 @@ async function fetchNextMovie(isInitial = false) {
     document.getElementById('bgBackdrop').style.backgroundImage = `url('${currentMovie.poster}')`;
     document.getElementById('speakBtn').style.display = 'inline-block';
 
-    // Slight pause to ensure render, then open curtains
     await new Promise(resolve => setTimeout(resolve, 150));
     document.getElementById('curtainOverlay').classList.add('open');
 }
