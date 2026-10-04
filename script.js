@@ -53,9 +53,10 @@ async function pickRandomMovie() {
         return;
     }
 
-    // Close curtains before fetching the next movie card
+    // 1. Close curtains first
     showCurtains();
 
+    // Give curtain close animation time to finish before fetching & preloading data
     setTimeout(async () => {
         const randomMovie = availableMovies[Math.floor(Math.random() * availableMovies.length)];
         viewedMovies.add(`${randomMovie.title} (${randomMovie.year})`);
@@ -64,11 +65,7 @@ async function pickRandomMovie() {
         document.getElementById('movieYear').innerText = randomMovie.year ? randomMovie.year : '';
         document.getElementById('speakBtn').style.display = 'inline-block';
         
-        const posterImg = document.getElementById('moviePoster');
-        const bgBackdrop = document.getElementById('bgBackdrop');
-        
-        posterImg.src = "";
-        bgBackdrop.style.backgroundImage = "none";
+        let targetImgUrl = "";
 
         try {
             const query = encodeURIComponent(`${randomMovie.title} ${randomMovie.year}`);
@@ -94,26 +91,36 @@ async function pickRandomMovie() {
                     const imgHeight = summaryData.thumbnail.height || 0;
 
                     if (imgHeight > imgWidth) {
-                        applyPoster(imgUrl);
+                        targetImgUrl = imgUrl;
                     } else {
-                        setDefaultPoster(randomMovie.title);
+                        targetImgUrl = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(randomMovie.title)}`;
                     }
                 } else {
-                    setDefaultPoster(randomMovie.title);
+                    targetImgUrl = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(randomMovie.title)}`;
                 }
             } else {
                 currentSynopsisText = "Synopsis could not be found automatically for this title.";
                 document.getElementById('movieSynopsis').innerText = currentSynopsisText;
-                setDefaultPoster(randomMovie.title);
+                targetImgUrl = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(randomMovie.title)}`;
             }
         } catch (error) {
             currentSynopsisText = "Could not load data connection. Try clicking reload again!";
             document.getElementById('movieSynopsis').innerText = currentSynopsisText;
-            setDefaultPoster(randomMovie.title);
+            targetImgUrl = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(randomMovie.title)}`;
         }
 
-        // Open curtains to reveal the newly loaded movie card
-        openCurtains();
+        // 2. Preload the poster image behind the closed curtains before opening them
+        const preloadImg = new Image();
+        preloadImg.src = targetImgUrl;
+        preloadImg.onload = () => {
+            applyPoster(targetImgUrl);
+            // 3. Open curtains once data and image are fully loaded
+            openCurtains();
+        };
+        preloadImg.onerror = () => {
+            applyPoster(targetImgUrl);
+            openCurtains();
+        };
 
     }, 800);
 }
@@ -150,11 +157,6 @@ function applyPoster(url) {
     
     posterImg.src = url;
     bgBackdrop.style.backgroundImage = `url("${url}")`;
-}
-
-function setDefaultPoster(title) {
-    const fallback = `https://via.placeholder.com/300x450/222/fff?text=${encodeURIComponent(title)}`;
-    applyPoster(fallback);
 }
 
 // Text-to-Speech logic
