@@ -59,7 +59,8 @@ async function pickRandomMovie() {
     viewedMovies.add(`${randomMovie.title} (${randomMovie.year})`);
     
     document.getElementById('movieTitle').innerText = randomMovie.title;
-    document.getElementById('movieYear').innerText = randomMovie.year ? `Released: ${randomMovie.year}` : '';
+    // Removed "Released: " prefix, showing only the year
+    document.getElementById('movieYear').innerText = randomMovie.year ? randomMovie.year : '';
     
     showLoaders();
     
@@ -147,7 +148,7 @@ function setDefaultPoster(title) {
     applyPoster(fallback);
 }
 
-// Text-to-Speech logic tuned for a bright, perky delivery at 1.05x speed (5% faster)
+// Text-to-Speech logic: 5% faster (1.05), perky pitch (1.2), using available female voice without forced regional accent locks
 let isSpeaking = false;
 
 function toggleSpeech() {
@@ -167,21 +168,19 @@ function toggleSpeech() {
 
     const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
     utterance.rate = 1.05;  // 5% faster than normal speed
-    utterance.pitch = 1.2;  // Slightly elevated pitch for a brighter tone
+    utterance.pitch = 1.2;  // Perky, bright pitch
 
     const voices = window.speechSynthesis.getVoices();
     
+    // Look for any standard English female voice available on the user's system
     let selectedVoice = voices.find(v => 
-        (v.lang.replace('_', '-').toLowerCase() === 'en-ie' || v.lang.toLowerCase().includes('irish')) && 
-        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('moira') || v.name.toLowerCase().includes('orla') || v.name.toLowerCase().includes('niamh') || v.name.toLowerCase().includes('ciara'))
+        v.lang.startsWith('en') && 
+        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('karen') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('hazel'))
     );
     
+    // Fallback to the first available English voice if no specific female keyword matches
     if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.lang.replace('_', '-').toLowerCase() === 'en-ie');
-    }
-
-    if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('karen') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('zira')));
+        selectedVoice = voices.find(v => v.lang.startsWith('en'));
     }
 
     if (selectedVoice) {
