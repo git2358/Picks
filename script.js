@@ -31,10 +31,9 @@ async function loadMoviesDatabase() {
 
 async function fetchNextMovie(isInitial = false) {
     if (watchedIndices.length >= movies.length) {
-        const wrapper = document.querySelector('.wrapper');
-        if (wrapper) wrapper.scrollTop = 0;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         const synopsisArea = document.querySelector('.synopsis-scroll-area');
-        if (synopsisArea) synopsisArea.scrollTop = 0;
+        if (synopsisArea) synopsisArea.scrollTo({ top: 0, behavior: 'smooth' });
 
         const overlay = document.getElementById('curtainOverlay');
         overlay.classList.remove('open');
@@ -54,10 +53,9 @@ async function fetchNextMovie(isInitial = false) {
         overlay.classList.remove('no-light');
         stopSpeech();
 
-        const wrapper = document.querySelector('.wrapper');
-        if (wrapper) wrapper.scrollTop = 0;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         const synopsisArea = document.querySelector('.synopsis-scroll-area');
-        if (synopsisArea) synopsisArea.scrollTop = 0;
+        if (synopsisArea) synopsisArea.scrollTo({ top: 0, behavior: 'smooth' });
 
         // 2. Curtains close over the lit stage
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -126,7 +124,7 @@ async function fetchNextMovie(isInitial = false) {
     const overlay = document.getElementById('curtainOverlay');
     overlay.classList.add('open');
 
-    // 5. Spotlight fades away 500ms (half a second) before the curtains finish opening (500ms instead of 1000ms)
+    // 5. Spotlight fades away 500ms (half a second) before the curtains finish opening
     setTimeout(() => {
         overlay.classList.add('no-light');
     }, 500);
