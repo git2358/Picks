@@ -147,7 +147,7 @@ function setDefaultPoster(title) {
     applyPoster(fallback);
 }
 
-// Text-to-Speech logic for Irish Female Voice at 10% faster rate (1.1 speed)
+// Text-to-Speech logic for a softer, younger, perky Irish female voice at 1.1x speed
 let isSpeaking = false;
 
 function toggleSpeech() {
@@ -167,24 +167,24 @@ function toggleSpeech() {
 
     const utterance = new SpeechSynthesisUtterance(currentSynopsisText);
     utterance.rate = 1.1; // 10% faster than normal speed
+    utterance.pitch = 1.15; // Slightly elevated pitch for a brighter, younger, perkier tone
 
-    // Explicitly find Irish Female Voice (en-IE)
     const voices = window.speechSynthesis.getVoices();
     
-    // 1. Try to find an explicit Irish voice with female identifier keywords or standard Irish names
+    // Prioritize softer/perky Irish female identifiers (Orla, Niamh, Ciara, Moira, or general en-IE female)
     let selectedVoice = voices.find(v => 
-        (v.lang === 'en-IE' || v.lang.toLowerCase().includes('ga-ie') || v.lang.toLowerCase().includes('irish')) && 
-        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('moira') || v.name.toLowerCase().includes('ora') || v.name.toLowerCase().includes('niamh') || v.name.toLowerCase().includes('ciara'))
+        (v.lang.includes('en-IE') || v.lang.toLowerCase().includes('irish')) && 
+        (v.name.toLowerCase().includes('orla') || v.name.toLowerCase().includes('niamh') || v.name.toLowerCase().includes('ciara') || v.name.toLowerCase().includes('moira') || v.name.toLowerCase().includes('female'))
     );
     
-    // 2. If not found, fall back to any voice matching Irish locale code (en-IE)
+    // Fallback to any Irish English (en-IE) voice available
     if (!selectedVoice) {
         selectedVoice = voices.find(v => v.lang.replace('_', '-').toLowerCase() === 'en-ie');
     }
 
-    // 3. If still not found on this specific operating system/browser, fall back to any English female voice
+    // Fallback to a bright/young English female voice if no Irish voice is installed on the system
     if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('susan')));
+        selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('perky') || v.name.toLowerCase().includes('bright') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('karen')));
     }
 
     if (selectedVoice) {
