@@ -12,11 +12,13 @@ const text=await response.text();
 movies=text.split(/\r?\n/)
 .map(line=>line.trim())
 .filter(line=>line.length>0&&!line.startsWith('#'));
+
 if(!movies.length){
 document.getElementById('movieTitle').innerText='No Movies Found';
 document.getElementById('movieSynopsis').innerText='Please add items to your movies.txt file!';
 return;
 }
+
 await fetchNextMovie(true);
 }catch(error){
 console.error('Error loading movies.txt:',error);
@@ -35,6 +37,7 @@ window.scrollTo({top:0,behavior:'smooth'});
 
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
 if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
+
 await new Promise(resolve=>setTimeout(resolve,600));
 overlay.classList.add('show-spotlight');
 document.getElementById('reloadBtn').style.display='none';
@@ -50,6 +53,7 @@ window.scrollTo({top:0,behavior:'smooth'});
 
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
 if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
+
 await new Promise(resolve=>setTimeout(resolve,1000));
 }
 
@@ -75,6 +79,7 @@ year=match[2]?match[2].trim():'';
 currentMovie=await fetchMovieDetailsFromWikipedia(title,year);
 
 await preloadImage(currentMovie.poster);
+
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
 document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
@@ -83,6 +88,7 @@ document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie
 document.getElementById('speakBtn').style.display='inline-block';
 
 await new Promise(resolve=>setTimeout(resolve,150));
+
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.add('open');
 
@@ -131,11 +137,15 @@ if(extractYear&&extractYear[0]!==year)continue;
 }
 }
 
+const poster=summaryData.originalimage?.source||
+summaryData.thumbnail?.source||
+'https://via.placeholder.com/400x600?text=No+Poster';
+
 return{
 title:title,
 year:year||'N/A',
 synopsis:summaryData.extract,
-poster:summaryData.thumbnail?summaryData.thumbnail.source:'https://via.placeholder.com/400x600?text=No+Poster'
+poster:poster
 };
 }
 }
@@ -171,6 +181,7 @@ stopSpeech();
 }else{
 const utterance=new SpeechSynthesisUtterance(currentMovie.synopsis);
 utterance.rate=1;
+
 utterance.onend=()=>{
 isSpeaking=false;
 document.getElementById('speakBtn').classList.remove('speaking');
@@ -179,6 +190,7 @@ document.getElementById('speakBtn').innerText='🔊 Listen';
 
 window.speechSynthesis.speak(utterance);
 isSpeaking=true;
+
 document.getElementById('speakBtn').classList.add('speaking');
 document.getElementById('speakBtn').innerText='⏹ Stop';
 }
@@ -190,6 +202,7 @@ if('speechSynthesis' in window)window.speechSynthesis.cancel();
 isSpeaking=false;
 
 const btn=document.getElementById('speakBtn');
+
 if(btn){
 btn.classList.remove('speaking');
 btn.innerText='🔊 Listen';
