@@ -226,7 +226,7 @@ html, body {
     top: 0;
     width: 50%;
     height: 100%;
-    /* Brighter velvet gradient ripples keeping inner folds visible */
+    /* Velvet gradient ripples */
     background: linear-gradient(
         90deg,
         #2a0404 0%,
@@ -289,14 +289,12 @@ html, body {
 .curtain.left {
     left: 0;
     transform: translateX(0) scaleX(1);
-    /* Crisp layered drop shadow separating curtain from background */
     box-shadow: 12px 0 25px rgba(0, 0, 0, 0.85), 4px 0 8px rgba(0, 0, 0, 0.6);
 }
 
 .curtain.right {
     right: 0;
     transform: translateX(0) scaleX(1);
-    /* Crisp layered drop shadow separating curtain from background */
     box-shadow: -12px 0 25px rgba(0, 0, 0, 0.85), -4px 0 8px rgba(0, 0, 0, 0.6);
 }
 
@@ -309,13 +307,16 @@ html, body {
     transform: translateX(100%) scaleX(0.7);
 }
 
+/* True Spotlight Filter Effect: Brighter center beam via backdrop filter with darkened vignette borders */
 .spotlight-content {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.18) 0%, rgba(0, 0, 0, 0.95) 70%);
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 75%);
+    backdrop-filter: brightness(1.35) contrast(1.1);
+    -webkit-backdrop-filter: brightness(1.35) contrast(1.1);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -323,15 +324,17 @@ html, body {
     z-index: 10001;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.4s ease, visibility 0.4s ease;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
     text-align: center;
     padding: 2rem;
-    pointer-events: auto;
+    pointer-events: none;
 }
 
+/* Spotlight text overlay elements only activate when all movies are finished */
 .curtain-overlay.show-spotlight .spotlight-content {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
 }
 
 .spotlight-text {
