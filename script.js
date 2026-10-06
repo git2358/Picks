@@ -477,7 +477,7 @@ runtime=minutes>=60?Math.floor(minutes/60)+' h '+minutes%60+' min':minutes+' min
 return{
 director:list('P57').slice(0,1).join(''),
 cast:list('P161').slice(0,5),
-genre:list('P136').slice(0,3),
+genre:formatGenres(list('P136').slice(0,3)),
 country:list('P495').slice(0,2),
 language:list('P364').slice(0,2),
 runtime
@@ -512,6 +512,12 @@ blurb=blurb.slice(0,357).replace(/\s+\S*$/,'')+'...';
 }
 
 return blurb;
+}
+
+function formatGenres(genres){
+const clean=[...new Set(genres.map(genre=>genre.replace(/\s+film$/i,'').trim()).filter(Boolean))];
+if(clean.length)clean[clean.length-1]+=' film';
+return clean;
 }
 
 function renderMovieDetails(movie){
@@ -572,7 +578,7 @@ const genres=currentMovie.details?.genre||[];
 const parts=[title];
 
 if(year)parts.push('released '+year);
-genres.forEach(genre=>parts.push(genre));
+genres.forEach((genre,i)=>parts.push(i===0?'it is a '+genre:genre));
 if(currentMovie.blurb)parts.push(currentMovie.blurb);
 if(currentMovie.synopsis)parts.push(currentMovie.synopsis);
 
@@ -597,7 +603,7 @@ utterance.rate=1;
 
 utterance.onend=()=>{
 if(!isSpeaking)return;
-speechTimeout=setTimeout(speakNext,330);
+speechTimeout=setTimeout(speakNext,250);
 };
 
 window.speechSynthesis.speak(utterance);
