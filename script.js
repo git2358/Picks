@@ -516,7 +516,6 @@ return blurb;
 
 function formatGenres(genres){
 const clean=[...new Set(genres.map(genre=>genre.replace(/\s+film$/i,'').trim()).filter(Boolean))];
-if(clean.length)clean[clean.length-1]+=' film';
 return clean;
 }
 
@@ -590,7 +589,7 @@ addSpeech(title);
 
 if(genres.length){
 addSpeech('is a '+genres[0]);
-genres.slice(1).forEach(genre=>addSpeech(genre,125));
+genres.slice(1).forEach((genre,i)=>addSpeech(i===genres.length-2?genre+' film':genre,125));
 }
 
 addSpeech(currentMovie.blurb);
