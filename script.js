@@ -576,15 +576,25 @@ const title=currentMovie.title||'';
 const year=currentMovie.year&&currentMovie.year!=='N/A'?currentMovie.year:'';
 const genres=currentMovie.details?.genre||[];
 const parts=[];
+const pauses=[];
 
-if(year)parts.push('released '+year);
-parts.push(title);
-if(genres.length){
-parts.push('is a '+genres[0]);
-genres.slice(1).forEach(genre=>parts.push(genre));
+const addSpeech=(text,delay=250)=>{
+if(text){
+parts.push(text);
+pauses.push(delay);
 }
-if(currentMovie.blurb)parts.push(currentMovie.blurb);
-if(currentMovie.synopsis)parts.push(currentMovie.synopsis);
+};
+
+addSpeech(year?'released '+year:'');
+addSpeech(title);
+
+if(genres.length){
+addSpeech('is a '+genres[0]);
+genres.slice(1).forEach(genre=>addSpeech(genre,125));
+}
+
+addSpeech(currentMovie.blurb);
+addSpeech(currentMovie.synopsis);
 
 let index=0;
 isSpeaking=true;
@@ -607,7 +617,7 @@ utterance.rate=1;
 
 utterance.onend=()=>{
 if(!isSpeaking)return;
-speechTimeout=setTimeout(speakNext,250);
+speechTimeout=setTimeout(speakNext,pauses[index-1]??250);
 };
 
 window.speechSynthesis.speak(utterance);
