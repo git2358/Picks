@@ -596,8 +596,8 @@ if(genres.length===1){
 addSpeech('is '+genreArticle(genres[0])+' '+genres[0]+' film');
 }else if(genres.length>1){
 addSpeech('is '+genreArticle(genres[0])+' '+genres[0]);
-genres.slice(1,-1).forEach((genre,i)=>addSpeech(genre,i===genres.length-3?0:125));
-addSpeech('and '+genres[genres.length-1]+' film');
+genres.slice(1,-1).forEach(genre=>addSpeech(genre,125));
+addSpeech('and '+genres[genres.length-1]+' film',250);
 }
 
 addSpeech(currentMovie.blurb);
