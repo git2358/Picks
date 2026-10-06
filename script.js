@@ -597,7 +597,7 @@ utterance.rate=1;
 
 utterance.onend=()=>{
 if(!isSpeaking)return;
-speechTimeout=setTimeout(speakNext,1200);
+speechTimeout=setTimeout(speakNext,750);
 };
 
 window.speechSynthesis.speak(utterance);
