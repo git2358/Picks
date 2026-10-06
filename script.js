@@ -595,8 +595,8 @@ addSpeech(title);
 if(genres.length===1){
 addSpeech('is '+genreArticle(genres[0])+' '+genres[0]+' film');
 }else if(genres.length>1){
-addSpeech('is '+genreArticle(genres[0])+' '+genres[0]);
-genres.slice(1,-1).forEach(genre=>addSpeech(genre,125));
+addSpeech('is '+genreArticle(genres[0])+' '+genres[0],genres.length===2?0:125);
+genres.slice(1,-1).forEach((genre,i,items)=>addSpeech(genre,i===items.length-1?0:125));
 addSpeech('and '+genres[genres.length-1]+' film',250);
 }
 
