@@ -299,7 +299,8 @@ const result={
 id:entity.id,
 title:entity.labels?.en?.value||title,
 year:entityYear||year||'',
-wikipediaTitle
+wikipediaTitle,
+claims:entity.claims||{}
 };
 
 wikidataCache.set(cacheKey,result);
