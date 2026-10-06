@@ -407,16 +407,14 @@ original:summary.originalimage?.source||null
 };
 }
 }
-
 const fallback=await searchWikipediaFallback(title,year);
 
 if(fallback){
-const blurb=fallback.description||`A ${year?year+' ':''}film worth discovering.`;
 return{
 title:title,
 year:year||'N/A',
 synopsis:fallback.extract,
-blurb,
+blurb:buildMovieBlurb(fallback.extract,title,year),
 details:{},
 poster:fallback.thumbnail?.source||fallback.originalimage?.source||fallbackPoster,
 original:fallback.originalimage?.source||null
@@ -486,14 +484,32 @@ runtime
 }
 
 function buildMovieBlurb(extract,title,year){
-if(!extract)return 'Movie information currently unavailable.';
-const sentences=extract.match(/[^.!?]+[.!?]+(?:\s|$)/g)||[];
-let blurb=sentences.slice(0,2).join(' ').trim();
-if(sentences.length>1&&/\bis (?:a|an)\b.*\bfilm\b/i.test(sentences[0])){
-blurb=sentences.slice(1,3).join(' ').trim();
+if(!extract)return 'Movie story currently unavailable.';
+
+const sentences=(extract.match(/[^.!?]+[.!?]+(?:\s|$)/g)||[])
+.map(sentence=>sentence.trim())
+.filter(Boolean);
+
+const metadata=/\b(?:is|was)\s+(?:an?|the)\s+(?:19|20)\d{2}\s+(?:American|British|Australian|Canadian|French|German|Italian|Spanish|Japanese|film|movie)\b|\b(?:film|movie)\s+(?:directed|written|produced)\b|\b(?:directed|written|produced)\s+by\b|\b(?:released|premiered)\b|\b(?:starring|stars)\b/i;
+
+const story=/\b(?:follows|follows the|centers on|centres on|about|after|when|where|whose|must|tries|attempts|sets out|travels|returns|discovers|finds|becomes|joins|seeks|searches|escapes|fights|battles|protects|survives|struggles|investigates|is sent|is tasked|is forced|is hired|is drawn|is caught|is stranded|is trapped|is pursued|is targeted|is recruited)\b/i;
+
+const candidates=sentences.filter(sentence=>!metadata.test(sentence));
+
+let selected=candidates.filter(sentence=>story.test(sentence));
+
+if(!selected.length)selected=candidates;
+
+if(!selected.length)return 'Movie story currently unavailable.';
+
+let blurb=selected.slice(0,2).join(' ');
+
+blurb=blurb.replace(/\s+/g,' ').trim();
+
+if(blurb.length>360){
+blurb=blurb.slice(0,357).replace(/\s+\S*$/,'')+'...';
 }
-if(!blurb)blurb=extract.trim();
-if(blurb.length>420)blurb=blurb.slice(0,417).replace(/\s+\S*$/,'')+'...';
+
 return blurb;
 }
 
@@ -549,7 +565,7 @@ return;
 if(isSpeaking){
 stopSpeech();
 }else{
-const utterance=new SpeechSynthesisUtterance(currentMovie.synopsis);
+const utterance=new SpeechSynthesisUtterance(currentMovie.blurb);
 utterance.rate=1;
 
 utterance.onend=()=>{
