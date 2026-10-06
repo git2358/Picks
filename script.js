@@ -245,17 +245,14 @@ return wikidataCache.get(cacheKey);
 }
 
 const languages=['en','fr','it','de','es','cs','ru'];
-const searches=[];
+const searches=languages.map(language=>()=>fetch(
+`https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(title)}&language=${language}&uselang=en&type=item&limit=20&format=json&origin=*`
+).then(response=>response.ok?response.json():null).catch(()=>null));
 
-for(const language of languages){
-searches.push(
-fetch(`https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(title)}&language=${language}&uselang=en&type=item&limit=20&format=json&origin=*`)
-.then(response=>response.ok?response.json():null)
-.catch(()=>null)
-);
+const responses=[];
+for(let i=0;i<searches.length;i+=3){
+responses.push(...await Promise.all(searches.slice(i,i+3).map(search=>search())));
 }
-
-const responses=await Promise.all(searches);
 const ids=new Set();
 
 responses.forEach(data=>{
@@ -462,11 +459,27 @@ const ids=[...new Set([
 ...getClaimIds(claims,'P495'),
 ...getClaimIds(claims,'P364')
 ])];
-const labels=await Promise.all(ids.map(id=>getWikidataEntityLabel(id)));
-const byId=new Map(ids.map((id,i)=>[id,labels[i]]));
-const list=property=>getClaimIds(claims,property).map(id=>byId.get(id)).filter(Boolean);
+
+let labels={};
+
+if(ids.length){
+try{
+const response=await fetch(
+`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids.join('|')}&props=labels&languages=en&format=json&origin=*`
+);
+if(response.ok){
+const data=await response.json();
+Object.entries(data.entities||{}).forEach(([id,entity])=>{
+labels[id]=entity.labels?.en?.value||'';
+});
+}
+}catch(error){}
+}
+
+const list=property=>getClaimIds(claims,property).map(id=>labels[id]).filter(Boolean);
 const runtimeClaim=claims.P2047?.[0]?.mainsnak?.datavalue?.value;
 let runtime='';
+
 if(runtimeClaim?.amount){
 const value=Math.abs(Number(runtimeClaim.amount));
 if(Number.isFinite(value)){
@@ -474,6 +487,7 @@ const minutes=Math.round(value);
 runtime=minutes>=60?Math.floor(minutes/60)+' h '+minutes%60+' min':minutes+' min';
 }
 }
+
 return{
 director:list('P57').slice(0,1).join(''),
 cast:list('P161').slice(0,5),
@@ -485,7 +499,7 @@ runtime
 }
 
 function buildMovieBlurb(extract,title,year){
-if(!extract)return 'Movie story currently unavailable.';
+if(!extract)return '';
 
 const sentences=(extract.match(/[^.!?]+[.!?]+(?:\s|$)/g)||[])
 .map(sentence=>sentence.trim())
@@ -501,7 +515,7 @@ let selected=candidates.filter(sentence=>story.test(sentence));
 
 if(!selected.length)selected=candidates;
 
-if(!selected.length)return 'Movie story currently unavailable.';
+if(!selected.length)return '';
 
 let blurb=selected.slice(0,2).join(' ');
 
