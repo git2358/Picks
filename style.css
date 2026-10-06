@@ -254,6 +254,18 @@ transform:translateY(-2px);
 transform:translateY(0);
 }
 
+.version {
+position:absolute;
+left:50%;
+bottom:.5rem;
+transform:translateX(-50%);
+font-size:.7rem;
+color:rgba(255,255,255,.45);
+text-align:center;
+text-shadow:0 1px 4px rgba(0,0,0,.8);
+z-index:3;
+}
+
 .curtain-overlay {
 position:fixed;
 top:-1px;
