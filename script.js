@@ -568,8 +568,16 @@ stopSpeech();
 const title=currentMovie.title||'';
 const year=currentMovie.year&&currentMovie.year!=='N/A'?currentMovie.year:'';
 const genres=currentMovie.details?.genre||[];
-const genreText=genres.length?genres.join(', ... ')+', ':'';
-const speechText=[title,year?'released '+year:'',genreText,currentMovie.blurb||''].filter(Boolean).join(' ');
+const parts=[title];
+
+if(year)parts.push('released '+year);
+
+genres.forEach(genre=>parts.push(genre));
+
+if(currentMovie.blurb)parts.push(currentMovie.blurb);
+if(currentMovie.synopsis)parts.push(currentMovie.synopsis);
+
+const speechText=parts.join('. ');
 
 const utterance=new SpeechSynthesisUtterance(speechText);
 utterance.rate=1;
