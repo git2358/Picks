@@ -620,7 +620,7 @@ genres.slice(1,-1).forEach((genre,i,items)=>addSpeech(genre,i===items.length-1?0
 addSpeech('and '+genres[genres.length-1]+' film',250);
 }
 
-addSpeech(currentMovie.blurb);
+addSpeech(currentMovie.blurb,currentMovie.blurb?500:250);
 addSpeech(currentMovie.synopsis);
 
 let index=0;
