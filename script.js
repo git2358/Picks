@@ -51,6 +51,7 @@ return;
 }
 
 if(!isInitial){
+document.getElementById('movieBlurbSection').style.display='none';
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.remove('open','no-light');
 stopSpeech();
@@ -60,7 +61,7 @@ window.scrollTo({top:0,behavior:'smooth'});
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
 if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
 
-await new Promise(resolve=>setTimeout(resolve,1000));
+await new Promise(resolve=>setTimeout(resolve,400));
 }
 
 let randomIndex;
@@ -82,16 +83,21 @@ year=match[2]||'';
 }
 
 currentMovie=await fetchMovieDetailsFromWikipedia(title,year);
-await loadPoster(currentMovie);
 
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
 document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
 document.getElementById('movieBlurb').innerText=currentMovie.blurb;
+document.getElementById('movieBlurbSection').style.display=currentMovie.blurb?'':'none';
 document.getElementById('movieDetails').innerHTML=renderMovieDetails(currentMovie);
 document.getElementById('moviePoster').src=currentMovie.poster;
 document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie.poster}')`;
 document.getElementById('speakBtn').style.display='inline-block';
+
+loadPoster(currentMovie).then(()=>{
+document.getElementById('moviePoster').src=currentMovie.poster;
+document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie.poster}')`;
+});
 
 await new Promise(resolve=>setTimeout(resolve,150));
 
