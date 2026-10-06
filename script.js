@@ -575,10 +575,14 @@ stopSpeech();
 const title=currentMovie.title||'';
 const year=currentMovie.year&&currentMovie.year!=='N/A'?currentMovie.year:'';
 const genres=currentMovie.details?.genre||[];
-const parts=[title];
+const parts=[];
 
 if(year)parts.push('released '+year);
-genres.forEach((genre,i)=>parts.push(i===0?'it is a '+genre:genre));
+parts.push(title);
+if(genres.length){
+parts.push('is a '+genres[0]);
+genres.slice(1).forEach(genre=>parts.push(genre));
+}
 if(currentMovie.blurb)parts.push(currentMovie.blurb);
 if(currentMovie.synopsis)parts.push(currentMovie.synopsis);
 
