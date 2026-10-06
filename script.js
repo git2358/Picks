@@ -565,7 +565,13 @@ return;
 if(isSpeaking){
 stopSpeech();
 }else{
-const utterance=new SpeechSynthesisUtterance(currentMovie.blurb);
+const title=currentMovie.title||'';
+const year=currentMovie.year&&currentMovie.year!=='N/A'?currentMovie.year:'';
+const genres=currentMovie.details?.genre||[];
+const genreText=genres.length?genres.join(', ... ')+', ':'';
+const speechText=[title,year?'released '+year:'',genreText,currentMovie.blurb||''].filter(Boolean).join(' ');
+
+const utterance=new SpeechSynthesisUtterance(speechText);
 utterance.rate=1;
 
 utterance.onend=()=>{
