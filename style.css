@@ -257,10 +257,10 @@ transform:translateY(0);
 .version {
 position:absolute;
 left:50%;
-bottom:1rem;
+bottom:2em;
 transform:translateX(-50%);
 font-size:.7rem;
-margin-top:2em;
+margin-top:4em;
 color:rgba(255,255,255,.45);
 text-align:center;
 text-shadow:0 1px 4px rgba(0,0,0,.8);
