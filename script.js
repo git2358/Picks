@@ -587,9 +587,11 @@ pauses.push(delay);
 addSpeech(year?'released '+year:'');
 addSpeech(title);
 
-if(genres.length){
-addSpeech('is a '+genres[0]);
-genres.slice(1).forEach((genre,i)=>addSpeech(i===genres.length-2?genre+' film':genre,125));
+if(genres.length===1){
+addSpeech('is a '+genres[0]+' film');
+}else if(genres.length>1){
+genres.slice(0,-1).forEach(genre=>addSpeech(genre,125));
+addSpeech('and '+genres[genres.length-1]+' film');
 }
 
 addSpeech(currentMovie.blurb);
