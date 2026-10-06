@@ -2,6 +2,7 @@ let movies=[];
 let watchedIndices=[];
 let currentMovie=null;
 let isSpeaking=false;
+let speechTimeout=null;
 
 const fallbackPoster='https://upload.wikimedia.org/wikipedia/commons/2/29/ButterflyDancebis.jpg';
 const wikidataCache=new Map();
@@ -571,33 +572,49 @@ const genres=currentMovie.details?.genre||[];
 const parts=[title];
 
 if(year)parts.push('released '+year);
-
 genres.forEach(genre=>parts.push(genre));
-
 if(currentMovie.blurb)parts.push(currentMovie.blurb);
 if(currentMovie.synopsis)parts.push(currentMovie.synopsis);
 
-const speechText=parts.join('. ');
-
-const utterance=new SpeechSynthesisUtterance(speechText);
-utterance.rate=1;
-
-utterance.onend=()=>{
-isSpeaking=false;
-document.getElementById('speakBtn').classList.remove('speaking');
-document.getElementById('speakBtn').innerText='🔊 Listen';
-};
-
-window.speechSynthesis.speak(utterance);
+let index=0;
 isSpeaking=true;
 
 document.getElementById('speakBtn').classList.add('speaking');
 document.getElementById('speakBtn').innerText='⏹ Stop';
+
+const speakNext=()=>{
+if(!isSpeaking||index>=parts.length){
+if(isSpeaking){
+isSpeaking=false;
+document.getElementById('speakBtn').classList.remove('speaking');
+document.getElementById('speakBtn').innerText='🔊 Listen';
+}
+return;
+}
+
+const utterance=new SpeechSynthesisUtterance(parts[index++]);
+utterance.rate=1;
+
+utterance.onend=()=>{
+if(!isSpeaking)return;
+speechTimeout=setTimeout(speakNext,1200);
+};
+
+window.speechSynthesis.speak(utterance);
+};
+
+speakNext();
 }
 }
 
+
 function stopSpeech(){
 if('speechSynthesis' in window)window.speechSynthesis.cancel();
+
+if(speechTimeout){
+clearTimeout(speechTimeout);
+speechTimeout=null;
+}
 
 isSpeaking=false;
 
@@ -608,5 +625,6 @@ btn.classList.remove('speaking');
 btn.innerText='🔊 Listen';
 }
 }
+
 
 window.onload=loadMoviesDatabase;
