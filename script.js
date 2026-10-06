@@ -90,14 +90,11 @@ document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
 document.getElementById('movieBlurb').innerText=currentMovie.blurb;
 document.getElementById('movieBlurbSection').style.display=currentMovie.blurb?'':'none';
 document.getElementById('movieDetails').innerHTML=renderMovieDetails(currentMovie);
-document.getElementById('moviePoster').src=currentMovie.poster;
-document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie.poster}')`;
 document.getElementById('speakBtn').style.display='inline-block';
 
-loadPoster(currentMovie).then(()=>{
+await loadPoster(currentMovie);
 document.getElementById('moviePoster').src=currentMovie.poster;
 document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie.poster}')`;
-});
 
 await new Promise(resolve=>setTimeout(resolve,150));
 
