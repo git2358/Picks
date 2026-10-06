@@ -514,6 +514,11 @@ blurb=blurb.slice(0,357).replace(/\s+\S*$/,'')+'...';
 return blurb;
 }
 
+function genreArticle(genre){
+const word=genre.trim().toLowerCase();
+return /^(honest|honour|hour|heir|heirloom|herb)\b/.test(word)||/^[aeiou]\b/.test(word)?'an':'a';
+}
+
 function formatGenres(genres){
 const clean=[...new Set(genres.map(genre=>genre.replace(/\s+film$/i,'').trim()).filter(Boolean))];
 return clean;
@@ -588,9 +593,10 @@ addSpeech(year?'released '+year:'');
 addSpeech(title);
 
 if(genres.length===1){
-addSpeech('is a '+genres[0]+' film');
+addSpeech('is '+genreArticle(genres[0])+' '+genres[0]+' film');
 }else if(genres.length>1){
-genres.slice(0,-1).forEach(genre=>addSpeech(genre,125));
+addSpeech('is '+genreArticle(genres[0])+' '+genres[0]);
+genres.slice(1,-1).forEach((genre,i)=>addSpeech(genre,i===genres.length-3?0:125));
 addSpeech('and '+genres[genres.length-1]+' film');
 }
 
