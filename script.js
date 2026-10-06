@@ -400,7 +400,7 @@ return{
 title:title,
 year:year||wikidata.year||'N/A',
 synopsis:summary.extract,
-blurb:summary.description||buildMovieBlurb(title,year||wikidata.year,details),
+blurb:buildMovieBlurb(summary.extract,title,year||wikidata.year),
 details,
 poster:summary.thumbnail?.source||summary.originalimage?.source||fallbackPoster,
 original:summary.originalimage?.source||null
@@ -470,7 +470,10 @@ const runtimeClaim=claims.P2047?.[0]?.mainsnak?.datavalue?.value;
 let runtime='';
 if(runtimeClaim?.amount){
 const value=Math.abs(Number(runtimeClaim.amount));
-if(Number.isFinite(value))runtime=value>=3600?Math.round(value/3600*10)/10+' h':Math.round(value/60)+' min';
+if(Number.isFinite(value)){
+const minutes=Math.round(value);
+runtime=minutes>=60?Math.floor(minutes/60)+' h '+minutes%60+' min':minutes+' min';
+}
 }
 return{
 director:list('P57').slice(0,1).join(''),
@@ -482,14 +485,16 @@ runtime
 };
 }
 
-function buildMovieBlurb(title,year,details){
-const parts=[];
-if(year)parts.push(year);
-if(details.genre?.length)parts.push(details.genre.slice(0,2).join(' and '));
-parts.push('film');
-let blurb='A '+parts.join(' ')+' worth discovering';
-if(details.director)blurb+=', directed by '+details.director;
-return blurb+'.';
+function buildMovieBlurb(extract,title,year){
+if(!extract)return 'Movie information currently unavailable.';
+const sentences=extract.match(/[^.!?]+[.!?]+(?:\s|$)/g)||[];
+let blurb=sentences.slice(0,2).join(' ').trim();
+if(sentences.length>1&&/\bis (?:a|an)\b.*\bfilm\b/i.test(sentences[0])){
+blurb=sentences.slice(1,3).join(' ').trim();
+}
+if(!blurb)blurb=extract.trim();
+if(blurb.length>420)blurb=blurb.slice(0,417).replace(/\s+\S*$/,'')+'...';
+return blurb;
 }
 
 function renderMovieDetails(movie){
