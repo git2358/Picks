@@ -6,6 +6,7 @@ let isSpeaking=false;
 const fallbackPoster='https://upload.wikimedia.org/wikipedia/commons/2/29/ButterflyDancebis.jpg';
 const wikidataCache=new Map();
 const wikipediaCache=new Map();
+const wikidataEntityCache=new Map();
 
 async function loadMoviesDatabase(){
 try{
@@ -85,6 +86,8 @@ await loadPoster(currentMovie);
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
 document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
+document.getElementById('movieBlurb').innerText=currentMovie.blurb;
+document.getElementById('movieDetails').innerHTML=renderMovieDetails(currentMovie);
 document.getElementById('moviePoster').src=currentMovie.poster;
 document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie.poster}')`;
 document.getElementById('speakBtn').style.display='inline-block';
@@ -391,10 +394,13 @@ if(wikidata){
 const summary=await getWikipediaSummary(wikidata.wikipediaTitle);
 
 if(summary){
+const details=await getMovieDetails(wikidata);
 return{
 title:title,
 year:year||wikidata.year||'N/A',
 synopsis:summary.extract,
+blurb:summary.description||buildMovieBlurb(title,year||wikidata.year,details),
+details,
 poster:summary.thumbnail?.source||summary.originalimage?.source||fallbackPoster,
 original:summary.originalimage?.source||null
 };
@@ -404,10 +410,13 @@ original:summary.originalimage?.source||null
 const fallback=await searchWikipediaFallback(title,year);
 
 if(fallback){
+const blurb=fallback.description||`A ${year?year+' ':''}film worth discovering.`;
 return{
 title:title,
 year:year||'N/A',
 synopsis:fallback.extract,
+blurb,
+details:{},
 poster:fallback.thumbnail?.source||fallback.originalimage?.source||fallbackPoster,
 original:fallback.originalimage?.source||null
 };
@@ -420,9 +429,80 @@ return{
 title:title,
 year:year||'N/A',
 synopsis:'Synopsis currently unavailable.',
+blurb:'Movie information currently unavailable.',
+details:{},
 poster:fallbackPoster,
 original:null
 };
+}
+
+async function getWikidataEntityLabel(id){
+if(!id)return '';
+if(wikidataEntityCache.has(id))return wikidataEntityCache.get(id);
+try{
+const response=await fetch(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${id}&props=labels&languages=en&format=json&origin=*`);
+if(!response.ok)return '';
+const data=await response.json();
+const label=data.entities?.[id]?.labels?.en?.value||'';
+wikidataEntityCache.set(id,label);
+return label;
+}catch(error){return '';}
+}
+
+function getClaimIds(claims,property){
+return (claims?.[property]||[]).map(claim=>claim.mainsnak?.datavalue?.value?.id).filter(Boolean);
+}
+
+async function getMovieDetails(wikidata){
+const claims=wikidata.claims||{};
+const ids=[...new Set([
+...getClaimIds(claims,'P57'),
+...getClaimIds(claims,'P161'),
+...getClaimIds(claims,'P136'),
+...getClaimIds(claims,'P495'),
+...getClaimIds(claims,'P364')
+])];
+const labels=await Promise.all(ids.map(id=>getWikidataEntityLabel(id)));
+const byId=new Map(ids.map((id,i)=>[id,labels[i]]));
+const list=property=>getClaimIds(claims,property).map(id=>byId.get(id)).filter(Boolean);
+const runtimeClaim=claims.P2047?.[0]?.mainsnak?.datavalue?.value;
+let runtime='';
+if(runtimeClaim?.amount){
+const value=Math.abs(Number(runtimeClaim.amount));
+if(Number.isFinite(value))runtime=value>=3600?Math.round(value/3600*10)/10+' h':Math.round(value/60)+' min';
+}
+return{
+director:list('P57').slice(0,1).join(''),
+cast:list('P161').slice(0,5),
+genre:list('P136').slice(0,3),
+country:list('P495').slice(0,2),
+language:list('P364').slice(0,2),
+runtime
+};
+}
+
+function buildMovieBlurb(title,year,details){
+const parts=[];
+if(year)parts.push(year);
+if(details.genre?.length)parts.push(details.genre.slice(0,2).join(' and '));
+parts.push('film');
+let blurb='A '+parts.join(' ')+' worth discovering';
+if(details.director)blurb+=', directed by '+details.director;
+return blurb+'.';
+}
+
+function renderMovieDetails(movie){
+const d=movie.details||{};
+const rows=[];
+const add=(label,value)=>{if(value)rows.push(`<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${value}</span></div>`);};
+add('Director',d.director);
+add('Cast',d.cast?.join(', '));
+add('Genre',d.genre?.join(' · '));
+add('Runtime',d.runtime);
+add('Released',movie.year&&movie.year!=='N/A'?movie.year:'');
+add('Country',d.country?.join(' · '));
+add('Language',d.language?.join(' · '));
+return rows.length?rows.join(''):'<div class="detail-row"><span class="detail-value">Additional details unavailable.</span></div>';
 }
 
 function loadPoster(movie){
