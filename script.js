@@ -37,8 +37,6 @@ async function fetchNextMovie(isInitial=false){
 if(watchedIndices.length>=movies.length){
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.remove('open','no-light');
-overlay.classList.add('closing');
-setTimeout(()=>overlay.classList.remove('closing'),1000);
 stopSpeech();
 
 window.scrollTo({top:0,behavior:'smooth'});
