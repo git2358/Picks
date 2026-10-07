@@ -375,22 +375,22 @@ z-index:3;
 
 .curtain.left {
 left:0;
-transform:translateX(0) scaleX(1);
+transform:translateX(0) scaleX(1) skewX(-6deg);
 box-shadow:12px 0 25px rgba(0,0,0,.85),4px 0 8px rgba(0,0,0,.6);
 }
 
 .curtain.right {
 right:0;
-transform:translateX(0) scaleX(1);
+transform:translateX(0) scaleX(1) skewX(6deg);
 box-shadow:-12px 0 25px rgba(0,0,0,.85),-4px 0 8px rgba(0,0,0,.6);
 }
 
 .curtain-overlay.open .curtain.left {
-transform:translateX(-100%) scaleX(.7);
+transform:translateX(-100%) scaleX(.7) skewX(6deg);
 }
 
 .curtain-overlay.open .curtain.right {
-transform:translateX(100%) scaleX(.7);
+transform:translateX(100%) scaleX(.7) skewX(-6deg);
 }
 
 .stage-lighting {
