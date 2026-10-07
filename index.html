@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <title>Random Movie Picker</title>
-<link rel="stylesheet" href="style.css?v=2071fd383f73421f4a5788b117e3f0e5">
+<script>
+const d=new Date(),s=String(d.getFullYear()+d.getMonth()+1+d.getDate()+d.getHours()+d.getMinutes()+d.getSeconds()+d.getMilliseconds()),id=crypto.randomUUID().replaceAll('-',''),v=(s+id).slice(0,32);
+document.write('<link rel="stylesheet" href="style.css?v='+v+'">');
+</script>
 </head>
 <body>
 <div id="bgBackdrop" class="bg-backdrop"></div>
@@ -53,6 +56,9 @@
 <button class="reload-btn" onclick="location.reload()">Refresh to Start Over</button>
 </div>
 </div>
-<script src="script.js?v=2071fd383f73421f4a5788b117e3f0e5"></script>
+<script>
+document.querySelector('.version').textContent=v;
+document.write('<script src="script.js?v='+v+'"><\/script>');
+</script>
 </body>
 </html>
