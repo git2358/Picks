@@ -19,7 +19,7 @@ document.write('<link rel="stylesheet" href="style.css?v='+v+'">');
 <img id="moviePoster" src="" alt="Movie Poster">
 </div>
 <div class="info-container">
-<div class="info-top">
+<div class="info-main">
 <div class="title-speech-row">
 <h1 id="movieTitle" class="movie-title">Loading...</h1>
 <button id="speakBtn" class="speak-btn" onclick="toggleSpeech()" style="display:none">🔊 Listen</button>
@@ -30,7 +30,10 @@ document.write('<link rel="stylesheet" href="style.css?v='+v+'">');
 <h2 class="section-heading">Synopsis</h2>
 <p id="movieSynopsis" class="movie-synopsis">Please ensure movies.txt is loaded correctly.</p>
 </div>
-<div id="movieBlurbSection" class="movie-section">
+</div>
+</div>
+<div class="info-side">
+<div class="movie-section" id="movieBlurbSection">
 <h2 class="section-heading">Movie Blurb</h2>
 <p id="movieBlurb" class="movie-blurb">Loading...</p>
 </div>
@@ -38,10 +41,9 @@ document.write('<link rel="stylesheet" href="style.css?v='+v+'">');
 <h2 class="section-heading">Movie Details</h2>
 <div id="movieDetails" class="movie-details"></div>
 </div>
-</div>
-</div>
 <div class="info-bottom">
 <button id="reloadBtn" class="reload-btn" onclick="fetchNextMovie()">Get Another Movie</button>
+</div>
 </div>
 </div>
 </div>
