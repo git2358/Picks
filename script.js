@@ -17,7 +17,7 @@ const text=await response.text();
 
 movies=text.split(/\r?\n/)
 .map(line=>line.trim())
-.filter(line=>line.length>0&&!line.startsWith('#'));
+.filter(line=>line.length>0&&!line.startsWith('#')&&!line.startsWith('##'));
 
 if(!movies.length){
 document.getElementById('movieTitle').innerText='No Movies Found';
@@ -25,7 +25,16 @@ document.getElementById('movieSynopsis').innerText='Please add items to your mov
 return;
 }
 
+const linkedIndex=findMovieIndexFromHash();
+if(linkedIndex>=0){
+watchedIndices.push(linkedIndex);
+await displayMovieAtIndex(linkedIndex);
+}else{
 await fetchNextMovie(true);
+}
+
+window.addEventListener('popstate',handleMovieUrlChange);
+window.addEventListener('hashchange',handleMovieUrlChange);
 }catch(error){
 console.error('Error loading movies.txt:',error);
 document.getElementById('movieTitle').innerText='Error Loading File';
@@ -33,17 +42,43 @@ document.getElementById('movieSynopsis').innerText='Make sure you are running vi
 }
 }
 
+function parseMovieLine(line){
+const cleaned=line.replace(/^[-–*#\\d.]+\\s*/,'').trim();
+const match=cleaned.match(/^(.*?)(?:\\s+(\\d{4}))?\\s*$/);
+return {title:match?match[1].trim():cleaned,year:match?.[2]||''};
+}
+
+function movieSlug(title,year){
+const slug=title.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/&/g,'and').replace(/[^\\p{L}\\p{N}]+/gu,'_').replace(/^_+|_+$/g,'');
+return (year?slug+'_'+year:slug).toLowerCase();
+}
+
+function findMovieIndexFromHash(){
+const slug=decodeURIComponent(location.hash.slice(1)).toLowerCase();
+if(!slug)return -1;
+return movies.findIndex(line=>{
+const movie=parseMovieLine(line);
+return movieSlug(movie.title,movie.year)===slug;
+});
+}
+
+function handleMovieUrlChange(){
+const index=findMovieIndexFromHash();
+if(index<0)return;
+const movie=parseMovieLine(movies[index]);
+if(currentMovie&&movieSlug(currentMovie.title,currentMovie.year)==movieSlug(movie.title,movie.year))return;
+if(!watchedIndices.includes(index))watchedIndices.push(index);
+displayMovieAtIndex(index);
+}
+
 async function fetchNextMovie(isInitial=false){
 if(watchedIndices.length>=movies.length){
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.remove('open','no-light');
 stopSpeech();
-
 window.scrollTo({top:0,behavior:'smooth'});
-
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
 if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
-
 await new Promise(resolve=>setTimeout(resolve,600));
 overlay.classList.add('show-spotlight');
 document.getElementById('reloadBtn').style.display='none';
@@ -55,12 +90,9 @@ document.getElementById('movieBlurbSection').style.display='none';
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.remove('open','no-light');
 stopSpeech();
-
 window.scrollTo({top:0,behavior:'smooth'});
-
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
 if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
-
 await new Promise(resolve=>setTimeout(resolve,400));
 }
 
@@ -70,17 +102,16 @@ randomIndex=Math.floor(Math.random()*movies.length);
 }while(watchedIndices.includes(randomIndex));
 
 watchedIndices.push(randomIndex);
-
-let cleaned=movies[randomIndex].replace(/^[-–*#\d.]+\s*/,'').trim();
-let title=cleaned;
-let year='';
-
-const match=cleaned.match(/^(.*?)(?:\s+\(?(\d{4})\)?)?\s*$/);
-
-if(match){
-title=match[1].trim();
-year=match[2]||'';
+const parsed=parseMovieLine(movies[randomIndex]);
+const slug=movieSlug(parsed.title,parsed.year);
+if(location.hash.slice(1)!==slug)history.pushState({movie:slug},'',`#${slug}`);
+await displayMovieAtIndex(randomIndex);
 }
+
+async function displayMovieAtIndex(randomIndex){
+const parsed=parseMovieLine(movies[randomIndex]);
+const title=parsed.title;
+const year=parsed.year;
 
 currentMovie=await fetchMovieDetailsFromWikipedia(title,year);
 
@@ -101,13 +132,9 @@ if(posterElement.complete)fitCardToPoster();
 document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie.poster}')`;
 
 await new Promise(resolve=>setTimeout(resolve,150));
-
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.add('open');
-
-setTimeout(()=>{
-overlay.classList.add('no-light');
-},500);
+setTimeout(()=>overlay.classList.add('no-light'),500);
 }
 
 function normaliseTitle(title){
