@@ -210,12 +210,50 @@ font-weight:500;
 flex-shrink:0;
 }
 
+.synopsis-scroll-shell {
+position:relative;
+min-height:0;
+flex:1;
+margin-bottom:1rem;
+overflow:hidden;
+}
+
 .synopsis-scroll-area {
+height:100%;
 min-height:0;
 overflow-y:auto;
 padding-right:.5rem;
-margin-bottom:1rem;
 flex:1;
+}
+
+.synopsis-scroll-shell::before,
+.synopsis-scroll-shell::after {
+content:"";
+position:absolute;
+left:0;
+right:.5rem;
+height:28px;
+z-index:2;
+pointer-events:none;
+opacity:0;
+transition:opacity .2s ease;
+backdrop-filter:blur(3px);
+-webkit-backdrop-filter:blur(3px);
+}
+
+.synopsis-scroll-shell::before {
+top:0;
+background:linear-gradient(180deg,rgba(18,18,18,.72),rgba(18,18,18,.34) 45%,rgba(18,18,18,0));
+}
+
+.synopsis-scroll-shell::after {
+bottom:0;
+background:linear-gradient(0deg,rgba(18,18,18,.78),rgba(18,18,18,.34) 45%,rgba(18,18,18,0));
+}
+
+.synopsis-scroll-shell.has-more-above::before,
+.synopsis-scroll-shell.has-more-below::after {
+opacity:1;
 }
 
 .synopsis-scroll-area::-webkit-scrollbar {
@@ -628,7 +666,17 @@ overflow:visible;
 min-height:0;
 }
 
+.synopsis-scroll-shell {
+display:contents;
+}
+
+.synopsis-scroll-shell::before,
+.synopsis-scroll-shell::after {
+display:none;
+}
+
 .synopsis-scroll-area {
+height:auto;
 overflow:visible;
 padding-right:0;
 margin-bottom:0;
