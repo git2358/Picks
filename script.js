@@ -101,8 +101,14 @@ indicator.classList.remove('visible','ready');
 indicator.style.transform='';
 if(shouldRefresh&&!isPullRefreshing&&movies.length){
 isPullRefreshing=true;
+const previousHash=location.hash;
+const previousMovieSlug=activeMovieSlug;
 try{
 await fetchNextMovie();
+if(activeMovieSlug&&activeMovieSlug!==previousMovieSlug&&location.hash===previousHash){
+const nextSlug=activeMovieSlug;
+history.pushState({movie:nextSlug},'',`#${encodeURIComponent(nextSlug).replace(/%20/g,' ')}`);
+}
 }finally{
 isPullRefreshing=false;
 }
