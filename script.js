@@ -2,6 +2,7 @@ let movies=[];
 let watchedIndices=[];
 let currentMovie=null;
 let activeMovieSlug='';
+let movieDisplayRequest=0;
 let isSpeaking=false;
 let speechTimeout=null;
 
@@ -107,17 +108,23 @@ randomIndex=Math.floor(Math.random()*movies.length);
 watchedIndices.push(randomIndex);
 const parsed=parseMovieLine(movies[randomIndex]);
 const slug=movieSlug(parsed.title,parsed.year);
-if(location.hash.slice(1)!==slug)history.pushState({movie:slug},'',`#${slug}`);
+if(location.hash.slice(1)!==slug){
+if(isInitial)history.replaceState({movie:slug},'',`#${slug}`);
+else history.pushState({movie:slug},'',`#${slug}`);
+}
 await displayMovieAtIndex(randomIndex);
 }
 
 async function displayMovieAtIndex(randomIndex){
+const requestId=++movieDisplayRequest;
 const parsed=parseMovieLine(movies[randomIndex]);
 activeMovieSlug=movieSlug(parsed.title,parsed.year);
 const title=parsed.title;
 const year=parsed.year;
 
-currentMovie=await fetchMovieDetailsFromWikipedia(title,year);
+const movie=await fetchMovieDetailsFromWikipedia(title,year);
+if(requestId!==movieDisplayRequest)return;
+currentMovie=movie;
 
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
@@ -129,6 +136,7 @@ requestAnimationFrame(()=>requestAnimationFrame(updateSynopsisScrollHints));
 document.getElementById('speakBtn').style.display='inline-block';
 
 await loadPoster(currentMovie);
+if(requestId!==movieDisplayRequest)return;
 const posterElement=document.getElementById('moviePoster');
 posterElement.onload=fitCardToPoster;
 posterElement.src=currentMovie.poster;
