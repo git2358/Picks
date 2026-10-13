@@ -562,9 +562,48 @@ function fitCardToPoster(){
 const card=document.querySelector('.content-card');
 const poster=document.getElementById('moviePoster');
 const container=document.querySelector('.poster-container');
+
+if(!card||!poster||!container)return;
+
+let topFill=container.querySelector('.poster-fill-top');
+let bottomFill=container.querySelector('.poster-fill-bottom');
+
+if(!topFill){
+topFill=document.createElement('div');
+topFill.className='poster-fill poster-fill-top';
+container.prepend(topFill);
+}
+if(!bottomFill){
+bottomFill=document.createElement('div');
+bottomFill.className='poster-fill poster-fill-bottom';
+container.append(bottomFill);
+}
+
 if(window.innerWidth<768||!poster.naturalWidth||!poster.naturalHeight){
 card.style.height='';
+container.classList.remove('has-landscape-fill');
+topFill.style.height='0';
+bottomFill.style.height='0';
 return;
+}
+
+const posterWidth=container.clientWidth;
+const posterHeight=posterWidth*poster.naturalHeight/poster.naturalWidth;
+const isWide=poster.naturalWidth/poster.naturalHeight>1.15;
+const cardHeight=isWide?Math.max(560,posterHeight):posterHeight;
+
+card.style.height=`${cardHeight}px`;
+container.classList.toggle('has-landscape-fill',isWide);
+
+if(isWide){
+const spareHeight=Math.max(0,(cardHeight-posterHeight)/2);
+topFill.style.height=`${spareHeight}px`;
+bottomFill.style.height=`${spareHeight}px`;
+container.style.setProperty('--poster-image',`url("${poster.currentSrc||poster.src}")`);
+}else{
+topFill.style.height='0';
+bottomFill.style.height='0';
+}
 }
 card.style.height=`${container.clientWidth*poster.naturalHeight/poster.naturalWidth}px`;
 }
