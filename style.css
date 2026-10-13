@@ -226,34 +226,6 @@ padding-right:.5rem;
 flex:1;
 }
 
-.synopsis-scroll-shell::before,
-.synopsis-scroll-shell::after {
-content:"";
-position:absolute;
-left:0;
-right:.5rem;
-height:38px;
-z-index:2;
-pointer-events:none;
-opacity:0;
-transition:opacity .18s ease;
-backdrop-filter:blur(12px);
--webkit-backdrop-filter:blur(12px);
-}
-
-.synopsis-scroll-shell::before {
-top:0;
-}
-
-.synopsis-scroll-shell::after {
-bottom:0;
-}
-
-.synopsis-scroll-shell.has-more-above::before,
-.synopsis-scroll-shell.has-more-below::after {
-opacity:1;
-}
-
 .synopsis-scroll-area::-webkit-scrollbar {
 width:6px;
 }
