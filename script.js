@@ -50,12 +50,13 @@ return {title:match?match[1].trim():cleaned,year:match?.[2]||''};
 }
 
 function movieSlug(title,year){
-const slug=title.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,'and').replace(/[^\p{L}\p{N}]+/gu,'_').replace(/^_+|_+$/g,'');
-return (year?slug+'_'+year:slug).toLowerCase();
+return normaliseTitle([title,year].filter(Boolean).join(' '));
 }
 
 function findMovieIndexFromHash(){
-const slug=decodeURIComponent(location.hash.slice(1)).toLowerCase();
+let slug=location.hash.slice(1);
+try{slug=decodeURIComponent(slug);}catch(error){}
+slug=normaliseTitle(slug.replace(/_/g,' '));
 if(!slug)return -1;
 return movies.findIndex(line=>{
 const movie=parseMovieLine(line);
