@@ -90,7 +90,7 @@ document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
 document.getElementById('movieBlurb').innerText=currentMovie.blurb;
 document.getElementById('movieBlurbSection').style.display=currentMovie.blurb?'':'none';
 document.getElementById('movieDetails').innerHTML=renderMovieDetails(currentMovie);
-updateSynopsisScrollHints();
+requestAnimationFrame(()=>requestAnimationFrame(updateSynopsisScrollHints));
 document.getElementById('speakBtn').style.display='inline-block';
 
 await loadPoster(currentMovie);
@@ -576,6 +576,13 @@ const synopsisArea=document.querySelector('.synopsis-scroll-area');
 if(synopsisArea){
 synopsisArea.addEventListener('scroll',updateSynopsisScrollHints,{passive:true});
 window.addEventListener('resize',updateSynopsisScrollHints);
+if('ResizeObserver' in window){
+const synopsisResizeObserver=new ResizeObserver(updateSynopsisScrollHints);
+synopsisResizeObserver.observe(synopsisArea);
+const synopsisShell=synopsisArea.closest('.synopsis-scroll-shell');
+if(synopsisShell)synopsisResizeObserver.observe(synopsisShell);
+}
+window.addEventListener('load',updateSynopsisScrollHints);
 }
 
 function fitCardToPoster(){
