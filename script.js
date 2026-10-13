@@ -1,6 +1,7 @@
 let movies=[];
 let watchedIndices=[];
 let currentMovie=null;
+let activeMovieSlug='';
 let isSpeaking=false;
 let speechTimeout=null;
 
@@ -66,7 +67,8 @@ function handleMovieUrlChange(){
 const index=findMovieIndexFromHash();
 if(index<0)return;
 const movie=parseMovieLine(movies[index]);
-if(currentMovie&&movieSlug(currentMovie.title,currentMovie.year)==movieSlug(movie.title,movie.year))return;
+if(activeMovieSlug===movieSlug(movie.title,movie.year))return;
+activeMovieSlug=movieSlug(movie.title,movie.year);
 if(!watchedIndices.includes(index))watchedIndices.push(index);
 displayMovieAtIndex(index);
 }
@@ -110,6 +112,7 @@ await displayMovieAtIndex(randomIndex);
 
 async function displayMovieAtIndex(randomIndex){
 const parsed=parseMovieLine(movies[randomIndex]);
+activeMovieSlug=movieSlug(parsed.title,parsed.year);
 const title=parsed.title;
 const year=parsed.year;
 
