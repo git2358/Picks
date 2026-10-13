@@ -29,7 +29,13 @@ return;
 }
 
 const linkedIndex=findMovieIndexFromHash();
-if(linkedIndex>=0){
+const navigationEntry=performance.getEntriesByType('navigation')[0];
+const isPageRefresh=navigationEntry?.type==='reload';
+
+if(linkedIndex>=0&&isPageRefresh){
+watchedIndices.push(linkedIndex);
+await fetchNextMovie(false);
+}else if(linkedIndex>=0){
 watchedIndices.push(linkedIndex);
 await displayMovieAtIndex(linkedIndex);
 }else{
