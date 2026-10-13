@@ -605,8 +605,6 @@ topFill.style.height='0';
 bottomFill.style.height='0';
 }
 }
-card.style.height=`${container.clientWidth*poster.naturalHeight/poster.naturalWidth}px`;
-}
 
 window.addEventListener('resize',fitCardToPoster);
 
