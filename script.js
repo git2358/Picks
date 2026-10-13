@@ -44,13 +44,13 @@ document.getElementById('movieSynopsis').innerText='Make sure you are running vi
 }
 
 function parseMovieLine(line){
-const cleaned=line.replace(/^[-–*#\\d.]+\\s*/,'').trim();
-const match=cleaned.match(/^(.*?)(?:\\s+(\\d{4}))?\\s*$/);
+const cleaned=line.replace(/^[-–*#\d.]+\s*/,'').trim();
+const match=cleaned.match(/^(.*?)(?:\s+(\d{4}))?\s*$/);
 return {title:match?match[1].trim():cleaned,year:match?.[2]||''};
 }
 
 function movieSlug(title,year){
-const slug=title.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/&/g,'and').replace(/[^\\p{L}\\p{N}]+/gu,'_').replace(/^_+|_+$/g,'');
+const slug=title.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,'and').replace(/[^\p{L}\p{N}]+/gu,'_').replace(/^_+|_+$/g,'');
 return (year?slug+'_'+year:slug).toLowerCase();
 }
 
