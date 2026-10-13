@@ -698,3 +698,33 @@ rgba(0,0,0,.85) 100%
 );
 }
 }
+
+
+#pullRefreshIndicator {
+position:fixed;
+top:0;
+left:50%;
+z-index:1000;
+padding:.65rem 1rem;
+border:1px solid rgba(255,255,255,.2);
+border-radius:0 0 12px 12px;
+background:rgba(20,20,20,.92);
+color:#fff;
+font-size:.85rem;
+font-weight:600;
+box-shadow:0 5px 18px rgba(0,0,0,.3);
+opacity:0;
+pointer-events:none;
+transform:translate(-50%,-70px);
+transition:opacity .15s ease,background .15s ease;
+white-space:nowrap;
+}
+
+#pullRefreshIndicator.visible {
+opacity:1;
+}
+
+#pullRefreshIndicator.ready {
+background:#e50914;
+border-color:#e50914;
+}
