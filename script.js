@@ -3,6 +3,7 @@ let watchedIndices=[];
 let currentMovie=null;
 let activeMovieSlug='';
 let movieDisplayRequest=0;
+let historyNavigationRequest=0;
 let isSpeaking=false;
 let speechTimeout=null;
 
@@ -65,14 +66,26 @@ return movieSlug(movie.title,movie.year)===slug;
 });
 }
 
-function handleMovieUrlChange(){
+async function handleMovieUrlChange(){
 const index=findMovieIndexFromHash();
 if(index<0)return;
 const movie=parseMovieLine(movies[index]);
-if(activeMovieSlug===movieSlug(movie.title,movie.year))return;
-activeMovieSlug=movieSlug(movie.title,movie.year);
+const slug=movieSlug(movie.title,movie.year);
+if(activeMovieSlug===slug)return;
+activeMovieSlug=slug;
+const navigationRequest=++historyNavigationRequest;
 if(!watchedIndices.includes(index))watchedIndices.push(index);
-displayMovieAtIndex(index);
+
+document.getElementById('movieBlurbSection').style.display='none';
+const overlay=document.getElementById('curtainOverlay');
+overlay.classList.remove('open','no-light');
+stopSpeech();
+window.scrollTo({top:0,behavior:'smooth'});
+const synopsisArea=document.querySelector('.synopsis-scroll-area');
+if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
+await new Promise(resolve=>setTimeout(resolve,400));
+if(navigationRequest!==historyNavigationRequest)return;
+await displayMovieAtIndex(index);
 }
 
 async function fetchNextMovie(isInitial=false){
