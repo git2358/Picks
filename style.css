@@ -63,7 +63,7 @@ margin:0 0 4em 0;
 display:flex;
 width:100%;
 max-width:950px;
-height:clamp(540px,calc(100vh - 4rem),680px);
+height:auto;
 min-height:0;
 background:rgba(18,18,18,.75);
 backdrop-filter:blur(14px);
@@ -88,7 +88,7 @@ min-height:0;
 .poster-container img {
 display:block;
 width:100%;
-height:100%;
+height:auto;
 min-width:0;
 min-height:0;
 object-fit:contain;
@@ -547,7 +547,7 @@ padding:0 1rem;
 .content-card {
 flex-direction:column;
 min-height:0;
-height:auto;
+height:auto !important;
 overflow:hidden;
 margin:2rem 0 4rem;
 }
