@@ -232,21 +232,25 @@ content:"";
 position:absolute;
 left:0;
 right:.5rem;
-height:24px;
+height:34px;
 z-index:2;
 pointer-events:none;
 opacity:0;
 transition:opacity .18s ease;
+backdrop-filter:blur(5px);
+-webkit-backdrop-filter:blur(5px);
 }
 
 .synopsis-scroll-shell::before {
 top:0;
-background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.045) 35%,transparent);
+-webkit-mask-image:linear-gradient(to bottom,#000 0%,transparent 100%);
+mask-image:linear-gradient(to bottom,#000 0%,transparent 100%);
 }
 
 .synopsis-scroll-shell::after {
 bottom:0;
-background:linear-gradient(0deg,rgba(255,255,255,.13),rgba(255,255,255,.05) 35%,transparent);
+-webkit-mask-image:linear-gradient(to top,#000 0%,transparent 100%);
+mask-image:linear-gradient(to top,#000 0%,transparent 100%);
 }
 
 .synopsis-scroll-shell.has-more-above::before,
