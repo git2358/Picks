@@ -90,6 +90,7 @@ document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
 document.getElementById('movieBlurb').innerText=currentMovie.blurb;
 document.getElementById('movieBlurbSection').style.display=currentMovie.blurb?'':'none';
 document.getElementById('movieDetails').innerHTML=renderMovieDetails(currentMovie);
+updateSynopsisScrollHints();
 document.getElementById('speakBtn').style.display='inline-block';
 
 await loadPoster(currentMovie);
@@ -556,6 +557,25 @@ add('Released',movie.year&&movie.year!=='N/A'?movie.year:'');
 add('Country',d.country?.join(' · '));
 add('Language',d.language?.join(' · '));
 return rows.length?rows.join(''):'<div class="detail-row"><span class="detail-value">Additional details unavailable.</span></div>';
+}
+
+function updateSynopsisScrollHints(){
+const shell=document.querySelector('.synopsis-scroll-shell');
+const area=document.querySelector('.synopsis-scroll-area');
+if(!shell||!area)return;
+if(window.innerWidth<768){
+shell.classList.remove('has-more-above','has-more-below');
+return;
+}
+const maxScroll=area.scrollHeight-area.clientHeight;
+shell.classList.toggle('has-more-above',area.scrollTop>2);
+shell.classList.toggle('has-more-below',maxScroll-area.scrollTop>2);
+}
+
+const synopsisArea=document.querySelector('.synopsis-scroll-area');
+if(synopsisArea){
+synopsisArea.addEventListener('scroll',updateSynopsisScrollHints,{passive:true});
+window.addEventListener('resize',updateSynopsisScrollHints);
 }
 
 function fitCardToPoster(){
