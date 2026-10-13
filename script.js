@@ -6,6 +6,10 @@ let movieDisplayRequest=0;
 let historyNavigationRequest=0;
 let isSpeaking=false;
 let speechTimeout=null;
+let pullStartY=0;
+let pullTracking=false;
+let isPullRefreshing=false;
+const pullRefreshThreshold=90;
 
 const fallbackPoster='https://upload.wikimedia.org/wikipedia/commons/2/29/ButterflyDancebis.jpg';
 const wikidataCache=new Map();
@@ -44,11 +48,75 @@ await fetchNextMovie(true);
 
 window.addEventListener('popstate',handleMovieUrlChange);
 window.addEventListener('hashchange',handleMovieUrlChange);
+setupPullToRefresh();
 }catch(error){
 console.error('Error loading movies.txt:',error);
 document.getElementById('movieTitle').innerText='Error Loading File';
 document.getElementById('movieSynopsis').innerText='Make sure you are running via a local web server (like VS Code Live Server) so movies.txt can be read correctly.';
 }
+}
+
+function setupPullToRefresh(){
+const indicator=document.createElement('div');
+indicator.id='pullRefreshIndicator';
+indicator.textContent='↓ Pull to get another movie';
+document.body.append(indicator);
+
+let pullDistance=0;
+
+window.addEventListener('touchstart',event=>{
+if(event.touches.length!==1||window.scrollY>0||isPullRefreshing)return;
+if(event.target.closest('.synopsis-scroll-area'))return;
+pullStartY=event.touches[0].clientY;
+pullDistance=0;
+pullTracking=true;
+},{passive:true});
+
+window.addEventListener('touchmove',event=>{
+if(!pullTracking||event.touches.length!==1)return;
+pullDistance=event.touches[0].clientY-pullStartY;
+if(pullDistance<=0){
+indicator.classList.remove('visible','ready');
+return;
+}
+if(window.scrollY>0){
+pullTracking=false;
+indicator.classList.remove('visible','ready');
+return;
+}
+if(pullDistance>8){
+event.preventDefault();
+indicator.classList.add('visible');
+indicator.classList.toggle('ready',pullDistance>=pullRefreshThreshold);
+indicator.textContent=pullDistance>=pullRefreshThreshold?'↑ Release for next movie':'↓ Pull to get another movie';
+indicator.style.transform=`translate(-50%, ${Math.min(pullDistance*0.55,70)-70}px)`;
+}
+},{passive:false});
+
+const finishPull=async()=>{
+if(!pullTracking)return;
+pullTracking=false;
+const shouldRefresh=pullDistance>=pullRefreshThreshold;
+indicator.classList.remove('visible','ready');
+indicator.style.transform='';
+if(shouldRefresh&&!isPullRefreshing&&movies.length){
+isPullRefreshing=true;
+try{
+await fetchNextMovie();
+}finally{
+isPullRefreshing=false;
+}
+}
+pullDistance=0;
+};
+
+window.addEventListener('touchend',finishPull,{passive:true});
+window.addEventListener('touchcancel',()=>{
+pullTracking=false;
+pullDistance=0;
+indicator.classList.remove('visible','ready');
+indicator.style.transform='';
+},{passive:true});
 }
 
 function parseMovieLine(line){
