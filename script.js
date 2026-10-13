@@ -93,7 +93,10 @@ document.getElementById('movieDetails').innerHTML=renderMovieDetails(currentMovi
 document.getElementById('speakBtn').style.display='inline-block';
 
 await loadPoster(currentMovie);
-document.getElementById('moviePoster').src=currentMovie.poster;
+const posterElement=document.getElementById('moviePoster');
+posterElement.onload=fitCardToPoster;
+posterElement.src=currentMovie.poster;
+if(posterElement.complete)fitCardToPoster();
 document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie.poster}')`;
 
 await new Promise(resolve=>setTimeout(resolve,150));
@@ -554,6 +557,19 @@ add('Country',d.country?.join(' · '));
 add('Language',d.language?.join(' · '));
 return rows.length?rows.join(''):'<div class="detail-row"><span class="detail-value">Additional details unavailable.</span></div>';
 }
+
+function fitCardToPoster(){
+const card=document.querySelector('.content-card');
+const poster=document.getElementById('moviePoster');
+const container=document.querySelector('.poster-container');
+if(window.innerWidth<768||!poster.naturalWidth||!poster.naturalHeight){
+card.style.height='';
+return;
+}
+card.style.height=`${container.clientWidth*poster.naturalHeight/poster.naturalWidth}px`;
+}
+
+window.addEventListener('resize',fitCardToPoster);
 
 function loadPoster(movie){
 return new Promise(resolve=>{
