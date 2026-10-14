@@ -157,8 +157,19 @@ const customSearchStorageKey='picksCustomSearchUrl';
 const parseCustomSearchConfig=value=>{
 const input=value.trim();
 const separatorEnd=input.indexOf(';');
-const separator=separatorEnd>=0?(input.slice(0,separatorEnd)||' '):' ';
-const url=(separatorEnd>=0?input.slice(separatorEnd+1):input).trim().replace(/\\:/g,':');
+if(separatorEnd>=0){
+const separator=input.slice(0,separatorEnd)||' ';
+const url=input.slice(separatorEnd+1).trim().replace(/\\:/g,':');
+return {separator,url};
+}
+const urlStart=input.search(/https?:\\/\\//i);
+if(urlStart<0)return {separator:'',url:input};
+const prefix=input.slice(0,urlStart);
+let separator='';
+if(prefix){
+try{separator=decodeURIComponent(prefix);}catch(error){separator=prefix;}
+}
+const url=input.slice(urlStart).trim().replace(/\\:/g,':');
 return {separator,url};
 };
 const isValidCustomSearchUrl=value=>{
@@ -192,8 +203,9 @@ if(!isValidCustomSearchUrl(customSearchUrl.value))return;
 const title=document.getElementById('movieTitle').textContent.trim();
 const year=document.getElementById('movieYear').textContent.trim();
 const movieYear=year&&year!=='N/A'?year:'';
-const formattedName=title.replace(/\s+/g,()=>separator);
-const searchUrl=url.replace(/%name%%year%/gi,`${formattedName}${separator}${movieYear}`).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
+const formattedName=separator?title.replace(/\\s+/g,()=>separator):title;
+const yearSeparator=separator||(movieYear?' ':'');
+const searchUrl=url.replace(/%name%%year%/gi,`${formattedName}${yearSeparator}${movieYear}`).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
 window.open(searchUrl,'_blank','noopener,noreferrer');
 });
 const setFlipped=flipped=>{
