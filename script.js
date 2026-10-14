@@ -215,6 +215,18 @@ return movieSlug(movie.title,movie.year)===slug;
 });
 }
 
+function resetPosterFlipCard(){
+const card=document.getElementById('posterFlipCard');
+const posterLink=document.getElementById('posterLink');
+const menu=document.getElementById('movieSearchMenu');
+if(card)card.classList.remove('is-flipped');
+if(posterLink)posterLink.setAttribute('aria-expanded','false');
+if(menu){
+menu.setAttribute('aria-hidden','true');
+menu.inert=true;
+}
+}
+
 function scrollToTopAndWait(){
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
 window.scrollTo({top:0,behavior:'smooth'});
@@ -249,6 +261,7 @@ document.getElementById('movieBlurbSection').style.display='none';
 document.title='Picks';
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
+resetPosterFlipCard();
 await scrollToTopAndWait();
 overlay.classList.remove('no-light');
 overlay.classList.add('loading-movie');
