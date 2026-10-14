@@ -1272,22 +1272,22 @@ if(text)speakTexts([{text,delay:250}]);
 }
 
 function setupMovieSpeech(){
-const details=document.getElementById('movieDetailsSection');
+const details=document.getElementById('movieDetails');
 if(details){
-const summary=details.querySelector('summary');
-if(summary){
-summary.setAttribute('aria-label','Read movie title, year and introductory details aloud');
-summary.addEventListener('click',event=>{
-event.preventDefault();
+details.addEventListener('click',event=>{
+if(event.target.closest('a,button,input,select,textarea,summary'))return;
 speakMovieIntro();
 });
-summary.addEventListener('keydown',event=>{
+details.setAttribute('tabindex','0');
+details.setAttribute('role','button');
+details.setAttribute('aria-label','Read movie title, year and introductory details aloud');
+details.addEventListener('keydown',event=>{
+if(event.target!==details)return;
 if(event.key==='Enter'||event.key===' '){
 event.preventDefault();
 speakMovieIntro();
 }
 });
-}
 }
 ['movieBlurb','movieSynopsis','moviePlotSummary'].forEach(id=>{
 const element=document.getElementById(id);
