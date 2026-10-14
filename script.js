@@ -55,6 +55,7 @@ if(isHomeScreenApp&&location.hash){
 history.replaceState(null,'',location.pathname+location.search);
 }
 const linkedIndex=isHomeScreenApp?-1:findMovieIndexFromHash();
+applyMovieSectionStates(linkedIndex>=0);
 if(linkedIndex>=0)normaliseMovieUrl(linkedIndex);
 const navigationEntry=performance.getEntriesByType('navigation')[0];
 const isPageRefresh=navigationEntry?.type==='reload';
@@ -271,6 +272,52 @@ const slug=movieSlug(movie.title,movie.year);
 const movieUrl=`#${slug.replace(/\s+/g,'_')}`;
 if(location.hash!==movieUrl)history.replaceState({movie:slug},'',movieUrl);
 return slug;
+}
+
+const sectionStateStorageKey='picks-movie-section-states-v1';
+const defaultMovieSectionStates={
+movieSynopsisSection:false,
+movieBlurbSection:false,
+moviePlotSummarySection:false,
+movieDetailsSection:true
+};
+
+function applyMovieSectionStates(hasMovieHash){
+const sections=Object.keys(defaultMovieSectionStates);
+let states=null;
+if(hasMovieHash){
+try{
+const saved=localStorage.getItem(sectionStateStorageKey);
+if(saved){
+const parsed=JSON.parse(saved);
+if(parsed&&typeof parsed==='object')states=parsed;
+}
+}catch(error){}
+}
+if(!states)states={...defaultMovieSectionStates};
+sections.forEach(id=>{
+const section=document.getElementById(id);
+if(section)section.open=typeof states[id]==='boolean'?states[id]:defaultMovieSectionStates[id];
+});
+sections.forEach(id=>{
+const section=document.getElementById(id);
+if(section&&!section.dataset.statePersistenceBound){
+section.addEventListener('toggle',saveMovieSectionStates);
+section.dataset.statePersistenceBound='true';
+}
+});
+saveMovieSectionStates();
+}
+
+function saveMovieSectionStates(){
+const states={};
+Object.keys(defaultMovieSectionStates).forEach(id=>{
+const section=document.getElementById(id);
+states[id]=section?section.open:defaultMovieSectionStates[id];
+});
+try{
+localStorage.setItem(sectionStateStorageKey,JSON.stringify(states));
+}catch(error){}
 }
 
 function findMovieIndexFromHash(){
