@@ -6,7 +6,6 @@ let movieDisplayRequest=0;
 let historyNavigationRequest=0;
 let isSpeaking=false;
 let speechTimeout=null;
-let inhaleSource=null;
 let pullStartY=0;
 let pullTracking=false;
 let isPullRefreshing=false;
@@ -823,47 +822,6 @@ function prepareSpeechText(text){
 return String(text||'').replace(/\\b(?:1[0-9]{3}|20[0-9]{2})\\b/g,match=>yearToSpeech(match));
 }
 
-function playInhale(onend){
-try{
-const AudioContextClass=window.AudioContext||window.webkitAudioContext;
-if(!AudioContextClass){
-onend();
-return;
-}
-const context=new AudioContextClass();
-context.resume().catch(()=>{});
-const duration=0.85;
-const buffer=context.createBuffer(1,Math.ceil(context.sampleRate*duration),context.sampleRate);
-const data=buffer.getChannelData(0);
-for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
-const source=context.createBufferSource();
-const filter=context.createBiquadFilter();
-const gain=context.createGain();
-source.buffer=buffer;
-filter.type='bandpass';
-filter.frequency.value=1250;
-filter.Q.value=0.65;
-gain.gain.setValueAtTime(0.001,context.currentTime);
-gain.gain.linearRampToValueAtTime(0.045,context.currentTime+0.22);
-gain.gain.setValueAtTime(0.045,context.currentTime+0.42);
-gain.gain.exponentialRampToValueAtTime(0.001,context.currentTime+duration);
-source.connect(filter);
-filter.connect(gain);
-gain.connect(context.destination);
-inhaleSource=source;
-source.onended=()=>{
-inhaleSource=null;
-context.close().catch(()=>{});
-onend();
-};
-source.start();
-source.stop(context.currentTime+duration);
-}catch(error){
-inhaleSource=null;
-onend();
-}
-}
-
 function toggleSpeech(){
 if(!('speechSynthesis' in window)){
 alert('Text-to-speech is not supported in your browser.');
@@ -901,7 +859,6 @@ addSpeech(currentMovie.blurb,currentMovie.blurb?500:250);
 addSpeech(currentMovie.synopsis);
 
 let index=0;
-let inhalePlayed=false;
 isSpeaking=true;
 
 document.getElementById('speakBtn').classList.add('speaking');
@@ -914,14 +871,6 @@ isSpeaking=false;
 document.getElementById('speakBtn').classList.remove('speaking');
 document.getElementById('speakBtn').innerText='🔊 Listen';
 }
-return;
-}
-
-if(index===inhaleBeforeIndex&&!inhalePlayed){
-inhalePlayed=true;
-playInhale(()=>{
-if(isSpeaking)speechTimeout=setTimeout(speakNext,180);
-});
 return;
 }
 
@@ -943,10 +892,6 @@ speakNext();
 
 function stopSpeech(){
 if('speechSynthesis' in window)window.speechSynthesis.cancel();
-if(inhaleSource){
-try{inhaleSource.stop();}catch(error){}
-inhaleSource=null;
-}
 
 if(speechTimeout){
 clearTimeout(speechTimeout);
