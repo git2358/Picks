@@ -607,11 +607,7 @@ transition:opacity .5s ease;
 animation:stageSpotlightFigureEight 5s linear infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-.curtain-overlay.loading-movie .stage-lighting {
-animation-duration:8s;
-}
-}
+
 
 .curtain-overlay.no-light .stage-lighting {
 opacity:0;
