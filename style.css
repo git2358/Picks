@@ -454,12 +454,6 @@ justify-content:flex-start;
 gap:.3rem;
 padding:1rem .6rem 3.2rem;
 }
-.poster-flip-card.has-wide-poster .poster-back-movie-title {
-margin-top:.6rem;
-}
-.poster-flip-card.has-wide-poster .poster-back-movie-year {
-margin-bottom:.55rem;
-}
 .poster-flip-card.has-wide-poster .movie-search-menu .movie-search-close {
 left:.6rem;
 bottom:.6rem;
@@ -514,9 +508,18 @@ font-weight:800;
 line-height:1.15;
 text-align:center;
 text-wrap:balance;
-margin-top:2rem;
 text-shadow:0 2px 8px rgba(0,0,0,.95);
 overflow-wrap:anywhere;
+}
+.poster-back-heading {
+position:relative;
+z-index:1;
+flex:1 1 auto;
+min-height:0;
+display:flex;
+flex-direction:column;
+justify-content:center;
+gap:.3rem;
 }
 .poster-back-movie-year {
 position:relative;
@@ -530,12 +533,13 @@ line-height:1.1;
 text-align:center;
 text-shadow:0 2px 7px rgba(0,0,0,.95);
 }
-.movie-search-actions {
+ .movie-search-actions {
 display:flex;
 flex-direction:column;
 gap:.4rem;
 width:100%;
-margin:auto 0;
+margin:0;
+flex:0 0 auto;
 min-height:0;
 }
 .poster-flip-card.has-wide-poster .movie-search-actions {
@@ -608,10 +612,6 @@ transition:none;
 }
 
 @media (min-width:768px) {
-.poster-flip-card:not(.has-wide-poster) .poster-back-movie-title {
-margin-top:3rem;
-}
-
 .speak-btn {
 opacity:.25;
 transition:background .2s,transform .1s,opacity .2s;
@@ -991,9 +991,6 @@ background:linear-gradient(
 }
 
 @media (max-width:767px) {
-.poster-flip-card.has-wide-poster .poster-back-movie-title {
-margin-top:1rem;
-}
 .wrapper {
 align-items:flex-start;
 min-height:100vh;
