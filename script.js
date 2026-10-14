@@ -18,6 +18,7 @@ const wikidataCache=new Map();
 const wikipediaCache=new Map();
 const wikidataEntityCache=new Map();
 const movieDetailsCache=new Map();
+const plotSummaryCache=new Map();
 let prefetchedNextIndex=null;
 let prefetchInProgress=null;
 
@@ -505,6 +506,8 @@ document.getElementById('posterBackMovieYear').innerText=currentMovie.year;
 document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
 document.getElementById('movieBlurb').innerText=currentMovie.blurb;
 document.getElementById('movieBlurbSection').style.display=currentMovie.blurb?'':'none';
+document.getElementById('moviePlotSummary').innerText=currentMovie.plotSummary||'';
+document.getElementById('moviePlotSummarySection').hidden=!currentMovie.plotSummary;
 document.getElementById('movieDetails').innerHTML=renderMovieDetails(currentMovie);
 requestAnimationFrame(()=>requestAnimationFrame(updateSynopsisScrollHints));
 document.getElementById('speakBtn').style.display='inline-block';
@@ -824,6 +827,39 @@ return null;
 }
 }
 
+async function getWikipediaPlotSummary(pageTitle){
+if(!pageTitle)return '';
+if(plotSummaryCache.has(pageTitle))return plotSummaryCache.get(pageTitle);
+try{
+const sectionsUrl='https://en.wikipedia.org/w/api.php?action=parse&page='+encodeURIComponent(pageTitle)+'&prop=sections&format=json&origin=*';
+const sectionsResponse=await fetch(sectionsUrl);
+if(!sectionsResponse.ok)return '';
+const sectionsData=await sectionsResponse.json();
+const sections=sectionsData.parse?.sections||[];
+const plotSection=sections.find(section=>/^plot(?:\s|$)/i.test(section.line||''))||
+sections.find(section=>/plot|synopsis/i.test(section.line||''));
+if(!plotSection){
+plotSummaryCache.set(pageTitle,'');
+return '';
+}
+const textUrl='https://en.wikipedia.org/w/api.php?action=parse&page='+encodeURIComponent(pageTitle)+'&prop=text&section='+encodeURIComponent(plotSection.index)+'&format=json&origin=*';
+const textResponse=await fetch(textUrl);
+if(!textResponse.ok)return '';
+const textData=await textResponse.json();
+const documentContent=new DOMParser().parseFromString(textData.parse?.text?.['*']||'','text/html');
+documentContent.querySelectorAll('sup.reference,.mw-editsection,.navbox,table,style,script,.hatnote,.shortdescription,.metadata,.mw-empty-elt,.toc').forEach(element=>element.remove());
+const paragraphs=[...documentContent.querySelectorAll('p')]
+.map(paragraph=>paragraph.textContent.replace(/\[\d+\]/g,'').replace(/\s+/g,' ').trim())
+.filter(paragraph=>paragraph.length>25);
+const plotSummary=paragraphs.join('\n\n').trim();
+plotSummaryCache.set(pageTitle,plotSummary);
+return plotSummary;
+}catch(error){
+console.error('Wikipedia plot summary error:',error);
+return '';
+}
+}
+
 async function searchWikipediaFallback(title,year){
 const queries=[
 `"${title}" ${year} film`,
@@ -877,12 +913,16 @@ if(wikidata){
 const summary=await getWikipediaSummary(wikidata.wikipediaTitle);
 
 if(summary){
-const details=await getMovieDetails(wikidata);
+const [details,plotSummary]=await Promise.all([
+getMovieDetails(wikidata),
+getWikipediaPlotSummary(wikidata.wikipediaTitle)
+]);
 return{
 title:title,
 year:year||wikidata.year||'N/A',
 synopsis:summary.extract,
 blurb:buildMovieBlurb(summary.extract,title,year||wikidata.year),
+plotSummary,
 details,
 poster:summary.thumbnail?.source||summary.originalimage?.source||fallbackPoster,
 original:summary.originalimage?.source||null
@@ -892,11 +932,13 @@ original:summary.originalimage?.source||null
 const fallback=await searchWikipediaFallback(title,year);
 
 if(fallback){
+const plotSummary=await getWikipediaPlotSummary(fallback.title);
 return{
 title:title,
 year:year||'N/A',
 synopsis:fallback.extract,
 blurb:buildMovieBlurb(fallback.extract,title,year),
+plotSummary,
 details:{},
 poster:fallback.thumbnail?.source||fallback.originalimage?.source||fallbackPoster,
 original:fallback.originalimage?.source||null
@@ -911,6 +953,7 @@ title:title,
 year:year||'N/A',
 synopsis:'Synopsis currently unavailable.',
 blurb:'Movie information currently unavailable.',
+plotSummary:'',
 details:{},
 poster:fallbackPoster,
 original:null
@@ -1180,9 +1223,9 @@ genres.slice(1,-1).forEach((genre,i,items)=>addSpeech(genre,i===items.length-1?0
 addSpeech('and '+genres[genres.length-1]+' film',250);
 }
 
-addSpeech(currentMovie.blurb,currentMovie.blurb?1000:250);
-if(currentMovie.blurb&&currentMovie.synopsis)addSpeech('Furthermore');
-addSpeech(currentMovie.synopsis);
+addSpeech(currentMovie.blurb,currentMovie.blurb?750:250);
+addSpeech(currentMovie.synopsis,currentMovie.synopsis?750:250);
+addSpeech(currentMovie.plotSummary,250);
 
 let index=0;
 isSpeaking=true;
