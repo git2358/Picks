@@ -624,10 +624,17 @@ transform:translateY(0);
 display:block;
 appearance:none;
 -webkit-appearance:none;
+background:rgba(229,9,20,.2);
 outline:none;
 font-weight:600;
 letter-spacing:0;
 text-align:left;
+transition:background .2s,border-color .2s;
+}
+.movie-search-menu .custom-search-url:hover,
+.movie-search-menu .custom-search-url:focus-visible {
+background:#e50914;
+border-color:#e50914;
 }
 .movie-search-menu .custom-search-url::placeholder {
 color:rgba(255,255,255,.72);
