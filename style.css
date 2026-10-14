@@ -589,9 +589,22 @@ opacity:1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-#movingSpotlight {
+#movingSpotlight,
+.curtain-overlay.loading-movie .stage-lighting {
 animation-duration:8s;
 }
+}
+
+@property --stage-spot-x {
+syntax:"<length>";
+inherits:false;
+initial-value:0px;
+}
+
+@property --stage-spot-y {
+syntax:"<length>";
+inherits:false;
+initial-value:0px;
 }
 
 .stage-lighting {
@@ -600,7 +613,7 @@ inset:0;
 width:100%;
 height:100%;
 background:radial-gradient(
-circle 40vw at center,
+circle 40vw at calc(50% + var(--stage-spot-x, 0px)) calc(50% + var(--stage-spot-y, 0px)),
 rgba(255,255,255,.12) 0%,
 rgba(255,255,255,.08) 28%,
 rgba(255,255,255,.02) 48%,
@@ -613,6 +626,94 @@ pointer-events:none;
 z-index:10001;
 opacity:1;
 transition:opacity .5s ease;
+}
+
+@keyframes stageSpotlightFigureEight {
+0% { --stage-spot-x:27.00vw; --stage-spot-y:0.00vh; }
+1.25% { --stage-spot-x:26.75vw; --stage-spot-y:1.71vh; }
+2.50% { --stage-spot-x:26.03vw; --stage-spot-y:3.32vh; }
+3.75% { --stage-spot-x:24.90vw; --stage-spot-y:4.74vh; }
+5% { --stage-spot-x:23.44vw; --stage-spot-y:5.90vh; }
+6.25% { --stage-spot-x:21.76vw; --stage-spot-y:6.78vh; }
+7.50% { --stage-spot-x:19.95vw; --stage-spot-y:7.38vh; }
+8.75% { --stage-spot-x:18.08vw; --stage-spot-y:7.70vh; }
+10% { --stage-spot-x:16.23vw; --stage-spot-y:7.78vh; }
+11.25% { --stage-spot-x:14.44vw; --stage-spot-y:7.64vh; }
+12.50% { --stage-spot-x:12.73vw; --stage-spot-y:7.33vh; }
+13.75% { --stage-spot-x:11.11vw; --stage-spot-y:6.88vh; }
+15% { --stage-spot-x:9.59vw; --stage-spot-y:6.32vh; }
+16.25% { --stage-spot-x:8.17vw; --stage-spot-y:5.68vh; }
+17.50% { --stage-spot-x:6.83vw; --stage-spot-y:4.96vh; }
+18.75% { --stage-spot-x:5.57vw; --stage-spot-y:4.20vh; }
+20% { --stage-spot-x:4.38vw; --stage-spot-y:3.39vh; }
+21.25% { --stage-spot-x:3.24vw; --stage-spot-y:2.57vh; }
+22.50% { --stage-spot-x:2.14vw; --stage-spot-y:1.72vh; }
+23.75% { --stage-spot-x:1.06vw; --stage-spot-y:0.86vh; }
+25% { --stage-spot-x:0.00vw; --stage-spot-y:0.00vh; }
+26.25% { --stage-spot-x:-1.06vw; --stage-spot-y:-0.86vh; }
+27.50% { --stage-spot-x:-2.14vw; --stage-spot-y:-1.72vh; }
+28.75% { --stage-spot-x:-3.24vw; --stage-spot-y:-2.57vh; }
+30% { --stage-spot-x:-4.38vw; --stage-spot-y:-3.39vh; }
+31.25% { --stage-spot-x:-5.57vw; --stage-spot-y:-4.20vh; }
+32.50% { --stage-spot-x:-6.83vw; --stage-spot-y:-4.96vh; }
+33.75% { --stage-spot-x:-8.17vw; --stage-spot-y:-5.68vh; }
+35% { --stage-spot-x:-9.59vw; --stage-spot-y:-6.32vh; }
+36.25% { --stage-spot-x:-11.11vw; --stage-spot-y:-6.88vh; }
+37.50% { --stage-spot-x:-12.73vw; --stage-spot-y:-7.33vh; }
+38.75% { --stage-spot-x:-14.44vw; --stage-spot-y:-7.64vh; }
+40% { --stage-spot-x:-16.23vw; --stage-spot-y:-7.78vh; }
+41.25% { --stage-spot-x:-18.08vw; --stage-spot-y:-7.70vh; }
+42.50% { --stage-spot-x:-19.95vw; --stage-spot-y:-7.38vh; }
+43.75% { --stage-spot-x:-21.76vw; --stage-spot-y:-6.78vh; }
+45% { --stage-spot-x:-23.44vw; --stage-spot-y:-5.90vh; }
+46.25% { --stage-spot-x:-24.90vw; --stage-spot-y:-4.74vh; }
+47.50% { --stage-spot-x:-26.03vw; --stage-spot-y:-3.32vh; }
+48.75% { --stage-spot-x:-26.75vw; --stage-spot-y:-1.71vh; }
+50% { --stage-spot-x:-27.00vw; --stage-spot-y:-0.00vh; }
+51.25% { --stage-spot-x:-26.75vw; --stage-spot-y:1.71vh; }
+52.50% { --stage-spot-x:-26.03vw; --stage-spot-y:3.32vh; }
+53.75% { --stage-spot-x:-24.90vw; --stage-spot-y:4.74vh; }
+55% { --stage-spot-x:-23.44vw; --stage-spot-y:5.90vh; }
+56.25% { --stage-spot-x:-21.76vw; --stage-spot-y:6.78vh; }
+57.50% { --stage-spot-x:-19.95vw; --stage-spot-y:7.38vh; }
+58.75% { --stage-spot-x:-18.08vw; --stage-spot-y:7.70vh; }
+60% { --stage-spot-x:-16.23vw; --stage-spot-y:7.78vh; }
+61.25% { --stage-spot-x:-14.44vw; --stage-spot-y:7.64vh; }
+62.50% { --stage-spot-x:-12.73vw; --stage-spot-y:7.33vh; }
+63.75% { --stage-spot-x:-11.11vw; --stage-spot-y:6.88vh; }
+65% { --stage-spot-x:-9.59vw; --stage-spot-y:6.32vh; }
+66.25% { --stage-spot-x:-8.17vw; --stage-spot-y:5.68vh; }
+67.50% { --stage-spot-x:-6.83vw; --stage-spot-y:4.96vh; }
+68.75% { --stage-spot-x:-5.57vw; --stage-spot-y:4.20vh; }
+70% { --stage-spot-x:-4.38vw; --stage-spot-y:3.39vh; }
+71.25% { --stage-spot-x:-3.24vw; --stage-spot-y:2.57vh; }
+72.50% { --stage-spot-x:-2.14vw; --stage-spot-y:1.72vh; }
+73.75% { --stage-spot-x:-1.06vw; --stage-spot-y:0.86vh; }
+75% { --stage-spot-x:-0.00vw; --stage-spot-y:0.00vh; }
+76.25% { --stage-spot-x:1.06vw; --stage-spot-y:-0.86vh; }
+77.50% { --stage-spot-x:2.14vw; --stage-spot-y:-1.72vh; }
+78.75% { --stage-spot-x:3.24vw; --stage-spot-y:-2.57vh; }
+80% { --stage-spot-x:4.38vw; --stage-spot-y:-3.39vh; }
+81.25% { --stage-spot-x:5.57vw; --stage-spot-y:-4.20vh; }
+82.50% { --stage-spot-x:6.83vw; --stage-spot-y:-4.96vh; }
+83.75% { --stage-spot-x:8.17vw; --stage-spot-y:-5.68vh; }
+85% { --stage-spot-x:9.59vw; --stage-spot-y:-6.32vh; }
+86.25% { --stage-spot-x:11.11vw; --stage-spot-y:-6.88vh; }
+87.50% { --stage-spot-x:12.73vw; --stage-spot-y:-7.33vh; }
+88.75% { --stage-spot-x:14.44vw; --stage-spot-y:-7.64vh; }
+90% { --stage-spot-x:16.23vw; --stage-spot-y:-7.78vh; }
+91.25% { --stage-spot-x:18.08vw; --stage-spot-y:-7.70vh; }
+92.50% { --stage-spot-x:19.95vw; --stage-spot-y:-7.38vh; }
+93.75% { --stage-spot-x:21.76vw; --stage-spot-y:-6.78vh; }
+95% { --stage-spot-x:23.44vw; --stage-spot-y:-5.90vh; }
+96.25% { --stage-spot-x:24.90vw; --stage-spot-y:-4.74vh; }
+97.50% { --stage-spot-x:26.03vw; --stage-spot-y:-3.32vh; }
+98.75% { --stage-spot-x:26.75vw; --stage-spot-y:-1.71vh; }
+100% { --stage-spot-x:27.00vw; --stage-spot-y:-0.00vh; }
+}
+
+.curtain-overlay.loading-movie .stage-lighting {
+animation:stageSpotlightFigureEight 3s linear infinite;
 }
 
 .curtain-overlay.no-light .stage-lighting {
@@ -805,7 +906,7 @@ margin-top:1.5rem;
 
 .stage-lighting {
 background:radial-gradient(
-circle 40vh at center,
+circle 40vh at calc(50% + var(--stage-spot-x, 0px)) calc(50% + var(--stage-spot-y, 0px)),
 rgba(255,255,255,.12) 0%,
 rgba(255,255,255,.08) 28%,
 rgba(255,255,255,.02) 48%,
