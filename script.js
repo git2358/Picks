@@ -197,9 +197,10 @@ updateCustomSearchState();
 watchNowButton.addEventListener('click',()=>{
 const {separator,url}=parseCustomSearchConfig(customSearchUrl.value);
 if(!isValidCustomSearchUrl(customSearchUrl.value))return;
-const title=document.getElementById('movieTitle').textContent.trim();
-const year=document.getElementById('movieYear').textContent.trim();
-const movieYear=year&&year!=='N/A'?year:'';
+const rawTitle=document.getElementById('movieTitle').textContent.trim();
+const title=rawTitle.replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim();
+const rawYear=document.getElementById('movieYear').textContent.trim();
+const movieYear=rawYear&&rawYear!=='N/A'?rawYear.replace(/\D/g,''):'';
 const formattedName=separator?title.replace(/\s+/g,()=>separator):title;
 const yearSeparator=separator||(movieYear?' ':'');
 const searchUrl=url.replace(/%name%%year%/gi,`${formattedName}${yearSeparator}${movieYear}`).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
