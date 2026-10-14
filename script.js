@@ -141,6 +141,27 @@ return movieSlug(movie.title,movie.year)===slug;
 });
 }
 
+function scrollToTopAndWait(){
+const synopsisArea=document.querySelector('.synopsis-scroll-area');
+window.scrollTo({top:0,behavior:'smooth'});
+if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
+return new Promise(resolve=>{
+let stableFrames=0;
+const checkScroll=()=>{
+const pageAtTop=window.scrollY<=1;
+const synopsisAtTop=!synopsisArea||synopsisArea.scrollTop<=1;
+if(pageAtTop&&synopsisAtTop){
+stableFrames++;
+if(stableFrames>=3){resolve();return;}
+}else{
+stableFrames=0;
+}
+requestAnimationFrame(checkScroll);
+};
+requestAnimationFrame(checkScroll);
+});
+}
+
 async function handleMovieUrlChange(){
 const index=findMovieIndexFromHash();
 if(index<0)return;
@@ -154,9 +175,7 @@ if(!watchedIndices.includes(index))watchedIndices.push(index);
 document.getElementById('movieBlurbSection').style.display='none';
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
-window.scrollTo({top:0,behavior:'smooth'});
-const synopsisArea=document.querySelector('.synopsis-scroll-area');
-if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
+await scrollToTopAndWait();
 overlay.classList.remove('no-light');
 overlay.classList.add('loading-movie');
 await new Promise(resolve=>setTimeout(resolve,300));
@@ -169,11 +188,9 @@ await displayMovieAtIndex(index);
 async function fetchNextMovie(isInitial=false){
 if(watchedIndices.length>=movies.length){
 const overlay=document.getElementById('curtainOverlay');
-overlay.classList.remove('open','no-light','loading-movie');
 stopSpeech();
-window.scrollTo({top:0,behavior:'smooth'});
-const synopsisArea=document.querySelector('.synopsis-scroll-area');
-if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
+await scrollToTopAndWait();
+overlay.classList.remove('open','no-light','loading-movie');
 await new Promise(resolve=>setTimeout(resolve,600));
 overlay.classList.add('show-spotlight');
 document.getElementById('reloadBtn').style.display='none';
@@ -184,9 +201,7 @@ if(!isInitial){
 document.getElementById('movieBlurbSection').style.display='none';
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
-window.scrollTo({top:0,behavior:'smooth'});
-const synopsisArea=document.querySelector('.synopsis-scroll-area');
-if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
+await scrollToTopAndWait();
 overlay.classList.remove('no-light');
 overlay.classList.add('loading-movie');
 await new Promise(resolve=>setTimeout(resolve,300));
