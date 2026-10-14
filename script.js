@@ -101,14 +101,8 @@ indicator.classList.remove('visible','ready');
 indicator.style.transform='';
 if(shouldRefresh&&!isPullRefreshing&&movies.length){
 isPullRefreshing=true;
-const previousHash=location.hash;
-const previousMovieSlug=activeMovieSlug;
 try{
 await fetchNextMovie();
-if(activeMovieSlug&&activeMovieSlug!==previousMovieSlug&&location.hash===previousHash){
-const nextSlug=activeMovieSlug;
-history.pushState({movie:nextSlug},'',`#${encodeURIComponent(nextSlug).replace(/%20/g,' ')}`);
-}
 }finally{
 isPullRefreshing=false;
 }
@@ -201,9 +195,11 @@ randomIndex=Math.floor(Math.random()*movies.length);
 watchedIndices.push(randomIndex);
 const parsed=parseMovieLine(movies[randomIndex]);
 const slug=movieSlug(parsed.title,parsed.year);
-if(location.hash.slice(1)!==slug){
-if(isInitial)history.replaceState({movie:slug},'',`#${slug}`);
-else history.pushState({movie:slug},'',`#${slug}`);
+const movieUrl=`#${encodeURIComponent(slug).replace(/%20/g,' ')}`;
+if(isInitial){
+history.replaceState({movie:slug},'',movieUrl);
+}else{
+history.pushState({movie:slug},'',movieUrl);
 }
 await displayMovieAtIndex(randomIndex);
 }
