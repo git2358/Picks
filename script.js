@@ -1126,7 +1126,7 @@ let index=0;
 isSpeaking=true;
 
 document.getElementById('speakBtn').classList.add('speaking');
-document.getElementById('speakBtn').innerText='⏹ Stop';
+document.getElementById('speakBtn').innerText='Stop';
 
 const speakNext=()=>{
 if(!isSpeaking||index>=parts.length){
