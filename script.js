@@ -3,7 +3,9 @@ let watchedIndices=[];
 let currentMovie=null;
 let activeMovieSlug='';
 let movieDisplayRequest=0;
+let nextMovieRequest=0;
 let historyNavigationRequest=0;
+const movieLoadTimeout=15000;
 let isSpeaking=false;
 let speechTimeout=null;
 let pullStartY=0;
@@ -199,6 +201,7 @@ await displayMovieAtIndex(index);
 }
 
 async function fetchNextMovie(isInitial=false){
+const requestId=++nextMovieRequest;
 if(watchedIndices.length>=movies.length){
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
@@ -223,31 +226,62 @@ overlay.classList.remove('open');
 await new Promise(resolve=>setTimeout(resolve,1000));
 await new Promise(resolve=>setTimeout(resolve,300));
 }
+if(requestId!==nextMovieRequest)return;
 
-if(prefetchInProgress)await prefetchInProgress;
+if(prefetchInProgress){
+const prefetchResult=await Promise.race([
+prefetchInProgress.then(()=>true),
+new Promise(resolve=>setTimeout(()=>resolve(false),movieLoadTimeout))
+]);
+if(requestId!==nextMovieRequest)return;
+if(!prefetchResult){
+prefetchedNextIndex=null;
+prefetchInProgress=null;
+}
+}
+
+const chooseRandomMovie=excludedIndex=>{
+const candidates=movies.map((_,index)=>index).filter(index=>!watchedIndices.includes(index)&&index!==excludedIndex);
+return candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:-1;
+};
 
 let randomIndex;
 if(prefetchedNextIndex!==null&&!watchedIndices.includes(prefetchedNextIndex)){
 randomIndex=prefetchedNextIndex;
 }else{
-do{
-randomIndex=Math.floor(Math.random()*movies.length);
-}while(watchedIndices.includes(randomIndex));
+randomIndex=chooseRandomMovie(-1);
 }
+if(randomIndex<0)return;
 prefetchedNextIndex=null;
 
-watchedIndices.push(randomIndex);
-const parsed=parseMovieLine(movies[randomIndex]);
+const showMovie=async index=>{
+const parsed=parseMovieLine(movies[index]);
 const slug=movieSlug(parsed.title,parsed.year);
-const movieUrl=`#${slug.replace(/\s+/g,'_')}`;
+const movieUrl=`#${slug.replace(/\\s+/g,'_')}`;
 if(isInitial){
 history.replaceState({movie:slug},'',movieUrl);
 }else{
 history.pushState({movie:slug},'',movieUrl);
 }
-await displayMovieAtIndex(randomIndex);
-}
+if(!watchedIndices.includes(index))watchedIndices.push(index);
+return displayMovieAtIndex(index);
+};
 
+await Promise.race([
+showMovie(randomIndex),
+new Promise(resolve=>setTimeout(()=>resolve('timeout'),movieLoadTimeout))
+]);
+if(requestId!==nextMovieRequest)return;
+
+if(document.getElementById('curtainOverlay').classList.contains('open'))return;
+
+const fallbackIndex=chooseRandomMovie(randomIndex);
+if(fallbackIndex<0)return;
+movieDisplayRequest++;
+prefetchedNextIndex=null;
+prefetchInProgress=null;
+await showMovie(fallbackIndex);
+}
 async function displayMovieAtIndex(randomIndex){
 const requestId=++movieDisplayRequest;
 const overlay=document.getElementById('curtainOverlay');
