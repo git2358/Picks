@@ -456,7 +456,6 @@ padding:.6rem;
 }
 .poster-flip-card.has-wide-poster .poster-back-movie-title,
 .poster-flip-card.has-wide-poster .poster-back-movie-year,
-.poster-flip-card.has-wide-poster .movie-search-menu-title,
 .poster-flip-card.has-wide-poster .movie-search-close {
 grid-column:1 / -1;
 }
@@ -464,10 +463,7 @@ grid-column:1 / -1;
 margin-top:.1rem;
 }
 .poster-flip-card.has-wide-poster .poster-back-movie-year {
-margin-bottom:.1rem;
-}
-.poster-flip-card.has-wide-poster .movie-search-menu-title {
-margin-bottom:.45rem;
+margin-bottom:.55rem;
 }
 .poster-flip-card.has-wide-poster .movie-search-menu button[data-search-type],
 .poster-flip-card.has-wide-poster .movie-search-close {
@@ -521,22 +517,13 @@ overflow-wrap:anywhere;
 position:relative;
 z-index:1;
 width:100%;
-margin-bottom:.25rem;
+margin-bottom:.6rem;
 color:rgba(255,255,255,.82);
 font-size:.9rem;
 font-weight:600;
 line-height:1.1;
 text-align:center;
 text-shadow:0 2px 7px rgba(0,0,0,.95);
-}
-.movie-search-menu-title {
-margin-bottom:.4rem;
-color:#aaa;
-font-size:.75rem;
-font-weight:700;
-letter-spacing:.12em;
-text-align:center;
-text-transform:uppercase;
 }
 .movie-search-menu button[data-search-type] {
 width:100%;
