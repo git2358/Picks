@@ -510,7 +510,6 @@ document.getElementById('moviePlotSummary').innerText=currentMovie.plotSummary||
 document.getElementById('moviePlotSummarySection').hidden=!currentMovie.plotSummary;
 document.getElementById('movieDetails').innerHTML=renderMovieDetails(currentMovie);
 requestAnimationFrame(()=>requestAnimationFrame(updateSynopsisScrollHints));
-document.getElementById('speakBtn').style.display='inline-block';
 
 await loadPoster(currentMovie);
 if(requestId!==movieDisplayRequest)return;
@@ -1190,31 +1189,54 @@ function prepareSpeechText(text){
 return String(text||'').replace(/\b(?:1[0-9]{3}|20[0-9]{2})\b/g,match=>yearToSpeech(match));
 }
 
-function toggleSpeech(){
+function speakTexts(items){
 if(!('speechSynthesis' in window)){
 alert('Text-to-speech is not supported in your browser.');
 return;
 }
-
 if(isSpeaking){
 stopSpeech();
-}else{
+return;
+}
+const parts=[];
+const pauses=[];
+items.forEach(item=>{
+if(item.text){
+parts.push(item.text);
+pauses.push(item.delay??250);
+}
+});
+if(!parts.length)return;
+isSpeaking=true;
+let index=0;
+const speakNext=()=>{
+if(!isSpeaking||index>=parts.length){
+isSpeaking=false;
+return;
+}
+const utterance=new SpeechSynthesisUtterance(prepareSpeechText(parts[index++]));
+utterance.rate=1;
+utterance.onend=()=>{
+if(!isSpeaking)return;
+speechTimeout=setTimeout(speakNext,pauses[index-1]??250);
+};
+window.speechSynthesis.speak(utterance);
+};
+speakNext();
+}
+
+function speakMovieIntro(){
+if(isSpeaking){
+stopSpeech();
+return;
+}
 const title=currentMovie.title||'';
 const year=currentMovie.year&&currentMovie.year!=='N/A'?currentMovie.year:'';
 const genres=currentMovie.details?.genre||[];
-const parts=[];
-const pauses=[];
-
-const addSpeech=(text,delay=250)=>{
-if(text){
-parts.push(text);
-pauses.push(delay);
-}
-};
-
+const items=[];
+const addSpeech=(text,delay=250)=>{if(text)items.push({text,delay});};
 addSpeech(year?'released '+year:'');
 addSpeech(title);
-
 if(genres.length===1){
 addSpeech('is '+genreArticle(genres[0])+' '+genres[0]+' film');
 }else if(genres.length>1){
@@ -1222,60 +1244,61 @@ addSpeech('is '+genreArticle(genres[0])+' '+genres[0],genres.length===2?0:125);
 genres.slice(1,-1).forEach((genre,i,items)=>addSpeech(genre,i===items.length-1?0:125));
 addSpeech('and '+genres[genres.length-1]+' film',250);
 }
-
-addSpeech(currentMovie.blurb,currentMovie.blurb?750:250);
-addSpeech(currentMovie.synopsis,currentMovie.synopsis?750:250);
-addSpeech(currentMovie.plotSummary,250);
-
-let index=0;
-isSpeaking=true;
-
-document.getElementById('speakBtn').classList.add('speaking');
-document.getElementById('speakBtn').innerText='Stop';
-
-const speakNext=()=>{
-if(!isSpeaking||index>=parts.length){
-if(isSpeaking){
-isSpeaking=false;
-document.getElementById('speakBtn').classList.remove('speaking');
-document.getElementById('speakBtn').innerText='Read';
+speakTexts(items);
 }
+
+function speakMovieSection(section){
+if(isSpeaking){
+stopSpeech();
 return;
 }
-
-const utterance=new SpeechSynthesisUtterance(prepareSpeechText(parts[index++]));
-utterance.rate=1;
-
-utterance.onend=()=>{
-if(!isSpeaking)return;
-speechTimeout=setTimeout(speakNext,pauses[index-1]??250);
-};
-
-window.speechSynthesis.speak(utterance);
-};
-
-speakNext();
+const text=document.getElementById(section)?.innerText?.trim();
+if(text)speakTexts([{text,delay:250}]);
 }
+
+function setupMovieSpeech(){
+const title=document.getElementById('movieTitle');
+if(title){
+title.setAttribute('role','button');
+title.setAttribute('tabindex','0');
+title.setAttribute('aria-label','Read movie title, year and introductory details aloud');
+title.addEventListener('click',speakMovieIntro);
+title.addEventListener('keydown',event=>{
+if(event.key==='Enter'||event.key===' '){
+event.preventDefault();
+speakMovieIntro();
 }
+});
+}
+['movieBlurb','movieSynopsis','moviePlotSummary'].forEach(id=>{
+const element=document.getElementById(id);
+if(!element)return;
+element.addEventListener('click',()=>speakMovieSection(id));
+element.setAttribute('tabindex','0');
+element.setAttribute('role','button');
+element.setAttribute('aria-label','Read '+(id==='movieBlurb'?'movie blurb':id==='movieSynopsis'?'synopsis':'plot summary')+' aloud');
+element.addEventListener('keydown',event=>{
+if(event.key==='Enter'||event.key===' '){
+event.preventDefault();
+speakMovieSection(id);
+}
+});
+});
+}
+
 
 
 function stopSpeech(){
 if('speechSynthesis' in window)window.speechSynthesis.cancel();
-
 if(speechTimeout){
 clearTimeout(speechTimeout);
 speechTimeout=null;
 }
-
 isSpeaking=false;
-
-const btn=document.getElementById('speakBtn');
-
-if(btn){
-btn.classList.remove('speaking');
-btn.innerText='Read';
-}
 }
 
 
-window.onload=loadMoviesDatabase;
+window.onload=()=>{
+setupMovieSpeech();
+loadMoviesDatabase();
+};
