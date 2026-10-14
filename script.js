@@ -167,7 +167,11 @@ openMenu();
 closeButton.addEventListener('click',()=>closeMenu(true));
 menu.addEventListener('click',event=>{
 const button=event.target.closest('button[data-search-type]');
-if(!button)return;
+if(!button){
+closeMenu(true);
+return;
+}
+if(button.classList.contains('movie-search-close'))return;
 const movieTitle=document.getElementById('movieTitle').textContent.trim();
 const movieYear=document.getElementById('movieYear').textContent.trim();
 const searchType=button.dataset.searchType;
