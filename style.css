@@ -611,6 +611,19 @@ backdrop-filter:blur(16px) saturate(1.4);
 -webkit-backdrop-filter:blur(16px) saturate(1.4);
 box-shadow:0 4px 14px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.18);
 }
+.movie-search-menu .watch-now-btn {
+background:#e50914;
+border-color:#e50914;
+box-shadow:0 4px 12px rgba(229,9,20,.4);
+}
+.movie-search-menu .watch-now-btn:hover,
+.movie-search-menu .watch-now-btn:focus-visible {
+background:#f6121d;
+border-color:#f6121d;
+}
+.movie-search-menu .watch-now-btn:active {
+background:#e50914;
+}
 .movie-search-menu .custom-search-url {
 display:block;
 appearance:none;
