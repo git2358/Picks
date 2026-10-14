@@ -25,16 +25,11 @@ function updateDocumentTitle(showMovieTitle=false){
 const overlay=document.getElementById('curtainOverlay');
 if(!showMovieTitle||!overlay?.classList.contains('open')||overlay.classList.contains('loading-movie')||!currentMovie){
 document.title='Picks';
-const baseUrl=location.pathname+location.search;
-if(location.hash)history.replaceState(null,'',baseUrl);
 return;
 }
 const title=currentMovie.title?.trim();
 const year=currentMovie.year?.trim();
 document.title=title?`Picks - ${title}${year?' '+year:''}`:'Picks';
-const slug=movieSlug(title||'',year||'');
-const movieUrl=slug?`#${slug.replace(/\\s+/g,'_')}`:'';
-if(location.hash!==movieUrl)history.replaceState({movie:slug},'',location.pathname+location.search+movieUrl);
 }
 
 async function loadMoviesDatabase(){
@@ -366,12 +361,10 @@ const movieUrl=`#${slug.replace(/\s+/g,'_').replace(/%20/gi,'_')}`;
 const displayAttempt=(async()=>{
 await displayMovieAtIndex(index);
 if(!document.getElementById('curtainOverlay').classList.contains('open')||activeMovieSlug!==slug)return false;
-if(location.hash!==movieUrl){
 if(isInitial){
 history.replaceState({movie:slug},'',movieUrl);
 }else{
 history.pushState({movie:slug},'',movieUrl);
-}
 }
 if(!watchedIndices.includes(index))watchedIndices.push(index);
 return true;
