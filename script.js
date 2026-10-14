@@ -181,7 +181,7 @@ if(!title)return;
 try{
 const parsed=new URL(baseUrl);
 if((parsed.protocol==='http:'||parsed.protocol==='https:')&&parsed.hostname){
-window.open(baseUrl+title.replace(/\\s+/g,'+'),'_blank','noopener,noreferrer');
+window.open(baseUrl+title.replace(/\s+/g,'+'),'_blank','noopener,noreferrer');
 }
 }catch(error){}
 });
