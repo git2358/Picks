@@ -578,7 +578,8 @@ transform:scale(.98);
 transition:none;
 }
 }
-\n@media (min-width: 768px) {
+
+@media (min-width: 768px) {
   .poster-container {
     background: none;
   }
