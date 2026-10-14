@@ -155,7 +155,7 @@ const customSearchStorageKey='picksCustomSearchUrl';
 const parseCustomSearchConfig=value=>{
 const input=value.trim();
 const separatorEnd=input.indexOf(';');
-const separator=separatorEnd>=0?input.slice(0,separatorEnd):' ';
+const separator=separatorEnd>=0?(input.slice(0,separatorEnd)||' '):' ';
 const url=(separatorEnd>=0?input.slice(separatorEnd+1):input).trim().replace(/\\:/g,':');
 return {separator,url};
 };
@@ -191,7 +191,7 @@ const title=document.getElementById('movieTitle').textContent.trim();
 const year=document.getElementById('movieYear').textContent.trim();
 const movieYear=year&&year!=='N/A'?year:'';
 const formattedName=title.replace(/\s+/g,()=>separator);
-const searchUrl=url.replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
+const searchUrl=url.replace(/%name%%year%/gi,`${formattedName}${separator}${movieYear}`).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
 window.open(searchUrl,'_blank','noopener,noreferrer');
 });
 const setFlipped=flipped=>{
