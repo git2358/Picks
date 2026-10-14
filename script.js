@@ -258,13 +258,14 @@ const showMovie=async index=>{
 const parsed=parseMovieLine(movies[index]);
 const slug=movieSlug(parsed.title,parsed.year);
 const movieUrl=`#${slug.replace(/\\s+/g,'_')}`;
+await displayMovieAtIndex(index);
+if(!document.getElementById('curtainOverlay').classList.contains('open')||activeMovieSlug!==slug)return;
 if(isInitial){
 history.replaceState({movie:slug},'',movieUrl);
 }else{
 history.pushState({movie:slug},'',movieUrl);
 }
 if(!watchedIndices.includes(index))watchedIndices.push(index);
-return displayMovieAtIndex(index);
 };
 
 await Promise.race([
