@@ -153,14 +153,14 @@ if(!watchedIndices.includes(index))watchedIndices.push(index);
 
 document.getElementById('movieBlurbSection').style.display='none';
 const overlay=document.getElementById('curtainOverlay');
-overlay.classList.remove('no-light');
-overlay.classList.add('loading-movie');
-await new Promise(resolve=>setTimeout(resolve,300));
-overlay.classList.remove('open');
 stopSpeech();
 window.scrollTo({top:0,behavior:'smooth'});
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
 if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
+overlay.classList.remove('no-light');
+overlay.classList.add('loading-movie');
+await new Promise(resolve=>setTimeout(resolve,300));
+overlay.classList.remove('open');
 await new Promise(resolve=>setTimeout(resolve,400));
 if(navigationRequest!==historyNavigationRequest)return;
 await displayMovieAtIndex(index);
@@ -183,14 +183,14 @@ return;
 if(!isInitial){
 document.getElementById('movieBlurbSection').style.display='none';
 const overlay=document.getElementById('curtainOverlay');
-overlay.classList.remove('no-light');
-overlay.classList.add('loading-movie');
-await new Promise(resolve=>setTimeout(resolve,300));
-overlay.classList.remove('open');
 stopSpeech();
 window.scrollTo({top:0,behavior:'smooth'});
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
 if(synopsisArea)synopsisArea.scrollTo({top:0,behavior:'smooth'});
+overlay.classList.remove('no-light');
+overlay.classList.add('loading-movie');
+await new Promise(resolve=>setTimeout(resolve,300));
+overlay.classList.remove('open');
 await new Promise(resolve=>setTimeout(resolve,400));
 }
 
