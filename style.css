@@ -608,6 +608,17 @@ transition:none;
 }
 
 @media (min-width:768px) {
+.speak-btn {
+opacity:.25;
+transition:background .2s,transform .1s,opacity .2s;
+}
+
+.speak-btn:hover,
+.speak-btn:focus-visible,
+.speak-btn.speaking {
+opacity:1;
+}
+
 .info-bottom .reload-btn,
 .info-bottom .share-movie-btn {
 padding:.4rem .8rem;
