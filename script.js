@@ -797,6 +797,31 @@ resolve();
 });
 }
 
+function yearToSpeech(year){
+const value=Number(year);
+if(!Number.isInteger(value)||value<1000||value>2099)return year;
+const small=['zero','one','two','three','four','five','six','seven','eight','nine'];
+const tens=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+const underHundred=n=>n<10?small[n]:n<20?['ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'][n-10]:tens[Math.floor(n/10)]+(n%10?'-'+small[n%10]:'');
+if(value<2000){
+const century=Math.floor(value/100);
+const remainder=value%100;
+const centuryWord=underHundred(century);
+if(!remainder)return centuryWord+' hundred';
+if(remainder<10)return centuryWord+' oh '+small[remainder];
+return centuryWord+' '+underHundred(remainder);
+}
+if(value<2010){
+const remainder=value%2000;
+return remainder===0?'two thousand':'two thousand '+underHundred(remainder);
+}
+return 'twenty '+underHundred(value%2000-0);
+}
+
+function prepareSpeechText(text){
+return String(text||'').replace(/\\b(?:1[0-9]{3}|20[0-9]{2})\\b/g,match=>yearToSpeech(match));
+}
+
 function toggleSpeech(){
 if(!('speechSynthesis' in window)){
 alert('Text-to-speech is not supported in your browser.');
@@ -849,7 +874,7 @@ document.getElementById('speakBtn').innerText='🔊 Listen';
 return;
 }
 
-const utterance=new SpeechSynthesisUtterance(parts[index++]);
+const utterance=new SpeechSynthesisUtterance(prepareSpeechText(parts[index++]));
 utterance.rate=1;
 
 utterance.onend=()=>{
