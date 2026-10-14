@@ -154,6 +154,7 @@ if(!watchedIndices.includes(index))watchedIndices.push(index);
 document.getElementById('movieBlurbSection').style.display='none';
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.remove('open','no-light');
+overlay.classList.add('loading-movie');
 stopSpeech();
 window.scrollTo({top:0,behavior:'smooth'});
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
@@ -167,6 +168,7 @@ async function fetchNextMovie(isInitial=false){
 if(watchedIndices.length>=movies.length){
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.remove('open','no-light');
+overlay.classList.add('loading-movie');
 stopSpeech();
 window.scrollTo({top:0,behavior:'smooth'});
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
@@ -207,6 +209,8 @@ await displayMovieAtIndex(randomIndex);
 
 async function displayMovieAtIndex(randomIndex){
 const requestId=++movieDisplayRequest;
+const overlay=document.getElementById('curtainOverlay');
+overlay.classList.add('loading-movie');
 const parsed=parseMovieLine(movies[randomIndex]);
 activeMovieSlug=movieSlug(parsed.title,parsed.year);
 const title=parsed.title;
@@ -234,7 +238,7 @@ if(posterElement.complete)fitCardToPoster();
 document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie.poster}')`;
 
 await new Promise(resolve=>setTimeout(resolve,150));
-const overlay=document.getElementById('curtainOverlay');
+overlay.classList.remove('loading-movie');
 overlay.classList.add('open');
 setTimeout(()=>overlay.classList.add('no-light'),500);
 }
