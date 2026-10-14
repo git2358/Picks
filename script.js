@@ -182,6 +182,12 @@ if(event.detail===0){
 openMenu();
 }
 });
+posterLink.addEventListener('keydown',event=>{
+if(event.key==='Enter'||event.key===' '){
+event.preventDefault();
+openMenu();
+}
+});
 posterLink.addEventListener('contextmenu',event=>{
 event.preventDefault();
 openMenu();
