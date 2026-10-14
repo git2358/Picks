@@ -284,11 +284,17 @@ align-items:center;
 justify-content:space-between;
 }
 
-#movieSynopsisSection > summary, #movieBlurbSection > summary, #moviePlotSummarySection > summary, #movieDetailsSection > summary::-webkit-details-marker {
+#movieSynopsisSection > summary::-webkit-details-marker,
+#movieBlurbSection > summary::-webkit-details-marker,
+#moviePlotSummarySection > summary::-webkit-details-marker,
+#movieDetailsSection > summary::-webkit-details-marker {
 display:none;
 }
 
-#movieSynopsisSection > summary, #movieBlurbSection > summary, #moviePlotSummarySection > summary, #movieDetailsSection > summary::after {
+#movieSynopsisSection > summary::after,
+#movieBlurbSection > summary::after,
+#moviePlotSummarySection > summary::after,
+#movieDetailsSection > summary::after {
 content:'+';
 font-size:1rem;
 letter-spacing:0;
