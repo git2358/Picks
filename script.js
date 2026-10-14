@@ -176,6 +176,10 @@ const movieTitle=document.getElementById('movieTitle').textContent.trim();
 const movieYear=document.getElementById('movieYear').textContent.trim();
 const searchType=button.dataset.searchType;
 const movieLabel=`${movieTitle}${movieYear?' '+movieYear:''}`;
+if(searchType==='wikipedia'){
+window.open(`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(movieLabel)}`,'_blank','noopener,noreferrer');
+return;
+}
 const searchTerms={
 'full movie':'full movie complete film',
 trailer:'original theatrical trailer',
