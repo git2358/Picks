@@ -198,7 +198,6 @@ await displayMovieAtIndex(index);
 }
 
 async function fetchNextMovie(isInitial=false){
-if(prefetchInProgress)await prefetchInProgress;
 if(watchedIndices.length>=movies.length){
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
@@ -222,6 +221,8 @@ overlay.classList.remove('open');
 await new Promise(resolve=>setTimeout(resolve,1000));
 await new Promise(resolve=>setTimeout(resolve,300));
 }
+
+if(prefetchInProgress)await prefetchInProgress;
 
 let randomIndex;
 if(prefetchedNextIndex!==null&&!watchedIndices.includes(prefetchedNextIndex)){
