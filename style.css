@@ -589,8 +589,7 @@ opacity:1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-#movingSpotlight,
-.stage-lighting::before {
+#movingSpotlight {
 animation-duration:8s;
 }
 }
@@ -600,29 +599,20 @@ position:absolute;
 inset:0;
 width:100%;
 height:100%;
-background:radial-gradient(circle at center, transparent 0%, rgba(0,0,0,.12) 48%, rgba(0,0,0,.25) 65%, rgba(0,0,0,.85) 100%);
+background:radial-gradient(
+circle 40vw at center,
+rgba(255,255,255,.12) 0%,
+rgba(255,255,255,.08) 28%,
+rgba(255,255,255,.02) 48%,
+rgba(0,0,0,.25) 65%,
+rgba(0,0,0,.85) 100%
+);
+backdrop-filter:brightness(1.45) contrast(1.18);
+-webkit-backdrop-filter:brightness(1.45) contrast(1.18);
 pointer-events:none;
 z-index:10001;
 opacity:1;
 transition:opacity .5s ease;
-}
-
-.stage-lighting::before {
-content:"";
-position:absolute;
-left:50%;
-top:50%;
-width:80vw;
-height:80vw;
-border-radius:50%;
-background:radial-gradient(circle, rgba(255,255,255,.12) 0%, rgba(255,255,255,.08) 28%, rgba(255,255,255,.02) 48%, transparent 65%);
--webkit-backdrop-filter:brightness(1.45) contrast(1.18);
-backdrop-filter:brightness(1.45) contrast(1.18);
--webkit-mask-image:radial-gradient(circle, #000 0%, #000 62%, rgba(0,0,0,.7) 78%, transparent 100%);
-mask-image:radial-gradient(circle, #000 0%, #000 62%, rgba(0,0,0,.7) 78%, transparent 100%);
-transform:translate(-50%,-50%);
-animation:spotlightFigureEight 3s linear infinite;
-will-change:transform;
 }
 
 .curtain-overlay.no-light .stage-lighting {
@@ -813,9 +803,15 @@ text-align:center;
 margin-top:1.5rem;
 }
 
-.stage-lighting::before {
-width:80vh;
-height:80vh;
+.stage-lighting {
+background:radial-gradient(
+circle 40vh at center,
+rgba(255,255,255,.12) 0%,
+rgba(255,255,255,.08) 28%,
+rgba(255,255,255,.02) 48%,
+rgba(0,0,0,.25) 65%,
+rgba(0,0,0,.85) 100%
+);
 }
 }
 
