@@ -164,11 +164,8 @@ return {separator,url};
 }
 const urlStart=input.search(/https?:\\/\\//i);
 if(urlStart<0)return {separator:'',url:input};
-const prefix=input.slice(0,urlStart);
-let separator='';
-if(prefix){
-try{separator=decodeURIComponent(prefix);}catch(error){separator=prefix;}
-}
+const prefix=input.slice(0,urlStart).trim();
+const separator=prefix;
 const url=input.slice(urlStart).trim().replace(/\\:/g,':');
 return {separator,url};
 };
@@ -203,7 +200,8 @@ if(!isValidCustomSearchUrl(customSearchUrl.value))return;
 const title=document.getElementById('movieTitle').textContent.trim();
 const year=document.getElementById('movieYear').textContent.trim();
 const movieYear=year&&year!=='N/A'?year:'';
-const formattedName=separator?title.replace(/\\s+/g,()=>separator):title;
+const searchTitle=title.replace(/^the\\s+/i,'');
+const formattedName=separator?searchTitle.replace(/\\s+/g,()=>separator):title;
 const yearSeparator=separator||(movieYear?' ':'');
 const searchUrl=url.replace(/%name%%year%/gi,`${formattedName}${yearSeparator}${movieYear}`).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
 window.open(searchUrl,'_blank','noopener,noreferrer');
