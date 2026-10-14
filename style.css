@@ -520,6 +520,9 @@ flex-direction:column;
 justify-content:center;
 gap:.3rem;
 }
+.poster-flip-card.has-wide-poster .poster-back-heading {
+flex:.5 .5 auto;
+}
 .poster-back-movie-year {
 position:relative;
 z-index:1;
