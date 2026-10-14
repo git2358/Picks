@@ -636,7 +636,20 @@ text-align:left;
 .movie-search-menu .custom-search-url::placeholder {
 color:rgba(255,255,255,.72);
 }
-.movie-search-menu .movie-search-close,
+.movie-search-menu .movie-search-close {
+background:#333;
+border-color:rgba(255,255,255,.22);
+box-shadow:0 4px 12px rgba(0,0,0,.25);
+cursor:pointer;
+font-weight:750;
+letter-spacing:.045em;
+transition:background .2s,transform .2s,border-color .2s;
+}
+.movie-search-menu .movie-search-close:hover,
+.movie-search-menu .movie-search-close:focus-visible {
+background:#444;
+border-color:rgba(255,255,255,.22);
+}
 .movie-search-menu .watch-now-btn {
 cursor:pointer;
 font-weight:750;
