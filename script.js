@@ -191,7 +191,8 @@ overlay.classList.remove('no-light');
 overlay.classList.add('loading-movie');
 await new Promise(resolve=>setTimeout(resolve,300));
 overlay.classList.remove('open');
-await new Promise(resolve=>setTimeout(resolve,400));
+await new Promise(resolve=>setTimeout(resolve,1000));
+await new Promise(resolve=>setTimeout(resolve,300));
 if(navigationRequest!==historyNavigationRequest)return;
 await displayMovieAtIndex(index);
 }
@@ -218,7 +219,8 @@ overlay.classList.remove('no-light');
 overlay.classList.add('loading-movie');
 await new Promise(resolve=>setTimeout(resolve,300));
 overlay.classList.remove('open');
-await new Promise(resolve=>setTimeout(resolve,400));
+await new Promise(resolve=>setTimeout(resolve,1000));
+await new Promise(resolve=>setTimeout(resolve,300));
 }
 
 let randomIndex;
