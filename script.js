@@ -262,7 +262,7 @@ while(nextIndex>=0&&requestId===nextMovieRequest){
 const index=nextIndex;
 const parsed=parseMovieLine(movies[index]);
 const slug=movieSlug(parsed.title,parsed.year);
-const movieUrl=`#${slug.replace(/\\s+/g,'_')}`;
+const movieUrl=`#${slug.replace(/\s+/g,'_').replace(/%20/gi,'_')}`;
 
 const displayAttempt=(async()=>{
 await displayMovieAtIndex(index);
