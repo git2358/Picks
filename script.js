@@ -366,10 +366,12 @@ const movieUrl=`#${slug.replace(/\s+/g,'_').replace(/%20/gi,'_')}`;
 const displayAttempt=(async()=>{
 await displayMovieAtIndex(index);
 if(!document.getElementById('curtainOverlay').classList.contains('open')||activeMovieSlug!==slug)return false;
+if(location.hash!==movieUrl){
 if(isInitial){
 history.replaceState({movie:slug},'',movieUrl);
 }else{
 history.pushState({movie:slug},'',movieUrl);
+}
 }
 if(!watchedIndices.includes(index))watchedIndices.push(index);
 return true;
