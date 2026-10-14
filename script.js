@@ -152,15 +152,25 @@ const closeButton=menu.querySelector('.movie-search-close');
 const customSearchUrl=document.getElementById('customSearchUrl');
 const watchNowButton=document.getElementById('watchNowBtn');
 const customSearchStorageKey='picksCustomSearchUrl';
-const updateCustomSearchState=()=>{
-const value=customSearchUrl.value.trim();
-let valid=false;
-if(value){
+const parseCustomSearchConfig=value=>{
+const input=value.trim();
+const separatorEnd=input.indexOf(';');
+const separator=separatorEnd>=0?input.slice(0,separatorEnd):' ';
+const url=(separatorEnd>=0?input.slice(separatorEnd+1):input).trim().replace(/\\:/g,':');
+return {separator,url};
+};
+const isValidCustomSearchUrl=value=>{
+const {url}=parseCustomSearchConfig(value);
+if(!url)return false;
 try{
-const parsed=new URL(value);
-valid=(parsed.protocol==='http:'||parsed.protocol==='https:')&&Boolean(parsed.hostname);
-}catch(error){}
+const parsed=new URL(url);
+return (parsed.protocol==='http:'||parsed.protocol==='https:')&&Boolean(parsed.hostname);
+}catch(error){
+return false;
 }
+};
+const updateCustomSearchState=()=>{
+const valid=isValidCustomSearchUrl(customSearchUrl.value);
 menu.classList.toggle('has-custom-search-url',valid);
 watchNowButton.hidden=!valid;
 };
@@ -175,15 +185,14 @@ localStorage.setItem(customSearchStorageKey,customSearchUrl.value);
 updateCustomSearchState();
 });
 watchNowButton.addEventListener('click',()=>{
-const baseUrl=customSearchUrl.value.trim();
-const title=normaliseTitle(currentMovie?.title||document.getElementById('movieTitle').textContent.trim());
-if(!title)return;
-try{
-const parsed=new URL(baseUrl);
-if((parsed.protocol==='http:'||parsed.protocol==='https:')&&parsed.hostname){
-window.open(baseUrl+title.replace(/\s+/g,'+'),'_blank','noopener,noreferrer');
-}
-}catch(error){}
+const {separator,url}=parseCustomSearchConfig(customSearchUrl.value);
+if(!isValidCustomSearchUrl(customSearchUrl.value))return;
+const title=document.getElementById('movieTitle').textContent.trim();
+const year=document.getElementById('movieYear').textContent.trim();
+const movieYear=year&&year!=='N/A'?year:'';
+const formattedName=title.replace(/\s+/g,()=>separator);
+const searchUrl=url.replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
+window.open(searchUrl,'_blank','noopener,noreferrer');
 });
 const setFlipped=flipped=>{
 card.classList.toggle('is-flipped',flipped);
