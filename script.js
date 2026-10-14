@@ -37,7 +37,11 @@ document.getElementById('movieSynopsis').innerText='Please add items to your mov
 return;
 }
 
-const linkedIndex=findMovieIndexFromHash();
+const isHomeScreenApp=window.navigator.standalone===true;
+if(isHomeScreenApp&&location.hash){
+history.replaceState(null,'',location.pathname+location.search);
+}
+const linkedIndex=isHomeScreenApp?-1:findMovieIndexFromHash();
 if(linkedIndex>=0)normaliseMovieUrl(linkedIndex);
 const navigationEntry=performance.getEntriesByType('navigation')[0];
 const isPageRefresh=navigationEntry?.type==='reload';
