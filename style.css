@@ -293,7 +293,8 @@ margin-bottom:.5rem;
 }
 
 .movie-synopsis,
-.movie-blurb {
+.movie-blurb,
+.movie-plot-summary {
 font-size:1rem;
 line-height:1.6;
 color:#ddd;
@@ -301,6 +302,11 @@ color:#ddd;
 
 .movie-blurb {
 color:#fff;
+}
+
+.movie-plot-summary {
+color:#ddd;
+white-space:pre-line;
 }
 
 .movie-details-section {
