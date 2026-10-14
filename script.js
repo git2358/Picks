@@ -217,7 +217,7 @@ randomIndex=Math.floor(Math.random()*movies.length);
 watchedIndices.push(randomIndex);
 const parsed=parseMovieLine(movies[randomIndex]);
 const slug=movieSlug(parsed.title,parsed.year);
-const movieUrl=`#${encodeURIComponent(slug).replace(/%20/g,' ')}`;
+const movieUrl=`#${slug.replace(/\s+/g,'_')}`;
 if(isInitial){
 history.replaceState({movie:slug},'',movieUrl);
 }else{
