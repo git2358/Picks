@@ -153,8 +153,10 @@ if(!watchedIndices.includes(index))watchedIndices.push(index);
 
 document.getElementById('movieBlurbSection').style.display='none';
 const overlay=document.getElementById('curtainOverlay');
-overlay.classList.remove('open','no-light');
+overlay.classList.remove('no-light');
 overlay.classList.add('loading-movie');
+await new Promise(resolve=>setTimeout(resolve,300));
+overlay.classList.remove('open');
 stopSpeech();
 window.scrollTo({top:0,behavior:'smooth'});
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
@@ -240,7 +242,7 @@ document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie
 await new Promise(resolve=>setTimeout(resolve,150));
 overlay.classList.remove('loading-movie');
 overlay.classList.add('open');
-setTimeout(()=>overlay.classList.add('no-light'),500);
+setTimeout(()=>overlay.classList.add('no-light'),1000);
 }
 
 function normaliseTitle(title){
