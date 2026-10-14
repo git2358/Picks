@@ -55,14 +55,14 @@ document.write('<link rel="stylesheet" href="style.css?v='+v+'">');
 <div id="movieYear" class="movie-year"></div>
 <div class="synopsis-scroll-shell">
 <div class="synopsis-scroll-area">
-<div class="movie-section">
-<h2 class="section-heading">Synopsis</h2>
+<details id="movieSynopsisSection" class="movie-section">
+<summary class="section-heading">Synopsis</summary>
 <p id="movieSynopsis" class="movie-synopsis">Please ensure movies.txt is loaded correctly.</p>
-</div>
-<div id="movieBlurbSection" class="movie-section">
-<h2 class="section-heading">Blurb</h2>
+</details>
+<details id="movieBlurbSection" class="movie-section">
+<summary class="section-heading">Blurb</summary>
 <p id="movieBlurb" class="movie-blurb">Loading...</p>
-</div>
+</details>
 <details id="moviePlotSummarySection" class="movie-section" hidden>
 <summary class="section-heading">Plot</summary>
 <p id="moviePlotSummary" class="movie-plot-summary"></p>
