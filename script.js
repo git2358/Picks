@@ -1133,7 +1133,7 @@ if(!isSpeaking||index>=parts.length){
 if(isSpeaking){
 isSpeaking=false;
 document.getElementById('speakBtn').classList.remove('speaking');
-document.getElementById('speakBtn').innerText='🔊 Listen';
+document.getElementById('speakBtn').innerText='Read';
 }
 return;
 }
@@ -1168,7 +1168,7 @@ const btn=document.getElementById('speakBtn');
 
 if(btn){
 btn.classList.remove('speaking');
-btn.innerText='🔊 Listen';
+btn.innerText='Read';
 }
 }
 
