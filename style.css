@@ -8,6 +8,7 @@ html {
 width:100%;
 min-height:100%;
 background:#000;
+overscroll-behavior-y:none;
 }
 
 body {
@@ -18,6 +19,7 @@ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,s
 color:#fff;
 background:#000;
 overflow-x:hidden;
+overscroll-behavior-y:none;
 }
 
 .bg-backdrop {
