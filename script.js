@@ -21,6 +21,17 @@ const movieDetailsCache=new Map();
 let prefetchedNextIndex=null;
 let prefetchInProgress=null;
 
+function updateDocumentTitle(showMovieTitle=false){
+const overlay=document.getElementById('curtainOverlay');
+if(!showMovieTitle||!overlay?.classList.contains('open')||overlay.classList.contains('loading-movie')||!currentMovie){
+document.title='Picks';
+return;
+}
+const title=currentMovie.title?.trim();
+const year=currentMovie.year?.trim();
+document.title=title?`Picks - ${title}${year?' '+year:''}`:'Picks';
+}
+
 async function loadMoviesDatabase(){
 try{
 setupMoviePosterSearch();
@@ -269,7 +280,7 @@ const navigationRequest=++historyNavigationRequest;
 if(!watchedIndices.includes(index))watchedIndices.push(index);
 
 document.getElementById('movieBlurbSection').style.display='none';
-document.title='Picks';
+updateDocumentTitle(false);
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
 await scrollToTopAndWait();
@@ -305,7 +316,7 @@ return;
 
 if(!isInitial){
 document.getElementById('movieBlurbSection').style.display='none';
-document.title='Picks';
+updateDocumentTitle(false);
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
 resetPosterFlipCard();
@@ -474,7 +485,7 @@ document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie
 await new Promise(resolve=>setTimeout(resolve,150));
 overlay.classList.remove('loading-movie');
 overlay.classList.add('open');
-document.title=`Picks - ${title}${year?' '+year:''}`;
+updateDocumentTitle(true);
 setTimeout(()=>overlay.classList.add('no-light'),1050);
 prefetchNextMovie();
 }
