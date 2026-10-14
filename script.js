@@ -838,7 +838,7 @@ return 'twenty '+underHundred(value%2000-0);
 }
 
 function prepareSpeechText(text){
-return String(text||'').replace(/\\b(?:1[0-9]{3}|20[0-9]{2})\\b/g,match=>yearToSpeech(match));
+return String(text||'').replace(/\b(?:1[0-9]{3}|20[0-9]{2})\b/g,match=>yearToSpeech(match));
 }
 
 function toggleSpeech(){
