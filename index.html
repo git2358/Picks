@@ -16,17 +16,20 @@ document.write('<link rel="stylesheet" href="style.css?v='+v+'">');
 <main class="wrapper">
 <div class="content-card">
 <div class="poster-container">
-<div id="posterLink" class="poster-link" role="button" tabindex="0" aria-label="Long-press for movie searches" aria-haspopup="true" aria-expanded="false" title="Long-press for movie searches">
+<div class="poster-flip-card" id="posterFlipCard">
+<div id="posterLink" class="poster-link poster-face poster-front" role="button" tabindex="0" aria-label="Tap to reveal movie searches" aria-haspopup="true" aria-expanded="false" title="Tap to search YouTube">
 <img id="moviePoster" src="" alt="Movie Poster">
-<span class="poster-link-hint">Long-press for movie searches</span>
+<span class="poster-link-hint">Tap poster for YouTube searches</span>
 </div>
-<div id="movieSearchMenu" class="movie-search-menu" role="menu" aria-label="Search this movie on YouTube" hidden>
+<div id="movieSearchMenu" class="movie-search-menu poster-face poster-back" role="menu" aria-label="Search this movie on YouTube" aria-hidden="true" inert>
+<button type="button" class="movie-search-close" aria-label="Return to poster" title="Return to poster">×</button>
 <div class="movie-search-menu-title">Search YouTube</div>
 <button type="button" role="menuitem" data-search-type="full movie">Full movie</button>
 <button type="button" role="menuitem" data-search-type="trailer">Trailers</button>
 <button type="button" role="menuitem" data-search-type="behind the scenes">Behind the scenes</button>
 <button type="button" role="menuitem" data-search-type="making of">Making of</button>
 <button type="button" role="menuitem" data-search-type="history">History of the movie</button>
+</div>
 </div>
 </div>
 <div class="info-container">
