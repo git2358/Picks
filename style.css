@@ -489,7 +489,7 @@ height:124%;
 max-height:none;
 object-fit:cover;
 filter:blur(16px) saturate(1.5) brightness(.72) contrast(1.08);
-transform:scaleY(-1) scale(1.12);
+transform:scaleX(-1) scale(1.12);
 border-radius:0;
 box-shadow:none;
 pointer-events:none;
