@@ -179,7 +179,8 @@ window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(q
 document.addEventListener('keydown',event=>{
 if(event.key==='Escape'&&card.classList.contains('is-flipped'))closeMenu(true);
 });
-}\nfunction parseMovieLine(line){
+}
+function parseMovieLine(line){
 const cleaned=line.replace(/^[-–*#\d.]+\s*/,'').trim();
 const match=cleaned.match(/^(.*?)(?:\s+(\d{4}))?\s*$/);
 return {title:match?match[1].trim():cleaned,year:match?.[2]||''};
@@ -415,9 +416,14 @@ document.getElementById('speakBtn').style.display='inline-block';
 await loadPoster(currentMovie);
 if(requestId!==movieDisplayRequest)return;
 const posterElement=document.getElementById('moviePoster');
-const posterLink=document.getElementById('posterLink');
-posterLink.setAttribute('aria-label',`Long-press to search YouTube for ${title}${year?' '+year:''}`);
-posterLink.title=`Long-press for searches about ${title}${year?' '+year:''}`;
+const posterCard=document.getElementById('posterFlipCard');
+const searchMenu=document.getElementById('movieSearchMenu');
+posterCard?.classList.remove('is-flipped');
+posterLink.setAttribute('aria-expanded','false');
+searchMenu?.setAttribute('aria-hidden','true');
+if(searchMenu)searchMenu.inert=true;
+posterLink.setAttribute('aria-label',`Tap to search YouTube for ${title}${year?' '+year:''}`);
+posterLink.title=`Tap to reveal YouTube searches for ${title}${year?' '+year:''}`;
 posterElement.onload=fitCardToPoster;
 posterElement.src=currentMovie.poster;
 if(posterElement.complete)fitCardToPoster();
