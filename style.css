@@ -604,11 +604,10 @@ animation:stageSpotlightFigureEight 7s linear infinite;
 100% { --stage-spot-x:27.00vw; --stage-spot-y:-0.00vh; }
 }
 
-.curtain-overlay.loading-movie .stage-lighting {
+.curtain-overlay.loading-movie .stage-lighting,
+.curtain-overlay.open .stage-lighting {
 opacity:1;
 }
-
-
 
 .curtain-overlay.no-light .stage-lighting {
 opacity:0;
