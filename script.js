@@ -670,7 +670,7 @@ return blurb;
 
 function genreArticle(genre){
 const word=genre.trim().toLowerCase();
-return /^(honest|honour|hour|heir|heirloom|herb)\b/.test(word)||/^[aeiou]\b/.test(word)?'an':'a';
+return /^(honest|honour|hour|heir|heirloom|herb)\b/.test(word)||/^[aeiou]/.test(word)?'an':'a';
 }
 
 function formatGenres(genres){
