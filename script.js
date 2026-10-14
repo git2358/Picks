@@ -261,13 +261,16 @@ const synopsisAtTop=!synopsisArea||synopsisArea.scrollTop<=1;
 if(pageAtTop&&synopsisAtTop){
 stableFrames++;
 if(stableFrames>=3){
-if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches&&document.body.animate){
-document.body.animate([
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+const pageContent=document.querySelector('main');
+if(pageContent&&pageContent.animate){
+pageContent.animate([
 {transform:'translateY(0)'},
-{transform:'translateY(6px)',offset:.45},
-{transform:'translateY(-2px)',offset:.75},
+{transform:'translateY(6px)',offset:.4},
+{transform:'translateY(-2px)',offset:.72},
 {transform:'translateY(0)'}
-],{duration:220,easing:'cubic-bezier(.2,.8,.3,1)'});
+],{duration:280,easing:'cubic-bezier(.2,.8,.3,1)'});
+}
 }
 resolve();
 return;
