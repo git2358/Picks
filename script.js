@@ -183,8 +183,10 @@ return;
 if(!isInitial){
 document.getElementById('movieBlurbSection').style.display='none';
 const overlay=document.getElementById('curtainOverlay');
-overlay.classList.remove('open','no-light');
+overlay.classList.remove('no-light');
 overlay.classList.add('loading-movie');
+await new Promise(resolve=>setTimeout(resolve,300));
+overlay.classList.remove('open');
 stopSpeech();
 window.scrollTo({top:0,behavior:'smooth'});
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
