@@ -610,8 +610,8 @@ transition:none;
 @media (min-width:768px) {
 .info-bottom .reload-btn,
 .info-bottom .share-movie-btn {
-padding:.65rem 1.2rem;
-font-size:.9rem;
+padding:.4rem .8rem;
+font-size:.85rem;
 }
 }
 
