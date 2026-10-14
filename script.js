@@ -33,6 +33,7 @@ return;
 }
 
 const linkedIndex=findMovieIndexFromHash();
+if(linkedIndex>=0)normaliseMovieUrl(linkedIndex);
 const navigationEntry=performance.getEntriesByType('navigation')[0];
 const isPageRefresh=navigationEntry?.type==='reload';
 
@@ -130,6 +131,14 @@ function movieSlug(title,year){
 return normaliseTitle([title,year].filter(Boolean).join(' '));
 }
 
+function normaliseMovieUrl(index){
+const movie=parseMovieLine(movies[index]);
+const slug=movieSlug(movie.title,movie.year);
+const movieUrl=`#${slug.replace(/\\s+/g,'_')}`;
+if(location.hash!==movieUrl)history.replaceState({movie:slug},'',movieUrl);
+return slug;
+}
+
 function findMovieIndexFromHash(){
 let slug=location.hash.slice(1);
 try{slug=decodeURIComponent(slug);}catch(error){}
@@ -165,8 +174,7 @@ requestAnimationFrame(checkScroll);
 async function handleMovieUrlChange(){
 const index=findMovieIndexFromHash();
 if(index<0)return;
-const movie=parseMovieLine(movies[index]);
-const slug=movieSlug(movie.title,movie.year);
+const slug=normaliseMovieUrl(index);
 if(activeMovieSlug===slug)return;
 activeMovieSlug=slug;
 const navigationRequest=++historyNavigationRequest;
