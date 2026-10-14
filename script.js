@@ -901,6 +901,7 @@ addSpeech(currentMovie.blurb,currentMovie.blurb?500:250);
 addSpeech(currentMovie.synopsis);
 
 let index=0;
+let inhalePlayed=false;
 isSpeaking=true;
 
 document.getElementById('speakBtn').classList.add('speaking');
@@ -916,8 +917,8 @@ document.getElementById('speakBtn').innerText='🔊 Listen';
 return;
 }
 
-if(index===inhaleBeforeIndex){
-index++;
+if(index===inhaleBeforeIndex&&!inhalePlayed){
+inhalePlayed=true;
 playInhale(()=>{
 if(isSpeaking)speechTimeout=setTimeout(speakNext,180);
 });
