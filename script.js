@@ -244,7 +244,7 @@ document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie
 await new Promise(resolve=>setTimeout(resolve,150));
 overlay.classList.remove('loading-movie');
 overlay.classList.add('open');
-setTimeout(()=>overlay.classList.add('no-light'),1200);
+setTimeout(()=>overlay.classList.add('no-light'),1800);
 }
 
 function normaliseTitle(title){
