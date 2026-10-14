@@ -134,7 +134,7 @@ return normaliseTitle([title,year].filter(Boolean).join(' '));
 function normaliseMovieUrl(index){
 const movie=parseMovieLine(movies[index]);
 const slug=movieSlug(movie.title,movie.year);
-const movieUrl=`#${slug.replace(/\\s+/g,'_')}`;
+const movieUrl=`#${slug.replace(/\s+/g,'_')}`;
 if(location.hash!==movieUrl)history.replaceState({movie:slug},'',movieUrl);
 return slug;
 }
