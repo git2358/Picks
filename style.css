@@ -451,6 +451,11 @@ flex-direction:column;
 justify-content:center;
 gap:.4rem;
 padding:3.2rem 1rem 1rem;
+border:1px solid rgba(255,255,255,.2);
+background:rgba(10,10,10,.18);
+box-shadow:inset 0 0 35px rgba(255,255,255,.12);
+overflow:hidden;
+isolation:isolate;
 }
 .poster-flip-card.has-wide-poster .poster-back {
 display:grid;
@@ -471,12 +476,6 @@ margin-bottom:0;
 padding:.42rem .3rem;
 font-size:.7rem;
 line-height:1.15;
-}
-border:1px solid rgba(255,255,255,.2);
-background:rgba(10,10,10,.18);
-box-shadow:inset 0 0 35px rgba(255,255,255,.12);
-overflow:hidden;
-isolation:isolate;
 }
 .poster-back .search-poster-backdrop {
 position:absolute;
