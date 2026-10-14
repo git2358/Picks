@@ -149,6 +149,42 @@ const card=document.getElementById('posterFlipCard');
 const menu=document.getElementById('movieSearchMenu');
 if(!posterLink||!card||!menu)return;
 const closeButton=menu.querySelector('.movie-search-close');
+const customSearchUrl=document.getElementById('customSearchUrl');
+const watchNowButton=document.getElementById('watchNowBtn');
+const customSearchStorageKey='picksCustomSearchUrl';
+const updateCustomSearchState=()=>{
+const value=customSearchUrl.value.trim();
+let valid=false;
+if(value){
+try{
+const parsed=new URL(value);
+valid=(parsed.protocol==='http:'||parsed.protocol==='https:')&&Boolean(parsed.hostname);
+}catch(error){}
+}
+menu.classList.toggle('has-custom-search-url',valid);
+watchNowButton.hidden=!valid;
+};
+try{
+customSearchUrl.value=localStorage.getItem(customSearchStorageKey)||'';
+}catch(error){}
+updateCustomSearchState();
+customSearchUrl.addEventListener('input',()=>{
+try{
+localStorage.setItem(customSearchStorageKey,customSearchUrl.value);
+}catch(error){}
+updateCustomSearchState();
+});
+watchNowButton.addEventListener('click',()=>{
+const baseUrl=customSearchUrl.value.trim();
+const title=normaliseTitle(currentMovie?.title||document.getElementById('movieTitle').textContent.trim());
+if(!title)return;
+try{
+const parsed=new URL(baseUrl);
+if((parsed.protocol==='http:'||parsed.protocol==='https:')&&parsed.hostname){
+window.open(baseUrl+title.replace(/\\s+/g,'+'),'_blank','noopener,noreferrer');
+}
+}catch(error){}
+});
 const setFlipped=flipped=>{
 card.classList.toggle('is-flipped',flipped);
 posterLink.setAttribute('aria-expanded',String(flipped));
@@ -177,6 +213,7 @@ openMenu();
 });
 closeButton.addEventListener('click',()=>closeMenu(true));
 menu.addEventListener('click',event=>{
+if(event.target.closest('.poster-back-controls'))return;
 const button=event.target.closest('button[data-search-type]');
 if(!button){
 closeMenu(true);
