@@ -276,6 +276,28 @@ color:#aaa;
 margin-bottom:.5rem;
 }
 
+#moviePlotSummarySection > summary {
+list-style:none;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:space-between;
+}
+
+#moviePlotSummarySection > summary::-webkit-details-marker {
+display:none;
+}
+
+#moviePlotSummarySection > summary::after {
+content:'+';
+font-size:1rem;
+letter-spacing:0;
+}
+
+#moviePlotSummarySection[open] > summary::after {
+content:'−';
+}
+
 .movie-synopsis,
 .movie-blurb,
 .movie-plot-summary {
