@@ -229,7 +229,7 @@ flex:1;
 }
 
 .synopsis-scroll-area::-webkit-scrollbar {
-width:10px;
+width:7px;
 }
 
 .synopsis-scroll-area::-webkit-scrollbar-track {
