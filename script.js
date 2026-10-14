@@ -36,6 +36,9 @@ const linkedIndex=findMovieIndexFromHash();
 const navigationEntry=performance.getEntriesByType('navigation')[0];
 const isPageRefresh=navigationEntry?.type==='reload';
 
+window.addEventListener('popstate',handleMovieUrlChange);
+window.addEventListener('hashchange',handleMovieUrlChange);
+
 if(linkedIndex>=0&&isPageRefresh){
 watchedIndices.push(linkedIndex);
 await fetchNextMovie(false);
@@ -46,8 +49,6 @@ await displayMovieAtIndex(linkedIndex);
 await fetchNextMovie(true);
 }
 
-window.addEventListener('popstate',handleMovieUrlChange);
-window.addEventListener('hashchange',handleMovieUrlChange);
 setupPullToRefresh();
 }catch(error){
 console.error('Error loading movies.txt:',error);
