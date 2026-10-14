@@ -516,7 +516,7 @@ backdrop-filter:brightness(1.45) contrast(1.18);
 pointer-events:none;
 z-index:10001;
 opacity:0;
-transition:opacity .3s ease;
+transition:opacity .5s ease;
 animation:stageSpotlightFigureEight 7s linear infinite;
 }
 
