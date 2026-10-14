@@ -198,9 +198,9 @@ watchNowButton.addEventListener('click',()=>{
 const {separator,url}=parseCustomSearchConfig(customSearchUrl.value);
 if(!isValidCustomSearchUrl(customSearchUrl.value))return;
 const rawTitle=document.getElementById('movieTitle').textContent.trim();
-const title=rawTitle.replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim();
+const title=Array.from(rawTitle).filter(char=>/[\p{L}\p{N}\s]/u.test(char)).join('').replace(/\s+/g,' ').trim();
 const rawYear=document.getElementById('movieYear').textContent.trim();
-const movieYear=rawYear&&rawYear!=='N/A'?rawYear.replace(/\D/g,''):'';
+const movieYear=rawYear&&rawYear!=='N/A'?Array.from(rawYear).filter(char=>/[0-9]/.test(char)).join(''):'';
 const formattedName=separator?title.replace(/\s+/g,()=>separator):title;
 const yearSeparator=separator||(movieYear?' ':'');
 const searchUrl=url.replace(/%name%%year%/gi,`${formattedName}${yearSeparator}${movieYear}`).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
