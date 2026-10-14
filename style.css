@@ -276,7 +276,7 @@ color:#aaa;
 margin-bottom:.5rem;
 }
 
-#movieSynopsisSection > summary, #movieBlurbSection > summary, #moviePlotSummarySection > summary {
+#movieSynopsisSection > summary, #movieBlurbSection > summary, #moviePlotSummarySection > summary, #movieDetailsSection > summary {
 list-style:none;
 cursor:pointer;
 display:flex;
@@ -284,17 +284,17 @@ align-items:center;
 justify-content:space-between;
 }
 
-#movieSynopsisSection > summary, #movieBlurbSection > summary, #moviePlotSummarySection > summary::-webkit-details-marker {
+#movieSynopsisSection > summary, #movieBlurbSection > summary, #moviePlotSummarySection > summary, #movieDetailsSection > summary::-webkit-details-marker {
 display:none;
 }
 
-#movieSynopsisSection > summary, #movieBlurbSection > summary, #moviePlotSummarySection > summary::after {
+#movieSynopsisSection > summary, #movieBlurbSection > summary, #moviePlotSummarySection > summary, #movieDetailsSection > summary::after {
 content:'+';
 font-size:1rem;
 letter-spacing:0;
 }
 
-#movieSynopsisSection[open] > summary::after, #movieBlurbSection[open] > summary::after, #moviePlotSummarySection[open] > summary::after {
+#movieSynopsisSection[open] > summary::after, #movieBlurbSection[open] > summary::after, #moviePlotSummarySection[open] > summary::after, #movieDetailsSection[open] > summary::after {
 content:'−';
 }
 
