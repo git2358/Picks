@@ -134,53 +134,29 @@ indicator.style.transform='';
 
 function setupMoviePosterSearch(){
 const posterLink=document.getElementById('posterLink');
+const card=document.getElementById('posterFlipCard');
 const menu=document.getElementById('movieSearchMenu');
-if(!posterLink||!menu)return;
-let pressTimer=null;
-let longPressTriggered=false;
-let pointerStartX=0;
-let pointerStartY=0;
-const closeMenu=()=>{
-menu.hidden=true;
-posterLink.setAttribute('aria-expanded','false');
-};
-const openMenu=()=>{
-menu.hidden=false;
-posterLink.setAttribute('aria-expanded','true');
-};
-const cancelPress=()=>{
-if(pressTimer!==null){
-clearTimeout(pressTimer);
-pressTimer=null;
+if(!posterLink||!card||!menu)return;
+const closeButton=menu.querySelector('.movie-search-close');
+const setFlipped=flipped=>{
+card.classList.toggle('is-flipped',flipped);
+posterLink.setAttribute('aria-expanded',String(flipped));
+menu.setAttribute('aria-hidden',String(!flipped));
+menu.inert=!flipped;
+if(flipped){
+posterLink.setAttribute('aria-label','Movie searches revealed');
+}else{
+posterLink.setAttribute('aria-label','Tap to reveal movie searches');
 }
 };
-posterLink.addEventListener('pointerdown',event=>{
-if(event.pointerType==='mouse'&&event.button!==0)return;
-cancelPress();
-longPressTriggered=false;
-pointerStartX=event.clientX;
-pointerStartY=event.clientY;
-pressTimer=setTimeout(()=>{
-longPressTriggered=true;
-openMenu();
-},550);
-});
-posterLink.addEventListener('pointermove',event=>{
-if(pressTimer===null)return;
-if(Math.abs(event.clientX-pointerStartX)>12||Math.abs(event.clientY-pointerStartY)>12)cancelPress();
-});
-posterLink.addEventListener('pointerup',cancelPress);
-posterLink.addEventListener('pointercancel',cancelPress);
+const openMenu=()=>setFlipped(true);
+const closeMenu=returnFocus=>{
+setFlipped(false);
+if(returnFocus)posterLink.focus();
+};
 posterLink.addEventListener('click',event=>{
 event.preventDefault();
-if(longPressTriggered){
-event.stopPropagation();
-longPressTriggered=false;
-return;
-}
-if(event.detail===0){
 openMenu();
-}
 });
 posterLink.addEventListener('keydown',event=>{
 if(event.key==='Enter'||event.key===' '){
@@ -188,10 +164,7 @@ event.preventDefault();
 openMenu();
 }
 });
-posterLink.addEventListener('contextmenu',event=>{
-event.preventDefault();
-openMenu();
-});
+closeButton.addEventListener('click',()=>closeMenu(true));
 menu.addEventListener('click',event=>{
 const button=event.target.closest('button[data-search-type]');
 if(!button)return;
@@ -199,22 +172,14 @@ const movieTitle=document.getElementById('movieTitle').textContent.trim();
 const movieYear=document.getElementById('movieYear').textContent.trim();
 const searchType=button.dataset.searchType;
 const query=searchType==='history'
-?`history of the movie ${movieTitle}${movieYear?' '+movieYear:''}`
-:`${movieTitle}${movieYear?' '+movieYear:''} ${searchType}`;
+? `history of the movie ${movieTitle}${movieYear?' '+movieYear:''}`
+: `${movieTitle}${movieYear?' '+movieYear:''} ${searchType}`;
 window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,'_blank','noopener,noreferrer');
-closeMenu();
-});
-document.addEventListener('pointerdown',event=>{
-if(!menu.hidden&&!menu.contains(event.target)&&!posterLink.contains(event.target))closeMenu();
 });
 document.addEventListener('keydown',event=>{
-if(event.key==='Escape'&&!menu.hidden){
-closeMenu();
-posterLink.focus();
-}
+if(event.key==='Escape'&&card.classList.contains('is-flipped'))closeMenu(true);
 });
-}
-\nfunction parseMovieLine(line){
+}\nfunction parseMovieLine(line){
 const cleaned=line.replace(/^[-–*#\d.]+\s*/,'').trim();
 const match=cleaned.match(/^(.*?)(?:\s+(\d{4}))?\s*$/);
 return {title:match?match[1].trim():cleaned,year:match?.[2]||''};
