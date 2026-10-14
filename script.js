@@ -276,8 +276,8 @@ return slug;
 
 const sectionStateStorageKey='picks-movie-section-states-v1';
 const defaultMovieSectionStates={
-movieSynopsisSection:false,
-movieBlurbSection:false,
+movieSynopsisSection:true,
+movieBlurbSection:true,
 moviePlotSummarySection:false,
 movieDetailsSection:true
 };
