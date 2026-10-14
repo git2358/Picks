@@ -229,12 +229,17 @@ flex:1;
 }
 
 .synopsis-scroll-area::-webkit-scrollbar {
-width:6px;
+width:10px;
+}
+
+.synopsis-scroll-area::-webkit-scrollbar-track {
+background:transparent;
 }
 
 .synopsis-scroll-area::-webkit-scrollbar-thumb {
-background:rgba(255,255,255,.2);
-border-radius:3px;
+background:#fff;
+border-radius:0;
+mix-blend-mode:difference;
 }
 
 .movie-section {
