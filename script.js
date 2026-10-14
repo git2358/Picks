@@ -197,6 +197,7 @@ await displayMovieAtIndex(index);
 }
 
 async function fetchNextMovie(isInitial=false){
+if(prefetchInProgress)await prefetchInProgress;
 if(watchedIndices.length>=movies.length){
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
