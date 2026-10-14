@@ -480,6 +480,46 @@ transform:translateX(-100%) scaleX(.7);
 transform:translateX(100%) scaleX(.7);
 }
 
+#movingSpotlight {
+position:absolute;
+left:50%;
+top:50%;
+width:clamp(150px, 24vmin, 340px);
+aspect-ratio:1;
+border-radius:50%;
+pointer-events:none;
+z-index:10002;
+opacity:0;
+transform:translate(-50%,-50%);
+background:radial-gradient(circle, rgba(255,255,255,.28) 0%, rgba(255,255,255,.18) 24%, rgba(255,255,255,.08) 48%, rgba(255,255,255,0) 72%);
+filter:blur(2px);
+transition:opacity .55s ease;
+will-change:transform,opacity;
+}
+
+.curtain-overlay.loading-movie #movingSpotlight {
+opacity:1;
+animation:spotlightFigureEight 9s ease-in-out infinite;
+}
+
+@keyframes spotlightFigureEight {
+0% { transform:translate(calc(-50% - 18vw), calc(-50% - 8vh)); }
+12.5% { transform:translate(-50%, -50%); }
+25% { transform:translate(calc(-50% + 18vw), calc(-50% + 8vh)); }
+37.5% { transform:translate(-50%, -50%); }
+50% { transform:translate(calc(-50% - 18vw), calc(-50% + 8vh)); }
+62.5% { transform:translate(-50%, -50%); }
+75% { transform:translate(calc(-50% + 18vw), calc(-50% - 8vh)); }
+87.5% { transform:translate(-50%, -50%); }
+100% { transform:translate(calc(-50% - 18vw), calc(-50% - 8vh)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.curtain-overlay.loading-movie #movingSpotlight {
+animation-duration:18s;
+}
+}
+
 .stage-lighting {
 position:absolute;
 inset:0;
