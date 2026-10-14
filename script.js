@@ -290,6 +290,7 @@ stopSpeech();
 await scrollToTopAndWait();
 resetPosterFlipCard();
 overlay.classList.remove('open','no-light','loading-movie');
+updateDocumentTitle(false);
 await new Promise(resolve=>setTimeout(resolve,600));
 overlay.classList.add('show-spotlight');
 document.getElementById('reloadBtn').style.display='none';
@@ -378,6 +379,7 @@ prefetchInProgress=null;
 
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.remove('open','no-light','loading-movie');
+updateDocumentTitle(false);
 
 if(watchedIndices.length>=movies.length){
 await showNoMoreMovies();
