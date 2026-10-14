@@ -472,7 +472,7 @@ padding:.6rem;
 grid-column:1 / -1;
 }
 .poster-flip-card.has-wide-poster .movie-search-menu-title {
-margin-bottom:0;
+margin-bottom:.45rem;
 }
 .poster-flip-card.has-wide-poster .movie-search-menu button[data-search-type],
 .poster-flip-card.has-wide-poster .movie-search-close {
@@ -546,6 +546,7 @@ background:rgba(255,255,255,.16);
 transform:scale(.98);
 }
 .movie-search-menu .movie-search-close {
+margin-top:.55rem;
 width:100%;
 padding:.72rem .6rem;
 border:1px solid rgba(255,255,255,.4);
