@@ -1217,3 +1217,9 @@ opacity:1;
 background:#e50914;
 border-color:#e50914;
 }
+
+@media (max-width:767px) {
+.movie-search-menu .custom-search-url {
+font-size:16px !important;
+}
+}
