@@ -204,9 +204,7 @@ if(navigationRequest!==historyNavigationRequest)return;
 await displayMovieAtIndex(index);
 }
 
-async function fetchNextMovie(isInitial=false){
-const requestId=++nextMovieRequest;
-if(watchedIndices.length>=movies.length){
+async function showNoMoreMovies(){
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
 await scrollToTopAndWait();
@@ -214,6 +212,12 @@ overlay.classList.remove('open','no-light','loading-movie');
 await new Promise(resolve=>setTimeout(resolve,600));
 overlay.classList.add('show-spotlight');
 document.getElementById('reloadBtn').style.display='none';
+}
+
+async function fetchNextMovie(isInitial=false){
+const requestId=++nextMovieRequest;
+if(watchedIndices.length>=movies.length){
+await showNoMoreMovies();
 return;
 }
 
@@ -244,51 +248,66 @@ prefetchInProgress=null;
 }
 }
 
-const chooseRandomMovie=excludedIndex=>{
-const candidates=movies.map((_,index)=>index).filter(index=>!watchedIndices.includes(index)&&index!==excludedIndex);
+const chooseRandomMovie=()=>{
+const candidates=movies.map((_,index)=>index).filter(index=>!watchedIndices.includes(index));
 return candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:-1;
 };
 
-let randomIndex;
-if(prefetchedNextIndex!==null&&!watchedIndices.includes(prefetchedNextIndex)){
-randomIndex=prefetchedNextIndex;
-}else{
-randomIndex=chooseRandomMovie(-1);
-}
-if(randomIndex<0)return;
+let nextIndex=prefetchedNextIndex!==null&&!watchedIndices.includes(prefetchedNextIndex)
+?prefetchedNextIndex
+:chooseRandomMovie();
 prefetchedNextIndex=null;
 
-const showMovie=async index=>{
+while(nextIndex>=0&&requestId===nextMovieRequest){
+const index=nextIndex;
 const parsed=parseMovieLine(movies[index]);
 const slug=movieSlug(parsed.title,parsed.year);
 const movieUrl=`#${slug.replace(/\\s+/g,'_')}`;
+
+const displayAttempt=(async()=>{
 await displayMovieAtIndex(index);
-if(!document.getElementById('curtainOverlay').classList.contains('open')||activeMovieSlug!==slug)return;
+if(!document.getElementById('curtainOverlay').classList.contains('open')||activeMovieSlug!==slug)return false;
 if(isInitial){
 history.replaceState({movie:slug},'',movieUrl);
 }else{
 history.pushState({movie:slug},'',movieUrl);
 }
 if(!watchedIndices.includes(index))watchedIndices.push(index);
-};
+return true;
+})();
 
-await Promise.race([
-showMovie(randomIndex).catch(error=>{
-console.error('Movie failed to load:',error);
-return 'timeout';
+const result=await Promise.race([
+displayAttempt.catch(error=>{
+console.error('Movie failed to load:',movies[index],error);
+return false;
 }),
-new Promise(resolve=>setTimeout(()=>resolve('timeout'),movieLoadTimeout))
+new Promise(resolve=>setTimeout(()=>resolve(false),movieLoadTimeout))
 ]);
+
 if(requestId!==nextMovieRequest)return;
+if(result)return;
 
-if(document.getElementById('curtainOverlay').classList.contains('open'))return;
-
-const fallbackIndex=chooseRandomMovie(randomIndex);
-if(fallbackIndex<0)return;
+// A movie that fails to display is counted as attempted for this session.
+// This prevents endless retries and lets the end-of-list message appear.
 movieDisplayRequest++;
+if(!watchedIndices.includes(index))watchedIndices.push(index);
 prefetchedNextIndex=null;
 prefetchInProgress=null;
-await showMovie(fallbackIndex);
+
+const overlay=document.getElementById('curtainOverlay');
+overlay.classList.remove('open','no-light','loading-movie');
+
+if(watchedIndices.length>=movies.length){
+await showNoMoreMovies();
+return;
+}
+
+nextIndex=chooseRandomMovie();
+}
+
+if(requestId===nextMovieRequest&&watchedIndices.length>=movies.length){
+await showNoMoreMovies();
+}
 }
 async function displayMovieAtIndex(randomIndex){
 const requestId=++movieDisplayRequest;
