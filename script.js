@@ -167,8 +167,7 @@ await displayMovieAtIndex(index);
 async function fetchNextMovie(isInitial=false){
 if(watchedIndices.length>=movies.length){
 const overlay=document.getElementById('curtainOverlay');
-overlay.classList.remove('open','no-light');
-overlay.classList.add('loading-movie');
+overlay.classList.remove('open','no-light','loading-movie');
 stopSpeech();
 window.scrollTo({top:0,behavior:'smooth'});
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
@@ -183,6 +182,7 @@ if(!isInitial){
 document.getElementById('movieBlurbSection').style.display='none';
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.remove('open','no-light');
+overlay.classList.add('loading-movie');
 stopSpeech();
 window.scrollTo({top:0,behavior:'smooth'});
 const synopsisArea=document.querySelector('.synopsis-scroll-area');
