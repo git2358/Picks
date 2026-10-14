@@ -330,12 +330,16 @@ prefetchNextMovie();
 
 async function prefetchNextMovie(){
 if(prefetchInProgress||prefetchedNextIndex!==null||!movies.length||watchedIndices.length>=movies.length)return;
-const candidates=movies.map((_,index)=>index).filter(index=>!watchedIndices.includes(index));
+prefetchInProgress=(async()=>{
+const attempted=new Set();
+const timeoutResult=Symbol('prefetch-timeout');
+try{
+while(attempted.size<movies.length){
+const candidates=movies.map((_,index)=>index).filter(index=>!watchedIndices.includes(index)&&!attempted.has(index));
 if(!candidates.length)return;
 const index=candidates[Math.floor(Math.random()*candidates.length)];
-prefetchedNextIndex=index;
-prefetchInProgress=(async()=>{
-try{
+attempted.add(index);
+const attempt=(async()=>{
 let movie=movieDetailsCache.get(index);
 if(!movie){
 const parsed=parseMovieLine(movies[index]);
@@ -343,8 +347,24 @@ movie=await fetchMovieDetailsFromWikipedia(parsed.title,parsed.year);
 movieDetailsCache.set(index,movie);
 }
 await loadPoster(movie);
+return movie;
+})();
+try{
+const movie=await Promise.race([
+attempt,
+new Promise(resolve=>setTimeout(()=>resolve(timeoutResult),movieLoadTimeout))
+]);
+if(movie===timeoutResult){
+console.warn('Movie preloading timed out; trying another movie:',movies[index]);
+continue;
+}
+if(watchedIndices.includes(index))continue;
+prefetchedNextIndex=index;
+return;
 }catch(error){
-console.error('Movie preloading failed:',error);
+console.error('Movie preloading failed; trying another movie:',movies[index],error);
+}
+}
 }finally{
 prefetchInProgress=null;
 }
