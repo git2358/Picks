@@ -85,8 +85,8 @@ pullTracking=false;
 indicator.classList.remove('visible','ready');
 return;
 }
-if(pullDistance>8){
 event.preventDefault();
+if(pullDistance>8){
 indicator.classList.add('visible');
 indicator.classList.toggle('ready',pullDistance>=pullRefreshThreshold);
 indicator.textContent=pullDistance>=pullRefreshThreshold?'↑ Release for next movie':'↓ Pull to get another movie';
