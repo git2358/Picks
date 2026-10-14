@@ -184,6 +184,7 @@ const navigationRequest=++historyNavigationRequest;
 if(!watchedIndices.includes(index))watchedIndices.push(index);
 
 document.getElementById('movieBlurbSection').style.display='none';
+document.title='Picks';
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
 await scrollToTopAndWait();
@@ -211,6 +212,7 @@ return;
 
 if(!isInitial){
 document.getElementById('movieBlurbSection').style.display='none';
+document.title='Picks';
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
 await scrollToTopAndWait();
@@ -262,8 +264,6 @@ movieDetailsCache.set(randomIndex,movie);
 }
 if(requestId!==movieDisplayRequest)return;
 currentMovie=movie;
-document.title=`Picks - ${title}${year?' '+year:''}`;
-
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
 document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
@@ -284,6 +284,7 @@ document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie
 await new Promise(resolve=>setTimeout(resolve,150));
 overlay.classList.remove('loading-movie');
 overlay.classList.add('open');
+document.title=`Picks - ${title}${year?' '+year:''}`;
 setTimeout(()=>overlay.classList.add('no-light'),1050);
 prefetchNextMovie();
 }
