@@ -15,6 +15,9 @@ const fallbackPoster='https://upload.wikimedia.org/wikipedia/commons/2/29/Butter
 const wikidataCache=new Map();
 const wikipediaCache=new Map();
 const wikidataEntityCache=new Map();
+const movieDetailsCache=new Map();
+let prefetchedNextIndex=null;
+let prefetchInProgress=null;
 
 async function loadMoviesDatabase(){
 try{
@@ -218,9 +221,14 @@ await new Promise(resolve=>setTimeout(resolve,400));
 }
 
 let randomIndex;
+if(prefetchedNextIndex!==null&&!watchedIndices.includes(prefetchedNextIndex)){
+randomIndex=prefetchedNextIndex;
+}else{
 do{
 randomIndex=Math.floor(Math.random()*movies.length);
 }while(watchedIndices.includes(randomIndex));
+}
+prefetchedNextIndex=null;
 
 watchedIndices.push(randomIndex);
 const parsed=parseMovieLine(movies[randomIndex]);
@@ -243,7 +251,11 @@ activeMovieSlug=movieSlug(parsed.title,parsed.year);
 const title=parsed.title;
 const year=parsed.year;
 
-const movie=await fetchMovieDetailsFromWikipedia(title,year);
+let movie=movieDetailsCache.get(randomIndex);
+if(!movie){
+movie=await fetchMovieDetailsFromWikipedia(title,year);
+movieDetailsCache.set(randomIndex,movie);
+}
 if(requestId!==movieDisplayRequest)return;
 currentMovie=movie;
 document.title=`Picks - ${title}${year?' '+year:''}`;
@@ -269,6 +281,32 @@ await new Promise(resolve=>setTimeout(resolve,150));
 overlay.classList.remove('loading-movie');
 overlay.classList.add('open');
 setTimeout(()=>overlay.classList.add('no-light'),1050);
+prefetchNextMovie();
+}
+
+
+async function prefetchNextMovie(){
+if(prefetchInProgress||prefetchedNextIndex!==null||!movies.length||watchedIndices.length>=movies.length)return;
+const candidates=movies.map((_,index)=>index).filter(index=>!watchedIndices.includes(index));
+if(!candidates.length)return;
+const index=candidates[Math.floor(Math.random()*candidates.length)];
+prefetchedNextIndex=index;
+prefetchInProgress=(async()=>{
+try{
+let movie=movieDetailsCache.get(index);
+if(!movie){
+const parsed=parseMovieLine(movies[index]);
+movie=await fetchMovieDetailsFromWikipedia(parsed.title,parsed.year);
+movieDetailsCache.set(index,movie);
+}
+await loadPoster(movie);
+}catch(error){
+console.error('Movie preloading failed:',error);
+}finally{
+prefetchInProgress=null;
+}
+})();
+await prefetchInProgress;
 }
 
 function normaliseTitle(title){
