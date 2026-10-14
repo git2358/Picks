@@ -276,6 +276,7 @@ await displayMovieAtIndex(index);
 async function showNoMoreMovies(){
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
+resetPosterFlipCard();
 await scrollToTopAndWait();
 overlay.classList.remove('open','no-light','loading-movie');
 await new Promise(resolve=>setTimeout(resolve,600));
@@ -295,6 +296,7 @@ document.getElementById('movieBlurbSection').style.display='none';
 document.title='Picks';
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
+resetPosterFlipCard();
 await scrollToTopAndWait();
 overlay.classList.remove('no-light');
 overlay.classList.add('loading-movie');
