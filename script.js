@@ -846,10 +846,10 @@ const textResponse=await fetch(textUrl);
 if(!textResponse.ok)return '';
 const textData=await textResponse.json();
 const documentContent=new DOMParser().parseFromString(textData.parse?.text?.['*']||'','text/html');
-documentContent.querySelectorAll('sup.reference,.mw-editsection,.navbox,table,style,script,.hatnote,.shortdescription,.metadata,.mw-empty-elt,.toc').forEach(element=>element.remove());
+documentContent.querySelectorAll('sup.reference,.mw-editsection,.navbox,table,style,script,.hatnote,.shortdescription,.metadata,.mw-empty-elt,.toc,.error,.mw-warning').forEach(element=>element.remove());
 const paragraphs=[...documentContent.querySelectorAll('p')]
-.map(paragraph=>paragraph.textContent.replace(/\[\d+\]/g,'').replace(/\s+/g,' ').trim())
-.filter(paragraph=>paragraph.length>25);
+.map(paragraph=>paragraph.textContent.replace(/Cite error:[\s\S]*$/i,'').replace(/\[\d+\]/g,'').replace(/\s+/g,' ').trim())
+.filter(paragraph=>paragraph.length>25&&!/^Cite error:/i.test(paragraph));
 const plotSummary=paragraphs.join('\n\n').trim();
 plotSummaryCache.set(pageTitle,plotSummary);
 return plotSummary;
