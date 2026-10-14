@@ -452,8 +452,36 @@ justify-content:center;
 gap:.4rem;
 padding:3.2rem 1rem 1rem;
 border:1px solid rgba(255,255,255,.2);
-background:linear-gradient(145deg,rgba(24,24,24,.98),rgba(5,5,5,.98));
-box-shadow:inset 0 0 35px rgba(255,255,255,.04);
+background:rgba(10,10,10,.18);
+box-shadow:inset 0 0 35px rgba(255,255,255,.12);
+overflow:hidden;
+isolation:isolate;
+}
+.poster-back .search-poster-backdrop {
+position:absolute;
+inset:-12%;
+z-index:-2;
+width:124%;
+height:124%;
+max-height:none;
+object-fit:cover;
+filter:blur(16px) saturate(1.5) brightness(.72) contrast(1.08);
+transform:scaleY(-1) scale(1.12);
+border-radius:0;
+box-shadow:none;
+pointer-events:none;
+}
+.poster-back .search-poster-overlay {
+position:absolute;
+inset:0;
+z-index:-1;
+background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(0,0,0,.35));
+backdrop-filter:blur(3px);
+-webkit-backdrop-filter:blur(3px);
+pointer-events:none;
+}
+button {
+text-transform:uppercase;
 }
 .movie-search-menu[aria-hidden="true"] {
 pointer-events:none;
@@ -470,15 +498,21 @@ text-transform:uppercase;
 .movie-search-menu button[data-search-type] {
 width:100%;
 padding:.72rem .6rem;
-border:1px solid rgba(255,255,255,.1);
+border:1px solid rgba(255,255,255,.32);
 border-radius:7px;
-background:rgba(255,255,255,.055);
+background:rgba(255,255,255,.13);
 color:#fff;
 font:inherit;
-font-size:.9rem;
+font-size:.82rem;
+font-weight:750;
+letter-spacing:.045em;
 text-align:center;
+text-shadow:0 1px 5px rgba(0,0,0,.8);
 cursor:pointer;
-transition:background .2s,transform .2s;
+backdrop-filter:blur(16px) saturate(1.4);
+-webkit-backdrop-filter:blur(16px) saturate(1.4);
+box-shadow:0 4px 14px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.18);
+transition:background .2s,transform .2s,border-color .2s;
 }
 .movie-search-menu button[data-search-type]:hover,
 .movie-search-menu button[data-search-type]:focus-visible {
@@ -500,9 +534,11 @@ justify-content:center;
 padding:0;
 border:1px solid rgba(255,255,255,.24);
 border-radius:50%;
-background:rgba(255,255,255,.09);
+background:rgba(255,255,255,.16);
 color:#fff;
 font-size:1.65rem;
+backdrop-filter:blur(14px);
+-webkit-backdrop-filter:blur(14px);
 line-height:1;
 cursor:pointer;
 }
