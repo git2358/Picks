@@ -484,7 +484,7 @@ transform:translateX(100%) scaleX(.7);
 position:absolute;
 left:50%;
 top:50%;
-width:32vmin;
+width:38vmin;
 aspect-ratio:1;
 border-radius:50%;
 pointer-events:none;
@@ -496,7 +496,7 @@ backdrop-filter:brightness(1.3);
 -webkit-mask-image:radial-gradient(circle, #000 0%, #000 68%, rgba(0,0,0,.88) 77%, transparent 100%);
 mask-image:radial-gradient(circle, #000 0%, #000 68%, rgba(0,0,0,.88) 77%, transparent 100%);
 transition:opacity .65s ease;
-animation:spotlightFigureEight 4s linear infinite;
+animation:spotlightFigureEight 3s linear infinite;
 will-change:transform,opacity;
 }
 
