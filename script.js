@@ -346,6 +346,9 @@ const parsed=parseMovieLine(movies[index]);
 movie=await fetchMovieDetailsFromWikipedia(parsed.title,parsed.year);
 movieDetailsCache.set(index,movie);
 }
+if(movie.synopsis==='Synopsis currently unavailable.'&&movie.poster===fallbackPoster){
+throw new Error('Movie details could not be found');
+}
 await loadPoster(movie);
 return movie;
 })();
