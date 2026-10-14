@@ -23,6 +23,7 @@ let prefetchInProgress=null;
 
 async function loadMoviesDatabase(){
 try{
+setupMoviePosterSearch();
 const response=await fetch('movies.txt');
 if(!response.ok)throw new Error(`HTTP error! status: ${response.status}`);
 const text=await response.text();
@@ -130,7 +131,84 @@ indicator.style.transform='';
 },{passive:true});
 }
 
-function parseMovieLine(line){
+
+function setupMoviePosterSearch(){
+const posterLink=document.getElementById('posterLink');
+const menu=document.getElementById('movieSearchMenu');
+if(!posterLink||!menu)return;
+let pressTimer=null;
+let longPressTriggered=false;
+let pointerStartX=0;
+let pointerStartY=0;
+const closeMenu=()=>{
+menu.hidden=true;
+posterLink.setAttribute('aria-expanded','false');
+};
+const openMenu=()=>{
+menu.hidden=false;
+posterLink.setAttribute('aria-expanded','true');
+};
+const cancelPress=()=>{
+if(pressTimer!==null){
+clearTimeout(pressTimer);
+pressTimer=null;
+}
+};
+posterLink.addEventListener('pointerdown',event=>{
+if(event.pointerType==='mouse'&&event.button!==0)return;
+cancelPress();
+longPressTriggered=false;
+pointerStartX=event.clientX;
+pointerStartY=event.clientY;
+pressTimer=setTimeout(()=>{
+longPressTriggered=true;
+openMenu();
+},550);
+});
+posterLink.addEventListener('pointermove',event=>{
+if(pressTimer===null)return;
+if(Math.abs(event.clientX-pointerStartX)>12||Math.abs(event.clientY-pointerStartY)>12)cancelPress();
+});
+posterLink.addEventListener('pointerup',cancelPress);
+posterLink.addEventListener('pointercancel',cancelPress);
+posterLink.addEventListener('click',event=>{
+event.preventDefault();
+if(longPressTriggered){
+event.stopPropagation();
+longPressTriggered=false;
+return;
+}
+if(event.detail===0){
+openMenu();
+}
+});
+posterLink.addEventListener('contextmenu',event=>{
+event.preventDefault();
+openMenu();
+});
+menu.addEventListener('click',event=>{
+const button=event.target.closest('button[data-search-type]');
+if(!button)return;
+const movieTitle=document.getElementById('movieTitle').textContent.trim();
+const movieYear=document.getElementById('movieYear').textContent.trim();
+const searchType=button.dataset.searchType;
+const query=searchType==='history'
+?`history of the movie ${movieTitle}${movieYear?' '+movieYear:''}`
+:`${movieTitle}${movieYear?' '+movieYear:''} ${searchType}`;
+window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,'_blank','noopener,noreferrer');
+closeMenu();
+});
+document.addEventListener('pointerdown',event=>{
+if(!menu.hidden&&!menu.contains(event.target)&&!posterLink.contains(event.target))closeMenu();
+});
+document.addEventListener('keydown',event=>{
+if(event.key==='Escape'&&!menu.hidden){
+closeMenu();
+posterLink.focus();
+}
+});
+}
+\nfunction parseMovieLine(line){
 const cleaned=line.replace(/^[-–*#\d.]+\s*/,'').trim();
 const match=cleaned.match(/^(.*?)(?:\s+(\d{4}))?\s*$/);
 return {title:match?match[1].trim():cleaned,year:match?.[2]||''};
@@ -367,10 +445,8 @@ await loadPoster(currentMovie);
 if(requestId!==movieDisplayRequest)return;
 const posterElement=document.getElementById('moviePoster');
 const posterLink=document.getElementById('posterLink');
-const trailerQuery=`Movie Trailer ${title}${year?' '+year:''}`;
-posterLink.href=`https://www.youtube.com/results?search_query=${encodeURIComponent(trailerQuery)}`;
-posterLink.setAttribute('aria-label',`Search YouTube for ${title}${year?' '+year:''} trailer`);
-posterLink.title=`Search YouTube for ${title}${year?' '+year:''} trailer`;
+posterLink.setAttribute('aria-label',`Long-press to search YouTube for ${title}${year?' '+year:''}`);
+posterLink.title=`Long-press for searches about ${title}${year?' '+year:''}`;
 posterElement.onload=fitCardToPoster;
 posterElement.src=currentMovie.poster;
 if(posterElement.complete)fitCardToPoster();
