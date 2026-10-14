@@ -608,6 +608,10 @@ transition:none;
 }
 
 @media (min-width:768px) {
+.poster-flip-card:not(.has-wide-poster) .poster-back-movie-title {
+margin-top:3rem;
+}
+
 .speak-btn {
 opacity:.25;
 transition:background .2s,transform .1s,opacity .2s;
