@@ -484,7 +484,7 @@ transform:translateX(100%) scaleX(.7);
 position:absolute;
 left:50%;
 top:50%;
-width:clamp(190px, 28vmin, 370px);
+width:30vmin;
 aspect-ratio:1;
 border-radius:50%;
 pointer-events:none;
@@ -492,13 +492,21 @@ z-index:10002;
 opacity:0;
 transform:translate(-50%,-50%);
 background:rgba(255,255,255,.10);
--webkit-backdrop-filter:brightness(1.45) saturate(1.55) contrast(1.2);
-backdrop-filter:brightness(1.45) saturate(1.55) contrast(1.2);
--webkit-mask-image:radial-gradient(circle, #000 62%, rgba(0,0,0,.92) 72%, transparent 100%);
-mask-image:radial-gradient(circle, #000 62%, rgba(0,0,0,.92) 72%, transparent 100%);
+-webkit-mask-image:radial-gradient(circle, #000 0%, #000 68%, rgba(0,0,0,.88) 77%, transparent 100%);
+mask-image:radial-gradient(circle, #000 0%, #000 68%, rgba(0,0,0,.88) 77%, transparent 100%);
 transition:opacity .65s ease;
-animation:spotlightFigureEight 12s linear infinite;
+animation:spotlightFigureEight 4s linear infinite;
 will-change:transform,opacity;
+}
+
+#movingSpotlight::before {
+content:"";
+position:absolute;
+inset:-16%;
+border-radius:50%;
+background:radial-gradient(circle, rgba(255,255,255,.10) 48%, rgba(255,255,255,.07) 66%, rgba(255,255,255,.025) 82%, transparent 100%);
+filter:blur(7px);
+pointer-events:none;
 }
 
 .curtain-overlay.loading-movie #movingSpotlight {
@@ -507,51 +515,91 @@ opacity:1;
 
 @keyframes spotlightFigureEight {
 0% { transform:translate(calc(-50% + 27.00vw), calc(-50% + 0.00vh)); }
-2.5% { transform:translate(calc(-50% + 26.03vw), calc(-50% + 3.32vh)); }
+1.25% { transform:translate(calc(-50% + 26.75vw), calc(-50% + 1.71vh)); }
+2.50% { transform:translate(calc(-50% + 26.03vw), calc(-50% + 3.32vh)); }
+3.75% { transform:translate(calc(-50% + 24.90vw), calc(-50% + 4.74vh)); }
 5% { transform:translate(calc(-50% + 23.44vw), calc(-50% + 5.90vh)); }
-7.5% { transform:translate(calc(-50% + 19.95vw), calc(-50% + 7.38vh)); }
+6.25% { transform:translate(calc(-50% + 21.76vw), calc(-50% + 6.78vh)); }
+7.50% { transform:translate(calc(-50% + 19.95vw), calc(-50% + 7.38vh)); }
+8.75% { transform:translate(calc(-50% + 18.08vw), calc(-50% + 7.70vh)); }
 10% { transform:translate(calc(-50% + 16.23vw), calc(-50% + 7.78vh)); }
-12.5% { transform:translate(calc(-50% + 12.73vw), calc(-50% + 7.33vh)); }
+11.25% { transform:translate(calc(-50% + 14.44vw), calc(-50% + 7.64vh)); }
+12.50% { transform:translate(calc(-50% + 12.73vw), calc(-50% + 7.33vh)); }
+13.75% { transform:translate(calc(-50% + 11.11vw), calc(-50% + 6.88vh)); }
 15% { transform:translate(calc(-50% + 9.59vw), calc(-50% + 6.32vh)); }
-17.5% { transform:translate(calc(-50% + 6.83vw), calc(-50% + 4.96vh)); }
+16.25% { transform:translate(calc(-50% + 8.17vw), calc(-50% + 5.68vh)); }
+17.50% { transform:translate(calc(-50% + 6.83vw), calc(-50% + 4.96vh)); }
+18.75% { transform:translate(calc(-50% + 5.57vw), calc(-50% + 4.20vh)); }
 20% { transform:translate(calc(-50% + 4.38vw), calc(-50% + 3.39vh)); }
-22.5% { transform:translate(calc(-50% + 2.14vw), calc(-50% + 1.72vh)); }
+21.25% { transform:translate(calc(-50% + 3.24vw), calc(-50% + 2.57vh)); }
+22.50% { transform:translate(calc(-50% + 2.14vw), calc(-50% + 1.72vh)); }
+23.75% { transform:translate(calc(-50% + 1.06vw), calc(-50% + 0.86vh)); }
 25% { transform:translate(calc(-50% + 0.00vw), calc(-50% + 0.00vh)); }
-27.5% { transform:translate(calc(-50% + -2.14vw), calc(-50% + -1.72vh)); }
+26.25% { transform:translate(calc(-50% + -1.06vw), calc(-50% + -0.86vh)); }
+27.50% { transform:translate(calc(-50% + -2.14vw), calc(-50% + -1.72vh)); }
+28.75% { transform:translate(calc(-50% + -3.24vw), calc(-50% + -2.57vh)); }
 30% { transform:translate(calc(-50% + -4.38vw), calc(-50% + -3.39vh)); }
-32.5% { transform:translate(calc(-50% + -6.83vw), calc(-50% + -4.96vh)); }
+31.25% { transform:translate(calc(-50% + -5.57vw), calc(-50% + -4.20vh)); }
+32.50% { transform:translate(calc(-50% + -6.83vw), calc(-50% + -4.96vh)); }
+33.75% { transform:translate(calc(-50% + -8.17vw), calc(-50% + -5.68vh)); }
 35% { transform:translate(calc(-50% + -9.59vw), calc(-50% + -6.32vh)); }
-37.5% { transform:translate(calc(-50% + -12.73vw), calc(-50% + -7.33vh)); }
+36.25% { transform:translate(calc(-50% + -11.11vw), calc(-50% + -6.88vh)); }
+37.50% { transform:translate(calc(-50% + -12.73vw), calc(-50% + -7.33vh)); }
+38.75% { transform:translate(calc(-50% + -14.44vw), calc(-50% + -7.64vh)); }
 40% { transform:translate(calc(-50% + -16.23vw), calc(-50% + -7.78vh)); }
-42.5% { transform:translate(calc(-50% + -19.95vw), calc(-50% + -7.38vh)); }
+41.25% { transform:translate(calc(-50% + -18.08vw), calc(-50% + -7.70vh)); }
+42.50% { transform:translate(calc(-50% + -19.95vw), calc(-50% + -7.38vh)); }
+43.75% { transform:translate(calc(-50% + -21.76vw), calc(-50% + -6.78vh)); }
 45% { transform:translate(calc(-50% + -23.44vw), calc(-50% + -5.90vh)); }
-47.5% { transform:translate(calc(-50% + -26.03vw), calc(-50% + -3.32vh)); }
+46.25% { transform:translate(calc(-50% + -24.90vw), calc(-50% + -4.74vh)); }
+47.50% { transform:translate(calc(-50% + -26.03vw), calc(-50% + -3.32vh)); }
+48.75% { transform:translate(calc(-50% + -26.75vw), calc(-50% + -1.71vh)); }
 50% { transform:translate(calc(-50% + -27.00vw), calc(-50% + -0.00vh)); }
-52.5% { transform:translate(calc(-50% + -26.03vw), calc(-50% + 3.32vh)); }
+51.25% { transform:translate(calc(-50% + -26.75vw), calc(-50% + 1.71vh)); }
+52.50% { transform:translate(calc(-50% + -26.03vw), calc(-50% + 3.32vh)); }
+53.75% { transform:translate(calc(-50% + -24.90vw), calc(-50% + 4.74vh)); }
 55% { transform:translate(calc(-50% + -23.44vw), calc(-50% + 5.90vh)); }
-57.5% { transform:translate(calc(-50% + -19.95vw), calc(-50% + 7.38vh)); }
+56.25% { transform:translate(calc(-50% + -21.76vw), calc(-50% + 6.78vh)); }
+57.50% { transform:translate(calc(-50% + -19.95vw), calc(-50% + 7.38vh)); }
+58.75% { transform:translate(calc(-50% + -18.08vw), calc(-50% + 7.70vh)); }
 60% { transform:translate(calc(-50% + -16.23vw), calc(-50% + 7.78vh)); }
-62.5% { transform:translate(calc(-50% + -12.73vw), calc(-50% + 7.33vh)); }
+61.25% { transform:translate(calc(-50% + -14.44vw), calc(-50% + 7.64vh)); }
+62.50% { transform:translate(calc(-50% + -12.73vw), calc(-50% + 7.33vh)); }
+63.75% { transform:translate(calc(-50% + -11.11vw), calc(-50% + 6.88vh)); }
 65% { transform:translate(calc(-50% + -9.59vw), calc(-50% + 6.32vh)); }
-67.5% { transform:translate(calc(-50% + -6.83vw), calc(-50% + 4.96vh)); }
+66.25% { transform:translate(calc(-50% + -8.17vw), calc(-50% + 5.68vh)); }
+67.50% { transform:translate(calc(-50% + -6.83vw), calc(-50% + 4.96vh)); }
+68.75% { transform:translate(calc(-50% + -5.57vw), calc(-50% + 4.20vh)); }
 70% { transform:translate(calc(-50% + -4.38vw), calc(-50% + 3.39vh)); }
-72.5% { transform:translate(calc(-50% + -2.14vw), calc(-50% + 1.72vh)); }
+71.25% { transform:translate(calc(-50% + -3.24vw), calc(-50% + 2.57vh)); }
+72.50% { transform:translate(calc(-50% + -2.14vw), calc(-50% + 1.72vh)); }
+73.75% { transform:translate(calc(-50% + -1.06vw), calc(-50% + 0.86vh)); }
 75% { transform:translate(calc(-50% + -0.00vw), calc(-50% + 0.00vh)); }
-77.5% { transform:translate(calc(-50% + 2.14vw), calc(-50% + -1.72vh)); }
+76.25% { transform:translate(calc(-50% + 1.06vw), calc(-50% + -0.86vh)); }
+77.50% { transform:translate(calc(-50% + 2.14vw), calc(-50% + -1.72vh)); }
+78.75% { transform:translate(calc(-50% + 3.24vw), calc(-50% + -2.57vh)); }
 80% { transform:translate(calc(-50% + 4.38vw), calc(-50% + -3.39vh)); }
-82.5% { transform:translate(calc(-50% + 6.83vw), calc(-50% + -4.96vh)); }
+81.25% { transform:translate(calc(-50% + 5.57vw), calc(-50% + -4.20vh)); }
+82.50% { transform:translate(calc(-50% + 6.83vw), calc(-50% + -4.96vh)); }
+83.75% { transform:translate(calc(-50% + 8.17vw), calc(-50% + -5.68vh)); }
 85% { transform:translate(calc(-50% + 9.59vw), calc(-50% + -6.32vh)); }
-87.5% { transform:translate(calc(-50% + 12.73vw), calc(-50% + -7.33vh)); }
+86.25% { transform:translate(calc(-50% + 11.11vw), calc(-50% + -6.88vh)); }
+87.50% { transform:translate(calc(-50% + 12.73vw), calc(-50% + -7.33vh)); }
+88.75% { transform:translate(calc(-50% + 14.44vw), calc(-50% + -7.64vh)); }
 90% { transform:translate(calc(-50% + 16.23vw), calc(-50% + -7.78vh)); }
-92.5% { transform:translate(calc(-50% + 19.95vw), calc(-50% + -7.38vh)); }
+91.25% { transform:translate(calc(-50% + 18.08vw), calc(-50% + -7.70vh)); }
+92.50% { transform:translate(calc(-50% + 19.95vw), calc(-50% + -7.38vh)); }
+93.75% { transform:translate(calc(-50% + 21.76vw), calc(-50% + -6.78vh)); }
 95% { transform:translate(calc(-50% + 23.44vw), calc(-50% + -5.90vh)); }
-97.5% { transform:translate(calc(-50% + 26.03vw), calc(-50% + -3.32vh)); }
+96.25% { transform:translate(calc(-50% + 24.90vw), calc(-50% + -4.74vh)); }
+97.50% { transform:translate(calc(-50% + 26.03vw), calc(-50% + -3.32vh)); }
+98.75% { transform:translate(calc(-50% + 26.75vw), calc(-50% + -1.71vh)); }
 100% { transform:translate(calc(-50% + 27.00vw), calc(-50% + -0.00vh)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
 #movingSpotlight {
-animation-duration:24s;
+animation-duration:8s;
 }
 }
 
