@@ -481,8 +481,8 @@ transform:translateX(100%) scaleX(.7);
 }
 
 @media (prefers-reduced-motion: reduce) {
-.curtain-overlay.loading-movie .stage-lighting {
-animation-duration:8s;
+.stage-lighting {
+animation-duration:10s;
 }
 }
 
@@ -515,8 +515,9 @@ backdrop-filter:brightness(1.45) contrast(1.18);
 -webkit-backdrop-filter:brightness(1.45) contrast(1.18);
 pointer-events:none;
 z-index:10001;
-opacity:1;
+opacity:0;
 transition:opacity .5s ease;
+animation:stageSpotlightFigureEight 7s linear infinite;
 }
 
 @keyframes stageSpotlightFigureEight {
@@ -604,7 +605,7 @@ transition:opacity .5s ease;
 }
 
 .curtain-overlay.loading-movie .stage-lighting {
-animation:stageSpotlightFigureEight 5s linear infinite;
+opacity:1;
 }
 
 
