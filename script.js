@@ -155,14 +155,14 @@ const customSearchUrl=document.getElementById('customSearchUrl');
 const watchNowButton=document.getElementById('watchNowBtn');
 const customSearchStorageKey='picksCustomSearchUrl';
 const parseCustomSearchConfig=value=>{
-const input=value.trim();
+const input=value;
 const separatorEnd=input.indexOf(';');
 if(separatorEnd>=0){
 const separator=input.slice(0,separatorEnd)||' ';
 const url=input.slice(separatorEnd+1).trim().replace(/\\:/g,':');
 return {separator,url};
 }
-const urlStart=input.search(/https?:\\/\\//i);
+const urlStart=input.search(/https?:\/\//i);
 if(urlStart<0)return {separator:'',url:input};
 const rawPrefix=input.slice(0,urlStart);
 const prefix=rawPrefix.trim();
