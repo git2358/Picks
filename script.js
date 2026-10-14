@@ -443,11 +443,15 @@ searchMenu?.setAttribute('aria-hidden','true');
 if(searchMenu)searchMenu.inert=true;
 posterLink.setAttribute('aria-label',`Tap to search YouTube for ${title}${year?' '+year:''}`);
 posterLink.title=`Tap to reveal YouTube searches for ${title}${year?' '+year:''}`;
-posterElement.onload=fitCardToPoster;
+const updatePosterLayout=()=>{
+fitCardToPoster();
+posterCard?.classList.toggle('has-wide-poster',Boolean(posterElement.naturalWidth&&posterElement.naturalHeight&&posterElement.naturalWidth/posterElement.naturalHeight>1.15));
+};
+posterElement.onload=updatePosterLayout;
 posterElement.src=currentMovie.poster;
 const searchPosterBackdrop=document.getElementById('searchPosterBackdrop');
 if(searchPosterBackdrop)searchPosterBackdrop.src=currentMovie.poster;
-if(posterElement.complete)fitCardToPoster();
+if(posterElement.complete)updatePosterLayout();
 document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie.poster}')`;
 
 await new Promise(resolve=>setTimeout(resolve,150));
