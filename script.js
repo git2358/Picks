@@ -171,9 +171,15 @@ if(!button)return;
 const movieTitle=document.getElementById('movieTitle').textContent.trim();
 const movieYear=document.getElementById('movieYear').textContent.trim();
 const searchType=button.dataset.searchType;
-const query=searchType==='history'
-? `history of the movie ${movieTitle}${movieYear?' '+movieYear:''}`
-: `${movieTitle}${movieYear?' '+movieYear:''} ${searchType}`;
+const movieLabel=`${movieTitle}${movieYear?' '+movieYear:''}`;
+const searchTerms={
+'full movie':'full movie complete film',
+trailer:'original theatrical trailer',
+'behind the scenes':'behind the scenes BTS production footage cast interviews',
+'making of':'making of documentary featurette production documentary',
+history:'film history retrospective documentary'
+};
+const query=`${movieLabel} ${searchTerms[searchType]||searchType}`;
 window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,'_blank','noopener,noreferrer');
 });
 document.addEventListener('keydown',event=>{
@@ -426,6 +432,8 @@ posterLink.setAttribute('aria-label',`Tap to search YouTube for ${title}${year?'
 posterLink.title=`Tap to reveal YouTube searches for ${title}${year?' '+year:''}`;
 posterElement.onload=fitCardToPoster;
 posterElement.src=currentMovie.poster;
+const searchPosterBackdrop=document.getElementById('searchPosterBackdrop');
+if(searchPosterBackdrop)searchPosterBackdrop.src=currentMovie.poster;
 if(posterElement.complete)fitCardToPoster();
 document.getElementById('bgBackdrop').style.backgroundImage=`url('${currentMovie.poster}')`;
 
