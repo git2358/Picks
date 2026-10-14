@@ -484,15 +484,14 @@ transform:translateX(100%) scaleX(.7);
 position:absolute;
 left:50%;
 top:50%;
-width:clamp(150px, 24vmin, 340px);
+width:clamp(220px, 34vmin, 460px);
 aspect-ratio:1;
 border-radius:50%;
 pointer-events:none;
 z-index:10002;
 opacity:0;
 transform:translate(-50%,-50%);
-background:radial-gradient(circle, rgba(255,255,255,.28) 0%, rgba(255,255,255,.18) 24%, rgba(255,255,255,.08) 48%, rgba(255,255,255,0) 72%);
-filter:blur(2px);
+background:rgba(255,255,255,.24);
 transition:opacity .55s ease;
 will-change:transform,opacity;
 }
