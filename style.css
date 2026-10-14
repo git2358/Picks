@@ -616,13 +616,9 @@ background:#e50914;
 border-color:#e50914;
 box-shadow:0 4px 12px rgba(229,9,20,.4);
 }
-.movie-search-menu .watch-now-btn:hover,
-.movie-search-menu .watch-now-btn:focus-visible {
-background:#f6121d;
-border-color:#f6121d;
-}
 .movie-search-menu .watch-now-btn:active {
 background:#e50914;
+transform:translateY(0);
 }
 .movie-search-menu .custom-search-url {
 display:block;
@@ -649,12 +645,19 @@ transition:background .2s,transform .2s,border-color .2s;
 .movie-search-menu .movie-search-close:focus-visible {
 background:#444;
 border-color:rgba(255,255,255,.22);
+transform:translateY(-2px);
 }
 .movie-search-menu .watch-now-btn {
 cursor:pointer;
 font-weight:750;
 letter-spacing:.045em;
 transition:background .2s,transform .2s,border-color .2s;
+}
+.movie-search-menu .watch-now-btn:hover,
+.movie-search-menu .watch-now-btn:focus-visible {
+background:#f6121d;
+border-color:#f6121d;
+transform:translateY(-2px);
 }
 .movie-search-menu .poster-back-actions {
 display:grid;
@@ -667,17 +670,15 @@ grid-template-columns:repeat(2,minmax(0,1fr));
 .movie-search-menu .watch-now-btn[hidden] {
 display:none;
 }
-.movie-search-menu .movie-search-close:hover,
-.movie-search-menu .movie-search-close:focus-visible,
-.movie-search-menu .watch-now-btn:hover,
-.movie-search-menu .watch-now-btn:focus-visible,
 .movie-search-menu .custom-search-url:focus-visible {
 outline:none;
 background:rgba(255,255,255,.28);
 }
-.movie-search-menu .movie-search-close:active,
+.movie-search-menu .movie-search-close:active {
+transform:translateY(0);
+}
 .movie-search-menu .watch-now-btn:active {
-transform:scale(.98);
+transform:translateY(0);
 }
 @media (prefers-reduced-motion: reduce) {
 .poster-flip-card {
