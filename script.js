@@ -246,6 +246,7 @@ const year=parsed.year;
 const movie=await fetchMovieDetailsFromWikipedia(title,year);
 if(requestId!==movieDisplayRequest)return;
 currentMovie=movie;
+document.title=`Picks - ${title}${year?' '+year:''}`;
 
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
