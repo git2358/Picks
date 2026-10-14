@@ -237,7 +237,7 @@ background:transparent;
 }
 
 .synopsis-scroll-area::-webkit-scrollbar-thumb {
-background:#fff;
+background:rgba(255,255,255,.5);
 border-radius:0;
 mix-blend-mode:difference;
 }
