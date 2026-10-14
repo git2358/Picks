@@ -275,6 +275,7 @@ return slug;
 }
 
 const sectionStateStorageKey='picks-movie-section-states-v1';
+const sectionStateExpiryMs=30*60*1000;
 const defaultMovieSectionStates={
 movieSynopsisSection:true,
 movieBlurbSection:true,
@@ -290,9 +291,15 @@ try{
 const saved=localStorage.getItem(sectionStateStorageKey);
 if(saved){
 const parsed=JSON.parse(saved);
-if(parsed&&typeof parsed==='object')states=parsed;
+if(parsed&&parsed.states&&typeof parsed.states==='object'&&Date.now()-parsed.startedAt<sectionStateExpiryMs){
+states=parsed.states;
+}else{
+localStorage.removeItem(sectionStateStorageKey);
+}
 }
 }catch(error){}
+}else{
+try{localStorage.removeItem(sectionStateStorageKey);}catch(error){}
 }
 if(!states)states={...defaultMovieSectionStates};
 sections.forEach(id=>{
@@ -306,17 +313,25 @@ section.addEventListener('toggle',saveMovieSectionStates);
 section.dataset.statePersistenceBound='true';
 }
 });
-saveMovieSectionStates();
+if(hasMovieHash)saveMovieSectionStates(true);
 }
 
-function saveMovieSectionStates(){
+function saveMovieSectionStates(preserveExpiry=false){
 const states={};
 Object.keys(defaultMovieSectionStates).forEach(id=>{
 const section=document.getElementById(id);
 states[id]=section?section.open:defaultMovieSectionStates[id];
 });
 try{
-localStorage.setItem(sectionStateStorageKey,JSON.stringify(states));
+let startedAt=Date.now();
+if(preserveExpiry){
+const saved=localStorage.getItem(sectionStateStorageKey);
+if(saved){
+const parsed=JSON.parse(saved);
+if(parsed&&typeof parsed.startedAt==='number'&&Date.now()-parsed.startedAt<sectionStateExpiryMs)startedAt=parsed.startedAt;
+}
+}
+localStorage.setItem(sectionStateStorageKey,JSON.stringify({states,startedAt}));
 }catch(error){}
 }
 
