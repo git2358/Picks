@@ -36,7 +36,13 @@ document.write('<link rel="stylesheet" href="style.css?v='+v+'">');
 <button type="button" role="menuitem" data-search-type="history">History of the Movie</button>
 <button type="button" role="menuitem" data-search-type="wikipedia">Wikipedia</button>
 </div>
+<div class="poster-back-controls">
+<input id="customSearchUrl" class="custom-search-url" type="url" aria-label="Custom search URL" placeholder="Custom search URL" autocomplete="url" spellcheck="false">
+<div class="poster-back-actions">
 <button type="button" class="movie-search-close" aria-label="Return to poster">Return</button>
+<button type="button" id="watchNowBtn" class="watch-now-btn" hidden>Watch Now</button>
+</div>
+</div>
 </div>
 </div>
 </div>
