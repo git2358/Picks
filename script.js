@@ -309,6 +309,35 @@ if(requestId===nextMovieRequest&&watchedIndices.length>=movies.length){
 await showNoMoreMovies();
 }
 }
+async function copyMovieUrl(){
+const url=`${location.origin}${location.pathname}${location.search}${location.hash.replace(/%20/gi,'_').replace(/ /g,'_')}`;
+const button=document.getElementById('shareMovieBtn');
+try{
+if(navigator.clipboard&&window.isSecureContext){
+await navigator.clipboard.writeText(url);
+}else{
+throw new Error('Clipboard API unavailable');
+}
+}catch(error){
+const textarea=document.createElement('textarea');
+textarea.value=url;
+textarea.style.position='fixed';
+textarea.style.opacity='0';
+document.body.appendChild(textarea);
+textarea.select();
+let copied=false;
+try{copied=document.execCommand('copy');}catch(copyError){}
+textarea.remove();
+if(!copied){
+console.error('Could not copy movie URL:',error);
+return;
+}
+}
+const originalText='Share Movie';
+button.textContent='Copied!';
+setTimeout(()=>{if(button.textContent==='Copied!')button.textContent=originalText;},1500);
+}
+
 async function displayMovieAtIndex(randomIndex){
 const requestId=++movieDisplayRequest;
 const overlay=document.getElementById('curtainOverlay');
