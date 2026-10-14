@@ -268,7 +268,10 @@ return displayMovieAtIndex(index);
 };
 
 await Promise.race([
-showMovie(randomIndex),
+showMovie(randomIndex).catch(error=>{
+console.error('Movie failed to load:',error);
+return 'timeout';
+}),
 new Promise(resolve=>setTimeout(()=>resolve('timeout'),movieLoadTimeout))
 ]);
 if(requestId!==nextMovieRequest)return;
