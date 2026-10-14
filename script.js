@@ -1272,18 +1272,22 @@ if(text)speakTexts([{text,delay:250}]);
 }
 
 function setupMovieSpeech(){
-const title=document.getElementById('movieTitle');
-if(title){
-title.setAttribute('role','button');
-title.setAttribute('tabindex','0');
-title.setAttribute('aria-label','Read movie title, year and introductory details aloud');
-title.addEventListener('click',speakMovieIntro);
-title.addEventListener('keydown',event=>{
+const details=document.getElementById('movieDetailsSection');
+if(details){
+const summary=details.querySelector('summary');
+if(summary){
+summary.setAttribute('aria-label','Read movie title, year and introductory details aloud');
+summary.addEventListener('click',event=>{
+event.preventDefault();
+speakMovieIntro();
+});
+summary.addEventListener('keydown',event=>{
 if(event.key==='Enter'||event.key===' '){
 event.preventDefault();
 speakMovieIntro();
 }
 });
+}
 }
 ['movieBlurb','movieSynopsis','moviePlotSummary'].forEach(id=>{
 const element=document.getElementById(id);
