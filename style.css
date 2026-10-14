@@ -312,6 +312,28 @@ box-shadow:0 4px 12px rgba(229,9,20,.4);
 transition:background .2s,transform .1s;
 }
 
+.share-movie-btn {
+background:#333;
+color:#fff;
+border:1px solid rgba(255,255,255,.22);
+padding:.85rem 1rem;
+font-size:1rem;
+font-weight:600;
+border-radius:8px;
+cursor:pointer;
+box-shadow:0 4px 12px rgba(0,0,0,.25);
+transition:background .2s,transform .1s;
+}
+
+.share-movie-btn:hover {
+background:#444;
+transform:translateY(-2px);
+}
+
+.share-movie-btn:active {
+transform:translateY(0);
+}
+
 .reload-btn:hover {
 background:#f6121d;
 transform:translateY(-2px);
@@ -795,10 +817,15 @@ font-size:1.6rem;
 
 .info-bottom {
 padding-top:0;
+display:flex;
+gap:.75rem;
 }
 
-.reload-btn {
+.info-bottom .reload-btn,
+.info-bottom .share-movie-btn {
 width:100%;
+flex:1;
+min-width:0;
 text-align:center;
 margin-top:1.5rem;
 }
