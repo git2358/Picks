@@ -455,14 +455,14 @@ gap:.3rem;
 padding:1rem .6rem 3.2rem;
 }
 .poster-flip-card.has-wide-poster .poster-back-movie-title {
-margin-top:.15rem;
+margin-top:.6rem;
 }
 .poster-flip-card.has-wide-poster .poster-back-movie-year {
 margin-bottom:.55rem;
 }
 .poster-flip-card.has-wide-poster .movie-search-menu .movie-search-close {
 left:.6rem;
-bottom:.55rem;
+bottom:.6rem;
 width:calc(100% - 1.2rem);
 }
 .poster-flip-card.has-wide-poster .movie-search-menu button[data-search-type] {
@@ -514,6 +514,7 @@ font-weight:800;
 line-height:1.15;
 text-align:center;
 text-wrap:balance;
+margin-top:1.2rem;
 text-shadow:0 2px 8px rgba(0,0,0,.95);
 overflow-wrap:anywhere;
 }
@@ -572,7 +573,7 @@ transform:scale(.98);
 .movie-search-menu .movie-search-close {
 position:absolute;
 left:1rem;
-bottom:.65rem;
+bottom:1.2rem;
 width:calc(100% - 2rem);
 margin-top:0;
 padding:.72rem .6rem;
