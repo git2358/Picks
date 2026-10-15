@@ -196,7 +196,8 @@ const isValidCustomSearchUrl=value=>{
 const urls=parseCustomSearchConfig(value).urls;
 return urls.length>0&&urls.every(url=>{try{const parsed=new URL(url);return (parsed.protocol==='http:'||parsed.protocol==='https:')&&Boolean(parsed.hostname);}catch(error){return false;}});
 };
-const updateCustomSearchState=()=>{const valid=isValidCustomSearchUrl(customSearchUrl.value);menu.classList.toggle('has-custom-search-url',valid);watchNowButton.hidden=!valid;};
+const getCurrentMovieIsOwn=()=>{const rawTitle=document.getElementById('movieTitle').textContent.trim();const rawYear=document.getElementById('movieYear').textContent.trim();const movieYear=rawYear&&rawYear!=='N/A'?rawYear.replace(/[^0-9]/g,''):'';const movieIndex=movies.findIndex(line=>{const movie=parseMovieLine(line);return movieSlug(movie.title,movie.year)===movieSlug(rawTitle,movieYear);});return movieIndex>=0&&(movieSources[movieIndex]||[]).includes('movies-own.txt');};
+const updateCustomSearchState=()=>{const config=parseCustomSearchConfig(customSearchUrl.value);const valid=isValidCustomSearchUrl(customSearchUrl.value);menu.classList.toggle('has-custom-search-url',valid);watchNowButton.hidden=!valid;watchNowButton.textContent=valid&&config.urls.length>1&&getCurrentMovieIsOwn()?'Watch Now':'Watch';};
 try{customSearchUrl.value=localStorage.getItem(customSearchStorageKey)||'';}catch(error){}
 updateCustomSearchState();
 customSearchUrl.addEventListener('input',()=>{try{localStorage.setItem(customSearchStorageKey,customSearchUrl.value);}catch(error){}updateCustomSearchState();});
@@ -214,8 +215,7 @@ const lowerName=formattedName.toLocaleLowerCase(),upperName=formattedName.toLoca
 const lowerTitleWithoutThe=formattedTitleWithoutThe.toLocaleLowerCase(),upperTitleWithoutThe=formattedTitleWithoutThe.toLocaleUpperCase();
 const yearSeparator=config.separator||(movieYear?' ':'');
 const formatUrl=url=>url.replace(/%tname%%year%/gi,formattedTitleWithoutThe+yearSeparator+movieYear).replace(/%tlname%%year%/gi,lowerTitleWithoutThe+yearSeparator+movieYear).replace(/%tuname%%year%/gi,upperTitleWithoutThe+yearSeparator+movieYear).replace(/%tname%/gi,formattedTitleWithoutThe).replace(/%tlname%/gi,lowerTitleWithoutThe).replace(/%tuname%/gi,upperTitleWithoutThe).replace(/%name%%year%/gi,formattedName+yearSeparator+movieYear).replace(/%tlname%/gi,lowerTitleWithoutThe).replace(/%lname%/gi,lowerName).replace(/%tuname%/gi,upperTitleWithoutThe).replace(/%uname%/gi,upperName).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
-const movieIndex=movies.findIndex(line=>{const movie=parseMovieLine(line);return movieSlug(movie.title,movie.year)===movieSlug(rawTitle,movieYear);});
-const isOwnMovie=movieIndex>=0&&(movieSources[movieIndex]||[]).includes('movies-own.txt');
+const isOwnMovie=getCurrentMovieIsOwn();
 const selectedUrl=config.urls.length>1&&isOwnMovie?config.urls[1]:config.urls[0];
 window.open(formatUrl(selectedUrl),'_blank','noopener,noreferrer');
 });
