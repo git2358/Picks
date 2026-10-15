@@ -564,6 +564,12 @@ movieDetailsCache.set(randomIndex,movie);
 }
 if(requestId!==movieDisplayRequest)return;
 currentMovie=movie;
+const sourceBadge=document.getElementById('movieSourceBadge');
+if(sourceBadge){
+const source=movieSources[randomIndex]||'movies-new.txt';
+sourceBadge.textContent=source==='movies-fav.txt'?'FAV':source==='movies-own.txt'?'OWN':'NEW';
+sourceBadge.setAttribute('aria-label',source==='movies-fav.txt'?'Favourite movie list':source==='movies-own.txt'?'Owned movie list':'New movie list');
+}
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
 document.getElementById('posterBackMovieTitle').innerText=currentMovie.title;
