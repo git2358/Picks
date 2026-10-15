@@ -1,4 +1,5 @@
 let movies=[];
+let movieSources=[];
 let watchedIndices=[];
 let currentMovie=null;
 let activeMovieSlug='';
@@ -40,13 +41,10 @@ const listFiles=['movies-new.txt','movies-own.txt','movies-fav.txt'];
 const listResults=await Promise.all(listFiles.map(async file=>{
 const response=await fetch(file,{cache:'no-store'});
 if(!response.ok)throw new Error(`Could not load ${file}: HTTP ${response.status}`);
-return response.text();
+return {file,text:await response.text()};
 }));
 const seenMovies=new Set();
-movies=listResults
-.flatMap(text=>text.split(/\r?\n/))
-.map(line=>line.trim())
-.filter(line=>{
+const movieEntries=listResults.flatMap(({file,text})=>text.split(/\r?\n/).map(line=>({line:line.trim(),source:file}))).filter(({line,source})=>{
 if(!line||line.startsWith('#'))return false;
 const movie=parseMovieLine(line);
 if(!movie.year)return false;
@@ -55,6 +53,8 @@ if(seenMovies.has(key))return false;
 seenMovies.add(key);
 return true;
 });
+movies=movieEntries.map(entry=>entry.line);
+movieSources=movieEntries.map(entry=>entry.source);
 
 if(!movies.length){
 await showNoMoviesToWatch();
