@@ -203,7 +203,9 @@ const rawYear=document.getElementById('movieYear').textContent.trim();
 const movieYear=rawYear&&rawYear!=='N/A'?Array.from(rawYear).filter(char=>/[0-9]/.test(char)).join(''):'';
 const formattedName=separator?title.replace(/\s+/g,()=>separator):title;
 const yearSeparator=separator||(movieYear?' ':'');
-const searchUrl=url.replace(/%name%%year%/gi,`${formattedName}${yearSeparator}${movieYear}`).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
+const lowerName=formattedName.toLocaleLowerCase();
+const upperName=formattedName.toLocaleUpperCase();
+const searchUrl=url.replace(/%name%%year%/gi,`${formattedName}${yearSeparator}${movieYear}`).replace(/%lname%/gi,lowerName).replace(/%uname%/gi,upperName).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
 window.open(searchUrl,'_blank','noopener,noreferrer');
 });
 const setFlipped=flipped=>{
