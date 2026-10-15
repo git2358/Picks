@@ -57,16 +57,7 @@ return true;
 });
 
 if(!movies.length){
-document.getElementById('movieTitle').innerText='No Movies to Watch';
-document.getElementById('movieSynopsis').innerText='Add movies with a title and year to movies-new.txt, movies-own.txt, or movies-fav.txt.';
-const overlay=document.getElementById('curtainOverlay');
-stopSpeech();
-overlay.classList.remove('open','no-light','loading-movie');
-updateDocumentTitle(false);
-document.querySelector('#spotlightContent .spotlight-text').textContent='No movies to watch.';
-document.getElementById('reloadBtn').style.display='none';
-await new Promise(resolve=>setTimeout(resolve,600));
-overlay.classList.add('show-spotlight');
+await showNoMoviesToWatch();
 return;
 }
 document.querySelector('#spotlightContent .spotlight-text').innerHTML='That’s a wrap!<br>Every movie has been featured.';
@@ -403,6 +394,27 @@ await new Promise(resolve=>setTimeout(resolve,1000));
 await new Promise(resolve=>setTimeout(resolve,300));
 if(navigationRequest!==historyNavigationRequest)return;
 await displayMovieAtIndex(index);
+}
+
+async function showNoMoviesToWatch(){
+const overlay=document.getElementById('curtainOverlay');
+const message=document.querySelector('#spotlightContent .spotlight-text');
+stopSpeech();
+await scrollToTopAndWait();
+resetPosterFlipCard();
+document.getElementById('movieTitle').textContent='No Movies to Watch';
+document.getElementById('movieSynopsis').textContent='Add movies with a title and year to movies-new.txt, movies-own.txt, or movies-fav.txt.';
+document.getElementById('movieYear').textContent='';
+document.getElementById('movieBlurb').textContent='';
+document.getElementById('moviePlotSummary').textContent='';
+document.getElementById('movieDetails').textContent='';
+document.getElementById('moviePoster').removeAttribute('src');
+overlay.classList.remove('open','no-light','loading-movie');
+updateDocumentTitle(false);
+message.innerHTML='<span class="empty-library-title">No Movies to Watch</span><span class="empty-library-instructions">Add movies with a title and year to <code>movies-new.txt</code>, <code>movies-own.txt</code>, or <code>movies-fav.txt</code>.</span>';
+document.getElementById('reloadBtn').style.display='none';
+await new Promise(resolve=>setTimeout(resolve,600));
+overlay.classList.add('show-spotlight');
 }
 
 async function showNoMoreMovies(){
