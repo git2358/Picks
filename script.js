@@ -586,8 +586,6 @@ sourceBadge.setAttribute('aria-label',['N','F','O'].map(letter=>activeLetters[le
 }
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
-document.getElementById('posterBackMovieTitle').innerText=currentMovie.title;
-document.getElementById('posterBackMovieYear').innerText=currentMovie.year;
 document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
 document.getElementById('movieBlurb').innerText=currentMovie.blurb;
 document.getElementById('movieBlurbSection').style.display=currentMovie.blurb?'':'none';
