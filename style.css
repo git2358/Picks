@@ -232,6 +232,15 @@ opacity:.75;
 user-select:none;
 }
 
+.movie-source-badge .source-letter {
+display:inline-block;
+}
+
+.movie-source-badge .source-letter.inactive {
+filter:invert(1);
+opacity:.45;
+}
+
 .movie-title:focus-visible,
 .movie-synopsis:focus-visible,
 .movie-blurb:focus-visible,
