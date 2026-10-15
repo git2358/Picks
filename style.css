@@ -545,47 +545,6 @@ text-transform:uppercase;
 .movie-search-menu[aria-hidden="true"] {
 pointer-events:none;
 }
-.poster-back-movie-title {
-position:relative;
-z-index:1;
-width:100%;
-color:#fff;
-font-size:1.05rem;
-font-weight:800;
-line-height:1.15;
-text-align:center;
-text-wrap:balance;
-text-shadow:0 2px 8px rgba(0,0,0,.95);
-overflow-wrap:anywhere;
-}
-.poster-back-heading {
-position:relative;
-z-index:1;
-flex:1 1 auto;
-min-height:0;
-display:flex;
-flex-direction:column;
-justify-content:center;
-gap:.3rem;
-}
-.poster-back-heading {
-display:none;
-}
-.poster-flip-card.has-wide-poster .poster-back-heading {
-flex:.5 .5 auto;
-}
-.poster-back-movie-year {
-position:relative;
-z-index:1;
-width:100%;
-margin-bottom:0;
-color:rgba(255,255,255,.82);
-font-size:.9rem;
-font-weight:600;
-line-height:1.1;
-text-align:center;
-text-shadow:0 2px 7px rgba(0,0,0,.95);
-}
  .movie-search-actions {
 display:flex;
 flex-direction:column;
