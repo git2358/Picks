@@ -2,6 +2,7 @@ let movies=[];
 let movieSources=[];
 let watchedIndices=[];
 let currentMovie=null;
+let activeMovieIndex=-1;
 let activeMovieSlug='';
 let movieDisplayRequest=0;
 let nextMovieRequest=0;
@@ -196,8 +197,9 @@ const isValidCustomSearchUrl=value=>{
 const urls=parseCustomSearchConfig(value).urls;
 return urls.length>0&&urls.every(url=>{try{const parsed=new URL(url);return (parsed.protocol==='http:'||parsed.protocol==='https:')&&Boolean(parsed.hostname);}catch(error){return false;}});
 };
-const getCurrentMovieIsOwn=()=>{const rawTitle=document.getElementById('movieTitle').textContent.trim();const rawYear=document.getElementById('movieYear').textContent.trim();const movieYear=rawYear&&rawYear!=='N/A'?rawYear.replace(/[^0-9]/g,''):'';const movieIndex=movies.findIndex(line=>{const movie=parseMovieLine(line);return movieSlug(movie.title,movie.year)===movieSlug(rawTitle,movieYear);});return movieIndex>=0&&(movieSources[movieIndex]||[]).includes('movies-own.txt');};
+const getCurrentMovieIsOwn=()=>activeMovieIndex>=0&&(movieSources[activeMovieIndex]||[]).includes('movies-own.txt');
 const updateCustomSearchState=()=>{const config=parseCustomSearchConfig(customSearchUrl.value);const valid=isValidCustomSearchUrl(customSearchUrl.value);menu.classList.toggle('has-custom-search-url',valid);watchNowButton.hidden=!valid;watchNowButton.textContent=valid&&config.urls.length>1&&getCurrentMovieIsOwn()?'Watch Now':'Watch';};
+document.addEventListener('picks:movie-changed',updateCustomSearchState);
 try{customSearchUrl.value=localStorage.getItem(customSearchStorageKey)||'';}catch(error){}
 updateCustomSearchState();
 customSearchUrl.addEventListener('input',()=>{try{localStorage.setItem(customSearchStorageKey,customSearchUrl.value);}catch(error){}updateCustomSearchState();});
@@ -489,6 +491,7 @@ const requestId=++movieDisplayRequest;
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.add('loading-movie');
 const parsed=parseMovieLine(movies[randomIndex]);
+activeMovieIndex=randomIndex;
 activeMovieSlug=movieSlug(parsed.title,parsed.year);
 const title=parsed.title;
 const year=parsed.year;
@@ -515,6 +518,7 @@ sourceBadge.setAttribute('aria-label',['U','F','O'].map(letter=>activeLetters[le
 }
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
+document.dispatchEvent(new Event('picks:movie-changed'));
 document.getElementById('movieSynopsis').innerText=currentMovie.synopsis;
 document.getElementById('movieBlurb').innerText=currentMovie.blurb;
 document.getElementById('movieBlurbSection').style.display=currentMovie.blurb?'':'none';
