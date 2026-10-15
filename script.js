@@ -293,8 +293,8 @@ if(event.key==='Escape'&&card.classList.contains('is-flipped'))closeMenu(true);
 });
 }
 function parseMovieLine(line){
-const cleaned=line.replace(/^[-–*#\d.]+\s*/,'').trim();
-const match=cleaned.match(/^(.*?)\s+\(?([0-9]{4})\)?\s*$/);
+const cleaned=String(line||'').trim().replace(/^[-*+]\s+/,'').trim();
+const match=cleaned.match(/^(.+?)\s+\(?([0-9]{4})\)?\s*$/);
 return match?{title:match[1].trim(),year:match[2]}:{title:cleaned,year:''};
 }
 
