@@ -1106,6 +1106,22 @@ background:linear-gradient(
 }
 
 @media (max-width:767px) {
+.poster-back {
+display:flex;
+flex-direction:column;
+justify-content:flex-start;
+gap:.4rem;
+padding:1rem .6rem 6.8rem;
+}
+
+.poster-back-heading {
+display:none;
+}
+
+.poster-back .movie-search-actions {
+flex:0 0 auto;
+}
+
 .wrapper {
 align-items:flex-start;
 min-height:100vh;
