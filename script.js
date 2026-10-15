@@ -612,8 +612,9 @@ if(prefetchInProgress||prefetchedNextIndex!==null||!movies.length||watchedIndice
 prefetchInProgress=(async()=>{
 const attempted=new Set();
 const timeoutResult=Symbol('prefetch-timeout');
+const maxPrefetchAttempts=Math.min(3,movies.length);
 try{
-while(attempted.size<movies.length){
+while(attempted.size<maxPrefetchAttempts){
 const candidates=movies.map((_,index)=>index).filter(index=>!watchedIndices.includes(index)&&!attempted.has(index));
 if(!candidates.length)return;
 const index=candidates[Math.floor(Math.random()*candidates.length)];
@@ -655,8 +656,22 @@ await prefetchInProgress;
 }
 
 function normaliseTitle(title){
-return title
+const transliterations={
+'æ':'ae',
+'ǽ':'ae',
+'œ':'oe',
+'ß':'ss',
+'ø':'o',
+'ł':'l',
+'đ':'d',
+'ð':'d',
+'þ':'th',
+'ħ':'h',
+'ı':'i'
+};
+return String(title||'')
 .toLowerCase()
+.replace(/[æǽœßøłđðþħı]/g,character=>transliterations[character]||character)
 .normalize('NFD')
 .replace(/[\u0300-\u036f]/g,'')
 .replace(/&/g,'and')
@@ -897,7 +912,10 @@ if(plotSummaryCache.has(pageTitle))return plotSummaryCache.get(pageTitle);
 try{
 const sectionsUrl='https://en.wikipedia.org/w/api.php?action=parse&page='+encodeURIComponent(pageTitle)+'&prop=sections&format=json&origin=*';
 const sectionsResponse=await fetch(sectionsUrl);
-if(!sectionsResponse.ok)return '';
+if(!sectionsResponse.ok){
+plotSummaryCache.set(pageTitle,'');
+return '';
+}
 const sectionsData=await sectionsResponse.json();
 const sections=sectionsData.parse?.sections||[];
 const plotSection=sections.find(section=>/^plot(?:\s|$)/i.test(section.line||''))||
@@ -908,7 +926,10 @@ return '';
 }
 const textUrl='https://en.wikipedia.org/w/api.php?action=parse&page='+encodeURIComponent(pageTitle)+'&prop=text&section='+encodeURIComponent(plotSection.index)+'&format=json&origin=*';
 const textResponse=await fetch(textUrl);
-if(!textResponse.ok)return '';
+if(!textResponse.ok){
+plotSummaryCache.set(pageTitle,'');
+return '';
+}
 const textData=await textResponse.json();
 const documentContent=new DOMParser().parseFromString(textData.parse?.text?.['*']||'','text/html');
 documentContent.querySelectorAll('sup.reference,.mw-editsection,.navbox,table,style,script,.hatnote,.shortdescription,.metadata,.mw-empty-elt,.toc,.error,.mw-warning').forEach(element=>element.remove());
@@ -920,6 +941,7 @@ plotSummaryCache.set(pageTitle,plotSummary);
 return plotSummary;
 }catch(error){
 console.error('Wikipedia plot summary error:',error);
+plotSummaryCache.set(pageTitle,'');
 return '';
 }
 }
