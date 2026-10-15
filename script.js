@@ -411,7 +411,7 @@ document.getElementById('movieDetails').textContent='';
 document.getElementById('moviePoster').removeAttribute('src');
 overlay.classList.remove('open','no-light','loading-movie');
 updateDocumentTitle(false);
-message.innerHTML='<span class="empty-library-title">No Movies to Watch</span><span class="empty-library-instructions">Add movies with a title and year to <code>movies-new.txt</code>, <code>movies-own.txt</code>, or <code>movies-fav.txt</code>.</span>';
+message.innerHTML='<span class="empty-library-title">No Movies to Watch</span><span class="empty-library-instructions">Add movies with a title and year to<br><code>movies-new.txt</code>, <code>movies-own.txt</code>, or <code>movies-fav.txt</code>.</span>';
 document.getElementById('reloadBtn').style.display='none';
 await new Promise(resolve=>setTimeout(resolve,600));
 overlay.classList.add('show-spotlight');
