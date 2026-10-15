@@ -576,7 +576,7 @@ if(sourceBadge){
 const sources=movieSources[randomIndex]||['movies-new.txt'];
 const labels={'movies-new.txt':['N','New'],'movies-fav.txt':['F','Favourite'],'movies-own.txt':['O','Owned']};
 const sourceCodes=['movies-new.txt','movies-fav.txt','movies-own.txt'].filter(file=>sources.includes(file));
-const badgeText=sourceCodes.length===1?({ 'movies-new.txt':'NEW','movies-fav.txt':'FAV','movies-own.txt':'OWN' })[sourceCodes[0]]:sourceCodes.map(file=>labels[file][0]).join('');
+const badgeText=sourceCodes.length===1?({ 'movies-new.txt':'NEW','movies-fav.txt':'FAV','movies-own.txt':'OWN' })[sourceCodes[0]]:sourceCodes.map(file=>labels[file][0]).join(sourceCodes.length===2?' ':'');
 sourceBadge.textContent=badgeText;
 sourceBadge.setAttribute('aria-label',sourceCodes.map(file=>labels[file][1]).join(' and ')+' movie list'+(sourceCodes.length>1?'s':''));
 }
