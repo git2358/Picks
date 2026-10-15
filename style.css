@@ -236,6 +236,10 @@ user-select:none;
 display:inline-block;
 }
 
+.movie-source-badge .source-letter + .source-letter {
+margin-left:.12em;
+}
+
 .movie-source-badge .source-letter.inactive {
 opacity:.45;
 }
