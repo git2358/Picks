@@ -701,6 +701,13 @@ transition:none;
 }
 
 @media (min-width:768px) {
+.poster-flip-card.has-wide-poster .movie-search-actions {
+flex:1 1 auto;
+align-content:center;
+}
+}
+
+@media (min-width:768px) {
 .info-bottom .reload-btn,
 .info-bottom .share-movie-btn {
 padding:.4rem .8rem;
