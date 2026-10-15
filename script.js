@@ -1407,7 +1407,20 @@ isSpeaking=false;
 }
 
 
+function setupMobileActionLabels(){
+const nextButton=document.getElementById('reloadBtn');
+const shareButton=document.getElementById('shareMovieBtn');
+const mobile=window.matchMedia('(max-width: 767px)');
+const updateLabels=()=>{
+nextButton.textContent=mobile.matches?'Next':'Next Movie';
+shareButton.textContent=mobile.matches?'Share':'Share Movie';
+};
+updateLabels();
+mobile.addEventListener('change',updateLabels);
+}
+
 window.onload=()=>{
+setupMobileActionLabels();
 setupMovieSpeech();
 loadMoviesDatabase();
 };
