@@ -43,18 +43,25 @@ const response=await fetch(file,{cache:'no-store'});
 if(!response.ok)throw new Error(`Could not load ${file}: HTTP ${response.status}`);
 return {file,text:await response.text()};
 }));
-const seenMovies=new Set();
-const movieEntries=listResults.flatMap(({file,text})=>text.split(/\r?\n/).map(line=>({line:line.trim(),source:file}))).filter(({line,source})=>{
-if(!line||line.startsWith('#'))return false;
+const movieEntryMap=new Map();
+listResults.forEach(({file,text})=>{
+text.split(/\r?\n/).forEach(rawLine=>{
+const line=rawLine.trim();
+if(!line||line.startsWith('#'))return;
 const movie=parseMovieLine(line);
-if(!movie.year)return false;
+if(!movie.year)return;
 const key=normaliseTitle(`${movie.title} ${movie.year}`);
-if(seenMovies.has(key))return false;
-seenMovies.add(key);
-return true;
+const existing=movieEntryMap.get(key);
+if(existing){
+if(!existing.sources.includes(file))existing.sources.push(file);
+return;
+}
+movieEntryMap.set(key,{line,sources:[file]});
 });
+});
+const movieEntries=Array.from(movieEntryMap.values());
 movies=movieEntries.map(entry=>entry.line);
-movieSources=movieEntries.map(entry=>entry.source);
+movieSources=movieEntries.map(entry=>entry.sources);
 
 if(!movies.length){
 await showNoMoviesToWatch();
@@ -566,9 +573,12 @@ if(requestId!==movieDisplayRequest)return;
 currentMovie=movie;
 const sourceBadge=document.getElementById('movieSourceBadge');
 if(sourceBadge){
-const source=movieSources[randomIndex]||'movies-new.txt';
-sourceBadge.textContent=source==='movies-fav.txt'?'FAV':source==='movies-own.txt'?'OWN':'NEW';
-sourceBadge.setAttribute('aria-label',source==='movies-fav.txt'?'Favourite movie list':source==='movies-own.txt'?'Owned movie list':'New movie list');
+const sources=movieSources[randomIndex]||['movies-new.txt'];
+const labels={'movies-new.txt':['N','New'],'movies-fav.txt':['F','Favourite'],'movies-own.txt':['O','Owned']};
+const sourceCodes=['movies-new.txt','movies-fav.txt','movies-own.txt'].filter(file=>sources.includes(file));
+const badgeText=sourceCodes.length===1?({ 'movies-new.txt':'NEW','movies-fav.txt':'FAV','movies-own.txt':'OWN' })[sourceCodes[0]]:sourceCodes.map(file=>labels[file][0]).join('');
+sourceBadge.textContent=badgeText;
+sourceBadge.setAttribute('aria-label',sourceCodes.map(file=>labels[file][1]).join(' and ')+' movie list'+(sourceCodes.length>1?'s':''));
 }
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
