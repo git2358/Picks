@@ -42,10 +42,19 @@ const response=await fetch(file);
 if(!response.ok)throw new Error(`Could not load ${file}: HTTP ${response.status}`);
 return response.text();
 }));
+const seenMovies=new Set();
 movies=listResults
 .flatMap(text=>text.split(/\r?\n/))
 .map(line=>line.trim())
-.filter(line=>line.length>0&&!line.startsWith('#')&&Boolean(parseMovieLine(line).year));
+.filter(line=>{
+if(!line||line.startsWith('#'))return false;
+const movie=parseMovieLine(line);
+if(!movie.year)return false;
+const key=normaliseTitle(`${movie.title} ${movie.year}`);
+if(seenMovies.has(key))return false;
+seenMovies.add(key);
+return true;
+});
 
 if(!movies.length){
 document.getElementById('movieTitle').innerText='No Movies to Watch';
@@ -87,9 +96,9 @@ await fetchNextMovie(true);
 
 setupPullToRefresh();
 }catch(error){
-console.error('Error loading movies.txt:',error);
+console.error('Error loading movie lists:',error);
 document.getElementById('movieTitle').innerText='Error Loading File';
-document.getElementById('movieSynopsis').innerText='Make sure you are running via a local web server (like VS Code Live Server) so movies.txt can be read correctly.';
+document.getElementById('movieSynopsis').innerText='Make sure all three movie list files are available from the web server: movies-to-watch.txt, movies-own.txt, and movies-fav.txt.';
 }
 }
 
