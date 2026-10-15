@@ -255,7 +255,7 @@ posterLink.setAttribute('aria-label','Tap to reveal movie searches');
 const openMenu=()=>setFlipped(true);
 const closeMenu=returnFocus=>{
 setFlipped(false);
-if(returnFocus)posterLink.focus();
+if(returnFocus)posterLink.focus({preventScroll:true});
 };
 posterLink.addEventListener('click',event=>{
 event.preventDefault();
