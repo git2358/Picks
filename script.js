@@ -36,9 +36,9 @@ document.title=title?`Picks - ${title}${year?' '+year:''}`:'Picks';
 async function loadMoviesDatabase(){
 try{
 setupMoviePosterSearch();
-const listFiles=['movies-to-watch.txt','movies-own.txt','movies-fav.txt'];
+const listFiles=['movies-new.txt','movies-own.txt','movies-fav.txt'];
 const listResults=await Promise.all(listFiles.map(async file=>{
-const response=await fetch(file);
+const response=await fetch(file,{cache:'no-store'});
 if(!response.ok)throw new Error(`Could not load ${file}: HTTP ${response.status}`);
 return response.text();
 }));
@@ -58,7 +58,7 @@ return true;
 
 if(!movies.length){
 document.getElementById('movieTitle').innerText='No Movies to Watch';
-document.getElementById('movieSynopsis').innerText='Add movies with a title and year to movies-to-watch.txt, movies-own.txt, or movies-fav.txt.';
+document.getElementById('movieSynopsis').innerText='Add movies with a title and year to movies-new.txt, movies-own.txt, or movies-fav.txt.';
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
 overlay.classList.remove('open','no-light','loading-movie');
@@ -97,8 +97,16 @@ await fetchNextMovie(true);
 setupPullToRefresh();
 }catch(error){
 console.error('Error loading movie lists:',error);
-document.getElementById('movieTitle').innerText='Error Loading File';
-document.getElementById('movieSynopsis').innerText='Make sure all three movie list files are available from the web server: movies-to-watch.txt, movies-own.txt, and movies-fav.txt.';
+document.getElementById('movieTitle').innerText='Error Loading Movie Lists';
+document.getElementById('movieSynopsis').innerText=error.message||'One or more movie list files could not be loaded.';
+const overlay=document.getElementById('curtainOverlay');
+stopSpeech();
+overlay.classList.remove('open','no-light','loading-movie');
+updateDocumentTitle(false);
+document.querySelector('#spotlightContent .spotlight-text').textContent='Error loading movie lists. Check that movies-new.txt, movies-own.txt, and movies-fav.txt are available.';
+document.getElementById('reloadBtn').style.display='none';
+await new Promise(resolve=>setTimeout(resolve,600));
+overlay.classList.add('show-spotlight');
 }
 }
 
