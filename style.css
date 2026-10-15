@@ -568,6 +568,9 @@ flex-direction:column;
 justify-content:center;
 gap:.3rem;
 }
+.poster-back-heading {
+display:none;
+}
 .poster-flip-card.has-wide-poster .poster-back-heading {
 flex:.5 .5 auto;
 }
