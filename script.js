@@ -574,15 +574,15 @@ currentMovie=movie;
 const sourceBadge=document.getElementById('movieSourceBadge');
 if(sourceBadge){
 const sources=movieSources[randomIndex]||['movies-new.txt'];
-const labels={'movies-new.txt':['N','New'],'movies-fav.txt':['F','Favourite'],'movies-own.txt':['O','Owned']};
+const labels={'movies-new.txt':['U','New'],'movies-fav.txt':['F','Favourite'],'movies-own.txt':['O','Owned']};
 const sourceCodes=['movies-new.txt','movies-fav.txt','movies-own.txt'].filter(file=>sources.includes(file));
 const activeLetters={
-N:sources.includes('movies-new.txt'),
+U:sources.includes('movies-new.txt'),
 F:sources.includes('movies-fav.txt'),
 O:sources.includes('movies-own.txt')
 };
-sourceBadge.innerHTML=['N','F','O'].map(letter=>'<span class="source-letter'+(activeLetters[letter]?'':' inactive')+'">'+letter+'</span>').join('');
-sourceBadge.setAttribute('aria-label',['N','F','O'].map(letter=>activeLetters[letter]?({N:'New',F:'Favourite',O:'Owned'})[letter]:null).filter(Boolean).join(' and ')+' movie list'+(sourceCodes.length>1?'s':''));
+sourceBadge.innerHTML=['U','F','O'].map(letter=>'<span class="source-letter'+(activeLetters[letter]?'':' inactive')+'">'+letter+'</span>').join('');
+sourceBadge.setAttribute('aria-label',['U','F','O'].map(letter=>activeLetters[letter]?({U:'New',F:'Favourite',O:'Owned'})[letter]:null).filter(Boolean).join(' and ')+' movie list'+(sourceCodes.length>1?'s':''));
 }
 document.getElementById('movieTitle').innerText=currentMovie.title;
 document.getElementById('movieYear').innerText=currentMovie.year;
