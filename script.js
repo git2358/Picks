@@ -209,7 +209,7 @@ const upperName=formattedName.toLocaleUpperCase();
 const lowerTitleWithoutThe=formattedTitleWithoutThe.toLocaleLowerCase();
 const upperTitleWithoutThe=formattedTitleWithoutThe.toLocaleUpperCase();
 const yearSeparator=separator||(movieYear?' ':'');
-const searchUrl=url.replace(/-t%name%%year%/gi,`${formattedTitleWithoutThe}${yearSeparator}${movieYear}`).replace(/-t%lname%%year%/gi,`${lowerTitleWithoutThe}${yearSeparator}${movieYear}`).replace(/-t%uname%%year%/gi,`${upperTitleWithoutThe}${yearSeparator}${movieYear}`).replace(/-t%name%/gi,formattedTitleWithoutThe).replace(/-t%lname%/gi,lowerTitleWithoutThe).replace(/-t%uname%/gi,upperTitleWithoutThe).replace(/%name%%year%/gi,`${formattedName}${yearSeparator}${movieYear}`).replace(/%lname%/gi,lowerName).replace(/%uname%/gi,upperName).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
+const searchUrl=url.replace(/%tname%%year%/gi,`${formattedTitleWithoutThe}${yearSeparator}${movieYear}`).replace(/%tlname%%year%/gi,`${lowerTitleWithoutThe}${yearSeparator}${movieYear}`).replace(/%tuname%%year%/gi,`${upperTitleWithoutThe}${yearSeparator}${movieYear}`).replace(/%tname%/gi,formattedTitleWithoutThe).replace(/%tlname%/gi,lowerTitleWithoutThe).replace(/%tuname%/gi,upperTitleWithoutThe).replace(/%name%%year%/gi,`${formattedName}${yearSeparator}${movieYear}`).replace(/%lname%/gi,lowerName).replace(/%uname%/gi,upperName).replace(/%name%/gi,formattedName).replace(/%year%/gi,movieYear);
 window.open(searchUrl,'_blank','noopener,noreferrer');
 });
 const setFlipped=flipped=>{
