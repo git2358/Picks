@@ -480,10 +480,11 @@ position:absolute;
 inset:0;
 z-index:3;
 transform:rotateY(180deg);
-display:grid;
-grid-template-rows:minmax(0,1fr) auto minmax(0,1fr);
+display:flex;
+flex-direction:column;
+justify-content:center;
 gap:.4rem;
-padding:1.05rem 1rem 6.6rem;
+padding:1rem 1rem 7rem;
 border:1px solid rgba(255,255,255,.2);
 border-radius:16px;
 background:rgba(10,10,10,.18);
@@ -494,7 +495,7 @@ isolation:isolate;
 .poster-flip-card.has-wide-poster .poster-back {
 display:flex;
 flex-direction:column;
-justify-content:flex-start;
+justify-content:center;
 gap:.3rem;
 padding:1rem .6rem 4.4rem;
 }
