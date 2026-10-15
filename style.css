@@ -1223,3 +1223,33 @@ border-color:#e50914;
 font-size:16px !important;
 }
 }
+
+
+/* Empty movie library message */
+.spotlight-text .empty-library-title {
+display:block;
+font-size:inherit;
+font-weight:800;
+margin-bottom:1rem;
+}
+.spotlight-text .empty-library-instructions {
+display:block;
+max-width:38rem;
+margin:0 auto;
+font-size:1rem;
+font-weight:400;
+line-height:1.7;
+}
+.spotlight-text .empty-library-instructions code {
+font:inherit;
+font-size:.92em;
+padding:.12em .3em;
+border-radius:4px;
+background:rgba(255,255,255,.12);
+white-space:nowrap;
+}
+@media (max-width:767px) {
+.spotlight-text .empty-library-instructions {
+font-size:.95rem;
+}
+}
