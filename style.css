@@ -1076,6 +1076,10 @@ background:linear-gradient(
 }
 
 @media (max-width:767px) {
+.poster-flip-card.has-wide-poster .poster-back {
+justify-content:flex-start;
+}
+
 .poster-back {
 display:flex;
 flex-direction:column;
