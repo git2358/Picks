@@ -1175,8 +1175,8 @@ gap:.75rem;
 
 .info-bottom .reload-btn,
 .info-bottom .share-movie-btn {
-width:100%;
-flex:1;
+width:0;
+flex:1 1 0;
 min-width:0;
 text-align:center;
 margin-top:1.5rem;
