@@ -184,12 +184,12 @@ const customSearchStorageKey='picksCustomSearchUrl';
 const parseCustomSearchConfig=value=>{
 const parts=String(value||'').split(';');
 const firstPart=parts.shift()||'';
-const urlStart=firstPart.search(/https?:\\/\\//i);
+const urlStart=firstPart.search(/https?:\/\//i);
 if(urlStart<0)return {separator:'',urls:[]};
 const rawPrefix=firstPart.slice(0,urlStart);
 const separator=rawPrefix.trim()?rawPrefix.trim():(rawPrefix?' ':'');
-const firstUrl=firstPart.slice(urlStart).trim().replace(/\\\\:/g,':');
-const secondUrl=parts.join(';').trim().replace(/^\\+/,'').replace(/\\\\:/g,':');
+const firstUrl=firstPart.slice(urlStart).trim().replace(/\\:/g,':');
+const secondUrl=parts.join(';').trim().replace(/^\+/,'').replace(/\\:/g,':');
 return {separator,urls:[firstUrl,...(secondUrl?[secondUrl]:[])]};
 };
 const isValidCustomSearchUrl=value=>{
@@ -204,12 +204,12 @@ watchNowButton.addEventListener('click',()=>{
 const config=parseCustomSearchConfig(customSearchUrl.value);
 if(!isValidCustomSearchUrl(customSearchUrl.value))return;
 const rawTitle=document.getElementById('movieTitle').textContent.trim();
-const title=Array.from(rawTitle).filter(char=>/[\\p{L}\\p{N}\\s]/u.test(char)).join('').replace(/\\s+/g,' ').trim();
+const title=Array.from(rawTitle).filter(char=>/[\p{L}\p{N}\s]/u.test(char)).join('').replace(/\s+/g,' ').trim();
 const rawYear=document.getElementById('movieYear').textContent.trim();
 const movieYear=rawYear&&rawYear!=='N/A'?Array.from(rawYear).filter(char=>/[0-9]/.test(char)).join(''):'';
-const formattedName=config.separator?title.replace(/\\s+/g,()=>config.separator):title;
-const titleWithoutThe=title.replace(/^the\\s+/i,'');
-const formattedTitleWithoutThe=config.separator?titleWithoutThe.replace(/\\s+/g,()=>config.separator):titleWithoutThe;
+const formattedName=config.separator?title.replace(/\s+/g,()=>config.separator):title;
+const titleWithoutThe=title.replace(/^the\s+/i,'');
+const formattedTitleWithoutThe=config.separator?titleWithoutThe.replace(/\s+/g,()=>config.separator):titleWithoutThe;
 const lowerName=formattedName.toLocaleLowerCase(),upperName=formattedName.toLocaleUpperCase();
 const lowerTitleWithoutThe=formattedTitleWithoutThe.toLocaleLowerCase(),upperTitleWithoutThe=formattedTitleWithoutThe.toLocaleUpperCase();
 const yearSeparator=config.separator||(movieYear?' ':'');
