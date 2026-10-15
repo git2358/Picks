@@ -237,7 +237,6 @@ display:inline-block;
 }
 
 .movie-source-badge .source-letter.inactive {
-filter:invert(1);
 opacity:.45;
 }
 
