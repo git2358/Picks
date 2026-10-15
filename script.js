@@ -240,6 +240,8 @@ const searchUrl=url.replace(/%tname%%year%/gi,`${formattedTitleWithoutThe}${year
 window.open(searchUrl,'_blank','noopener,noreferrer');
 });
 const setFlipped=flipped=>{
+const wasFlipped=card.classList.contains('is-flipped');
+if(wasFlipped!==flipped)scrollToTopAndWait();
 card.classList.toggle('is-flipped',flipped);
 posterLink.setAttribute('aria-expanded',String(flipped));
 menu.setAttribute('aria-hidden',String(!flipped));
