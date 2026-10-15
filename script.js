@@ -36,19 +36,31 @@ document.title=title?`Picks - ${title}${year?' '+year:''}`:'Picks';
 async function loadMoviesDatabase(){
 try{
 setupMoviePosterSearch();
-const response=await fetch('movies.txt');
-if(!response.ok)throw new Error(`HTTP error! status: ${response.status}`);
-const text=await response.text();
-
-movies=text.split(/\r?\n/)
+const listFiles=['movies-to-watch.txt','movies-own.txt','movies-fav.txt'];
+const listResults=await Promise.all(listFiles.map(async file=>{
+const response=await fetch(file);
+if(!response.ok)throw new Error(`Could not load ${file}: HTTP ${response.status}`);
+return response.text();
+}));
+movies=listResults
+.flatMap(text=>text.split(/\r?\n/))
 .map(line=>line.trim())
-.filter(line=>line.length>0&&!line.startsWith('#')&&!line.startsWith('##'));
+.filter(line=>line.length>0&&!line.startsWith('#')&&Boolean(parseMovieLine(line).year));
 
 if(!movies.length){
-document.getElementById('movieTitle').innerText='No Movies Found';
-document.getElementById('movieSynopsis').innerText='Please add items to your movies.txt file!';
+document.getElementById('movieTitle').innerText='No Movies to Watch';
+document.getElementById('movieSynopsis').innerText='Add movies with a title and year to movies-to-watch.txt, movies-own.txt, or movies-fav.txt.';
+const overlay=document.getElementById('curtainOverlay');
+stopSpeech();
+overlay.classList.remove('open','no-light','loading-movie');
+updateDocumentTitle(false);
+document.querySelector('#spotlightContent .spotlight-text').textContent='No movies to watch.';
+document.getElementById('reloadBtn').style.display='none';
+await new Promise(resolve=>setTimeout(resolve,600));
+overlay.classList.add('show-spotlight');
 return;
 }
+document.querySelector('#spotlightContent .spotlight-text').innerHTML='That’s a wrap!<br>Every movie has been featured.';
 
 const isHomeScreenApp=window.navigator.standalone===true;
 if(isHomeScreenApp&&location.hash){
@@ -274,8 +286,8 @@ if(event.key==='Escape'&&card.classList.contains('is-flipped'))closeMenu(true);
 }
 function parseMovieLine(line){
 const cleaned=line.replace(/^[-–*#\d.]+\s*/,'').trim();
-const match=cleaned.match(/^(.*?)(?:\s+(\d{4}))?\s*$/);
-return {title:match?match[1].trim():cleaned,year:match?.[2]||''};
+const match=cleaned.match(/^(.*?)\s+\(?([0-9]{4})\)?\s*$/);
+return match?{title:match[1].trim(),year:match[2]}:{title:cleaned,year:''};
 }
 
 function movieSlug(title,year){
