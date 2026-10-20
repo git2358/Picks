@@ -1298,10 +1298,6 @@ font-size:.95rem;
 }
 }
 
-.tmdb-attribution { margin-top:.7rem; font-size:.72rem; line-height:1.4; opacity:.8; }
-.tmdb-attribution-label { display:block; margin-bottom:.35rem; font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
-.tmdb-attribution a { display:inline-block; line-height:0; }
-.tmdb-attribution img { display:block; width:115px; max-width:100%; height:auto; }
-.tmdb-attribution p { margin:.35rem 0 0; }
+.tmdb-attribution { display: none; }
 
 .movie-search-menu .tmdb-api-key { font-family:inherit; }
