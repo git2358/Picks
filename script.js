@@ -958,7 +958,7 @@ return{
 title:title,
 year:year||wikidata.year||'N/A',
 synopsis:summary.extract,
-blurb:buildMovieBlurb(plotSummary||summary.extract,title,year||wikidata.year),
+blurb:buildMovieBlurb(summary.extract,plotSummary,title,year||wikidata.year),
 plotSummary,
 details,
 poster:summary.thumbnail?.source||summary.originalimage?.source||fallbackPoster,
@@ -974,7 +974,7 @@ return{
 title:title,
 year:year||'N/A',
 synopsis:fallback.extract,
-blurb:buildMovieBlurb(plotSummary||fallback.extract,title,year),
+blurb:buildMovieBlurb(fallback.extract,plotSummary,title,year),
 plotSummary,
 details:{},
 poster:fallback.thumbnail?.source||fallback.originalimage?.source||fallbackPoster,
@@ -1062,35 +1062,85 @@ runtime
 };
 }
 
-function buildMovieBlurb(source,title,year){
-if(!source)return '';
-
-const cleanText=String(source)
+function buildMovieBlurb(synopsis,plotSummary,title,year){
+const cleanSource=source=>String(source||'')
 .replace(/<[^>]*>/g,' ')
 .replace(/\[\s*\d+\s*\]/g,'')
 .replace(/\([^)]*(?:citation needed|verification needed|when\?)[^)]*\)/gi,'')
 .replace(/\s+/g,' ')
 .trim();
 
-const sentences=(cleanText.match(/[^.!?]+[.!?]+(?:\s|$)/g)||[])
+const splitSentences=source=>(cleanSource(source).match(/[^.!?]+[.!?]+(?:\s|$)/g)||[])
 .map(sentence=>sentence.trim())
-.filter(Boolean);
+.filter(sentence=>sentence.length>20);
 
-const metadata=/\b(?:is|was)\s+(?:an?|the)\s+(?:19|20)\d{2}\s+(?:American|British|Australian|Canadian|French|German|Italian|Spanish|Japanese|film|movie)\b|\b(?:film|movie)\s+(?:directed|written|produced)\b|\b(?:directed|written|produced)\s+by\b|\b(?:released|premiered)\b|\b(?:starring|stars)\b/i;
-const story=/\b(?:follows|centers on|centres on|about|after|when|where|whose|must|tries|attempts|sets out|travels|returns|discovers|finds|becomes|joins|seeks|searches|escapes|fights|battles|protects|survives|struggles|investigates|is sent|is tasked|is forced|is hired|is drawn|is caught|is stranded|is trapped|is pursued|is targeted|is recruited|is a|is an|is the)\b/i;
+const metadata=/\b(?:is|was)\s+(?:an?|the)\s+(?:19|20)\d{2}\s+(?:American|British|Australian|Canadian|French|German|Italian|Spanish|Japanese|film|movie)\b|\b(?:film|movie)\s+(?:directed|written|produced)\b|\b(?:directed|written|produced)\s+by\b|\b(?:released|premiered|distributed)\b|\b(?:starring|stars|features)\b|\b(?:box office|award-winning|critical acclaim|production company)\b/i;
+const story=/\b(?:after|when|while|once|as|but|until|before|during|whose|must|tries|attempts|sets out|travels|returns|discovers|finds|becomes|joins|seeks|searches|escapes|fights|battles|protects|survives|struggles|investigates|is sent|is tasked|is forced|is hired|is drawn|is caught|is stranded|is trapped|is pursued|is targeted|is recruited|is forced|sets off|embarks|faces|must find|must stop|must save|must escape|must uncover|falls in love|comes to|finds himself|finds herself|finds themselves|lives a|works as|dreams of|hopes to|plans to|trying to|in order to|in a world|on a mission|on the run|in search of|the story of)\b/i;
+const ending=/\b(?:eventually|in the end|ultimately|finally|reveals that|turns out to be|is revealed to be|the final battle|the climactic|kills? (?:him|her|them|himself|herself)|dies? at the end|ends with|concludes with)\b/i;
+const generic=/\b(?:the film|the movie|it was|it is|the production|the screenplay|the soundtrack|the cast|the director|the film's|the movie's)\b/i;
 
-const candidates=sentences.filter(sentence=>!metadata.test(sentence));
-let selected=candidates.filter(sentence=>story.test(sentence));
-if(!selected.length)selected=candidates;
+const rankSentences=source=>splitSentences(source)
+.map((sentence,index)=>{
+let score=0;
+if(story.test(sentence))score+=4;
+if(/\b(?:man|woman|boy|girl|family|detective|doctor|scientist|soldier|captain|prince|princess|king|queen|alien|monster|robot|criminal|stranger|couple|young|former|retired|lonely|small-town|widow|orphan|adventurer|agent|cop|police|astronaut|explorer|writer|artist|student|teacher|mother|father|brother|sister|child|children|people|group|crew|team)\b/i.test(sentence))score+=2;
+if(/\b(?:mystery|secret|threat|danger|mission|journey|adventure|revenge|murder|disappearance|experiment|creature|invasion|war|crime|curse|treasure|survival|romance|love|escape|quest|conspiracy|disaster|haunted|strange|unexpected|supernatural)\b/i.test(sentence))score+=2;
+if(metadata.test(sentence))score-=8;
+if(ending.test(sentence))score-=6;
+if(generic.test(sentence))score-=2;
+if(sentence.length<45)score-=1;
+if(sentence.length>300)score-=2;
+return {sentence,score,index};
+});
+
+const makeBlurb=source=>{
+const ranked=rankSentences(source);
+if(!ranked.length)return '';
+const viable=ranked.filter(item=>item.score>0);
+if(!viable.length)return '';
+const chosen=[];
+let words=0;
+for(const item of viable){
+if(chosen.length>=3)break;
+const count=item.sentence.split(/\s+/).length;
+if(chosen.length&&words+count>85)continue;
+if(chosen.length&&item.index>chosen[chosen.length-1].index+2)continue;
+chosen.push(item);
+words+=count;
+if(words>=45)break;
+}
+if(!chosen.length)return '';
+const ordered=chosen.sort((a,b)=>a.index-b.index).map(item=>item.sentence);
+let result=ordered.join(' ').replace(/\s+/g,' ').trim();
+if(result.length>560){
+const cut=result.slice(0,557).lastIndexOf(' ');
+result=result.slice(0,cut)+'...';
+}
+return result;
+};
+
+// Prefer the concise lead/overview, which usually establishes the premise before the full plot.
+const overview=makeBlurb(synopsis);
+if(overview)return overview;
+
+// If the lead is mostly production information, use the opening plot paragraphs but avoid obvious ending-reveal sentences.
+const plot=makeBlurb(plotSummary);
+if(plot)return plot;
+
+// Last resort: preserve the earlier sentence-selection behaviour for unusual or sparse articles.
+const legacySource=cleanSource(plotSummary||synopsis);
+const legacySentences=splitSentences(legacySource);
+const legacyCandidates=legacySentences.filter(sentence=>!metadata.test(sentence));
+const legacyStory=legacyCandidates.filter(sentence=>story.test(sentence));
+const selected=legacyStory.length?legacyStory:legacyCandidates;
 if(!selected.length)return '';
-
 const chosen=[];
 let wordCount=0;
 for(const sentence of selected){
-const words=sentence.split(/\s+/).length;
-if(chosen.length&&wordCount+words>75)break;
+const count=sentence.split(/\s+/).length;
+if(chosen.length&&wordCount+count>75)break;
 chosen.push(sentence);
-wordCount+=words;
+wordCount+=count;
 if(wordCount>=40)break;
 }
 let blurb=chosen.join(' ').replace(/\s+/g,' ').trim();
