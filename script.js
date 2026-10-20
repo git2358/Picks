@@ -536,7 +536,6 @@ document.getElementById('movieBlurb').innerText=currentMovie.blurb;
 document.getElementById('movieBlurbSection').style.display=currentMovie.blurb?'':'none';
 document.getElementById('moviePlotSummary').innerText=currentMovie.plotSummary||'';
 document.getElementById('moviePlotSummarySection').hidden=!currentMovie.plotSummary;
-renderMovieScriptLinks(currentMovie);
 document.getElementById('movieDetails').innerHTML=renderMovieDetails(currentMovie);
 requestAnimationFrame(()=>requestAnimationFrame(updateSynopsisScrollHints));
 
@@ -1251,43 +1250,6 @@ const clean=[...new Set(genres.map(genre=>genre.replace(/\s+film$/i,'').trim()).
 return clean;
 }
 
-function renderMovieScriptLinks(movie){
-const section=document.getElementById('movieScriptSection');
-const container=document.getElementById('movieScriptLinks');
-if(!section||!container)return;
-const title=String(movie?.title||'').trim();
-const year=String(movie?.year||'').trim();
-if(!title||title==='Loading...'){
-section.hidden=true;
-container.replaceChildren();
-return;
-}
-const query=[title,year&&year!=='N/A'?year:'', 'film screenplay'].filter(Boolean).join(' ');
-const sources=[
-{label:'Internet Movie Script Database (IMSDb)',url:'https://www.google.com/search?q='+encodeURIComponent('site:imsdb.com/scripts/ '+query)},
-{label:'Scripts.com',url:'https://www.google.com/search?q='+encodeURIComponent('site:scripts.com/script/ '+query)},
-{label:'Other script archives',url:'https://www.google.com/search?q='+encodeURIComponent(query+' full screenplay script read online')}
-];
-container.replaceChildren();
-const intro=document.createElement('p');
-intro.className='movie-script-intro';
-intro.textContent='Look for a readable screenplay or script for this film:';
-container.append(intro);
-const list=document.createElement('ul');
-list.className='movie-script-list';
-sources.forEach(source=>{
-const item=document.createElement('li');
-const link=document.createElement('a');
-link.href=source.url;
-link.target='_blank';
-link.rel='noopener noreferrer';
-link.textContent=source.label;
-item.append(link);
-list.append(item);
-});
-container.append(list);
-section.hidden=false;
-}
 
 function renderMovieDetails(movie){
 const d=movie.details||{};
