@@ -1323,61 +1323,37 @@ img.src=url;
 });
 const wikidataCandidates=[movie.wikidataPoster].filter(Boolean);
 const wikipediaCandidates=[movie.poster,movie.original].filter(url=>url&&url!==fallbackPoster);
-const commonsCandidates=await findCommonsPosters(movie.title||'',movie.year||'');
-const sourceGroups=[wikidataCandidates,wikipediaCandidates,commonsCandidates.map(candidate=>candidate.url)];
 const tested=new Map();
-for(const group of sourceGroups){
+const findPortrait=async group=>{
 for(const url of group){
 if(!url||tested.has(url))continue;
 const image=await loadImage(url);
 tested.set(url,image);
-if(image&&image.width>0&&image.height>image.width){
-movie.poster=image.url;
-return;
+if(image&&image.width>0&&image.height>image.width)return image;
 }
-}
-}
-for(const group of sourceGroups){
+return null;
+};
+let portrait=await findPortrait(wikidataCandidates);
+if(portrait){movie.poster=portrait.url;return;}
+portrait=await findPortrait(wikipediaCandidates);
+if(portrait){movie.poster=portrait.url;return;}
+const commonsCandidates=await findCommonsPosters(movie.title||'',movie.year||'');
+const commonsUrls=commonsCandidates.map(candidate=>candidate.url);
+portrait=await findPortrait(commonsUrls);
+if(portrait){movie.poster=portrait.url;movie.original=null;return;}
+for(const group of [wikidataCandidates,wikipediaCandidates,commonsUrls]){
 for(const url of group){
-const image=tested.get(url);
+if(!url)continue;
+let image=tested.get(url);
+if(!tested.has(url)){
+image=await loadImage(url);
+tested.set(url,image);
+}
 if(image&&image.width>0&&image.height>0){
 movie.poster=image.url;
 movie.original=null;
 return;
 }
-}
-}
-movie.poster=fallbackPoster;
-movie.original=null;
-}
-
-async function loadPoster(movie){
-const candidates=[];
-if(movie.poster&&movie.poster!==fallbackPoster)candidates.push(movie.poster);
-if(movie.original&&movie.original!==movie.poster)candidates.push(movie.original);
-const seen=new Set();
-const loadImage=url=>new Promise(resolve=>{
-const img=new Image();
-img.onload=()=>resolve({url:img.currentSrc||img.src,width:img.naturalWidth,height:img.naturalHeight});
-img.onerror=()=>resolve(null);
-img.src=url;
-});
-for(const url of candidates){
-if(seen.has(url))continue;
-seen.add(url);
-const image=await loadImage(url);
-if(image&&image.width>0&&image.height>image.width){
-movie.poster=image.url;
-return;
-}
-}
-const alternative=await findPortraitPoster(movie.title||'',movie.year||'');
-if(alternative){
-const image=await loadImage(alternative);
-if(image&&image.width>0&&image.height>image.width){
-movie.poster=image.url;
-movie.original=null;
-return;
 }
 }
 movie.poster=fallbackPoster;
