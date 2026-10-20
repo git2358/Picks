@@ -963,7 +963,8 @@ blurb:buildMovieBlurb(summary.extract,plotSummary,title,year||wikidata.year),
 plotSummary,
 details,
 poster:summary.thumbnail?.source||summary.originalimage?.source||fallbackPoster,
-original:summary.originalimage?.source||null
+original:summary.originalimage?.source||null,
+wikidataPoster:getWikidataPosterUrl(wikidata)
 };
 }
 }
@@ -979,7 +980,8 @@ blurb:buildMovieBlurb(fallback.extract,plotSummary,title,year),
 plotSummary,
 details:{},
 poster:fallback.thumbnail?.source||fallback.originalimage?.source||fallbackPoster,
-original:fallback.originalimage?.source||null
+original:fallback.originalimage?.source||null,
+wikidataPoster:''
 };
 }
 }catch(error){
@@ -1274,24 +1276,24 @@ window.addEventListener('resize',fitCardToPoster);
 
 const commonsPosterCache=new Map();
 
-async function findPortraitPoster(title,year){
+async function findCommonsPosters(title,year){
 const cacheKey=normaliseTitle(title)+'|'+year;
 if(commonsPosterCache.has(cacheKey))return commonsPosterCache.get(cacheKey);
 const searches=[`"${title}" ${year} film poster`,`"${title}" movie poster`];
 const candidates=new Map();
 for(const search of searches){
 try{
-const url='https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch='+encodeURIComponent('filetype:bitmap '+search+' poster')+'&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url|size&iiurlwidth=600&format=json&origin=*';
+const url='https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch='+encodeURIComponent('filetype:bitmap '+search+' poster')+'&gsrnamespace=6&gsrlimit=20&prop=imageinfo&iiprop=url|size&iiurlwidth=900&format=json&origin=*';
 const response=await fetch(url);
 if(!response.ok)continue;
 const data=await response.json();
 Object.values(data.query?.pages||{}).forEach(page=>{
 const info=page.imageinfo?.[0];
-if(!info||!info.width||!info.height||info.height<=info.width)return;
+if(!info||!info.width||!info.height)return;
 const filename=(page.title||'').replace(/^File:/i,'');
 if(!/poster|theatrical|affiche|one.sheet/i.test(filename))return;
 const titleScore=titleSimilarity(title,filename);
-const hasYear=year&&filename.includes(year);
+const hasYear=Boolean(year&&filename.includes(year));
 const score=titleScore*100+(hasYear?25:0);
 if(titleScore<0.45)return;
 const imageUrl=info.thumburl||info.url;
@@ -1302,9 +1304,51 @@ if(!existing||existing.score<score)candidates.set(imageUrl,{url:imageUrl,score,w
 }catch(error){}
 }
 const ranked=[...candidates.values()].sort((a,b)=>b.score-a.score);
-const result=ranked[0]?.url||'';
-commonsPosterCache.set(cacheKey,result);
-return result;
+commonsPosterCache.set(cacheKey,ranked);
+return ranked;
+}
+
+function getWikidataPosterUrl(wikidata){
+const filename=wikidata?.claims?.P3383?.[0]?.mainsnak?.datavalue?.value;
+if(!filename||typeof filename!=='string')return '';
+return 'https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(filename.replace(/^File:/i,''));
+}
+
+async function loadPoster(movie){
+const loadImage=url=>new Promise(resolve=>{
+const img=new Image();
+img.onload=()=>resolve({url:img.currentSrc||img.src,width:img.naturalWidth,height:img.naturalHeight});
+img.onerror=()=>resolve(null);
+img.src=url;
+});
+const wikidataCandidates=[movie.wikidataPoster].filter(Boolean);
+const wikipediaCandidates=[movie.poster,movie.original].filter(url=>url&&url!==fallbackPoster);
+const commonsCandidates=await findCommonsPosters(movie.title||'',movie.year||'');
+const sourceGroups=[wikidataCandidates,wikipediaCandidates,commonsCandidates.map(candidate=>candidate.url)];
+const tested=new Map();
+for(const group of sourceGroups){
+for(const url of group){
+if(!url||tested.has(url))continue;
+const image=await loadImage(url);
+tested.set(url,image);
+if(image&&image.width>0&&image.height>image.width){
+movie.poster=image.url;
+return;
+}
+}
+}
+for(const group of sourceGroups){
+for(const url of group){
+const image=tested.get(url);
+if(image&&image.width>0&&image.height>0){
+movie.poster=image.url;
+movie.original=null;
+return;
+}
+}
+}
+movie.poster=fallbackPoster;
+movie.original=null;
 }
 
 async function loadPoster(movie){
