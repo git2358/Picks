@@ -1213,6 +1213,7 @@ add('Runtime',d.runtime);
 add('Released',movie.year&&movie.year!=='N/A'?movie.year:'');
 add('Country',d.country?.join(' · '));
 add('Language',d.language?.join(' · '));
+if(movie.tmdbSource)rows.push('<div class="tmdb-attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>');
 return rows.length?rows.join(''):'<div class="detail-row"><span class="detail-value">Additional details unavailable.</span></div>';
 }
 
