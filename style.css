@@ -508,7 +508,7 @@ display:flex;
 flex-direction:column;
 justify-content:center;
 gap:.4rem;
-padding:1rem 1rem 7rem;
+padding:1rem 1rem 9rem;
 border:1px solid rgba(255,255,255,.2);
 border-radius:16px;
 background:rgba(10,10,10,.18);
@@ -521,7 +521,7 @@ display:flex;
 flex-direction:column;
 justify-content:center;
 gap:.3rem;
-padding:1rem .6rem 4.4rem;
+padding:1rem .6rem 9rem;
 }
 .poster-flip-card.has-wide-poster .movie-search-menu .poster-back-controls {
 left:.6rem;
@@ -1109,7 +1109,7 @@ display:flex;
 flex-direction:column;
 justify-content:flex-start;
 gap:.4rem;
-padding:1rem .6rem 6.8rem;
+padding:1rem .6rem 9rem;
 }
 
 .poster-back-heading {
@@ -1299,3 +1299,5 @@ font-size:.95rem;
 }
 
 .tmdb-attribution { margin-top:.7rem; font-size:.72rem; line-height:1.4; opacity:.7; }
+
+.movie-search-menu .tmdb-api-key { font-family:inherit; }
