@@ -203,6 +203,18 @@ document.addEventListener('picks:movie-changed',updateCustomSearchState);
 try{customSearchUrl.value=localStorage.getItem(customSearchStorageKey)||'';}catch(error){}
 updateCustomSearchState();
 customSearchUrl.addEventListener('input',()=>{try{localStorage.setItem(customSearchStorageKey,customSearchUrl.value);}catch(error){}updateCustomSearchState();});
+const tmdbApiKeyInput=document.getElementById('tmdbApiKey');
+const tmdbApiKeyStorageKey='picksTmdbApiKey';
+try{if(tmdbApiKeyInput)tmdbApiKeyInput.value=localStorage.getItem(tmdbApiKeyStorageKey)||'';}catch(error){}
+if(tmdbApiKeyInput){
+tmdbApiKeyInput.addEventListener('input',()=>{try{localStorage.setItem(tmdbApiKeyStorageKey,tmdbApiKeyInput.value.trim());}catch(error){}});
+tmdbApiKeyInput.addEventListener('change',()=>{
+try{localStorage.setItem(tmdbApiKeyStorageKey,tmdbApiKeyInput.value.trim());}catch(error){}
+movieDetailsCache.clear();
+if(activeMovieIndex>=0)displayMovieAtIndex(activeMovieIndex);
+});
+}
+
 watchNowButton.addEventListener('click',()=>{
 const config=parseCustomSearchConfig(customSearchUrl.value);
 if(!isValidCustomSearchUrl(customSearchUrl.value))return;
@@ -498,7 +510,7 @@ const year=parsed.year;
 
 let movie=movieDetailsCache.get(randomIndex);
 if(!movie){
-movie=await fetchMovieDetailsFromWikipedia(title,year);
+movie=await fetchMovieDetails(title,year);
 movieDetailsCache.set(randomIndex,movie);
 }
 if(requestId!==movieDisplayRequest)return;
@@ -575,7 +587,7 @@ const attempt=(async()=>{
 let movie=movieDetailsCache.get(index);
 if(!movie){
 const parsed=parseMovieLine(movies[index]);
-movie=await fetchMovieDetailsFromWikipedia(parsed.title,parsed.year);
+movie=await fetchMovieDetails(parsed.title,parsed.year);
 movieDetailsCache.set(index,movie);
 }
 if(movie.synopsis==='Synopsis currently unavailable.'&&movie.poster===fallbackPoster){
@@ -943,6 +955,81 @@ console.error('Wikipedia search error:',error);
 return null;
 }
 
+
+function getTmdbApiKey(){
+try{return (localStorage.getItem('picksTmdbApiKey')||'').trim();}catch(error){return '';}
+}
+async function tmdbRequest(path,apiKey){
+const separator=path.includes('?')?'&':'?';
+const response=await fetch('https://api.themoviedb.org/3'+path+separator+'api_key='+encodeURIComponent(apiKey));
+if(!response.ok)throw new Error('TMDB request failed: HTTP '+response.status);
+return response.json();
+}
+async function fetchMovieDetailsFromTmdb(title,year,apiKey){
+try{
+const searchPath='/search/movie?query='+encodeURIComponent(title)+'&include_adult=false&language=en-US'+(year?'&year='+encodeURIComponent(year):'');
+const search=await tmdbRequest(searchPath,apiKey);
+const results=(search.results||[]).map(result=>{
+const resultYear=String(result.release_date||'').slice(0,4);
+const similarity=titleSimilarity(title,result.title||result.original_title||'');
+const yearMatch=!year||!resultYear||resultYear===year;
+const score=similarity*100+(resultYear===year?45:0)+(result.original_language==='en'?2:0);
+return {...result,resultYear,similarity,yearMatch,score};
+}).filter(result=>result.similarity>=0.72&&result.yearMatch).sort((a,b)=>b.score-a.score);
+if(!results.length)return null;
+const match=results[0];
+const [details,images]=await Promise.all([
+tmdbRequest('/movie/'+match.id+'?language=en-US&append_to_response=credits',apiKey),
+tmdbRequest('/movie/'+match.id+'/images?include_image_language=en,null',apiKey).catch(()=>({posters:[]}))
+]);
+const allPosters=(images.posters||[]).filter(image=>image.file_path).sort((a,b)=>{
+const portraitA=a.height>a.width,portraitB=b.height>b.width;
+if(portraitA!==portraitB)return portraitA?-1:1;
+const langScore=image=>(image.iso_639_1==='en'?12:image.iso_639_1===null?8:0);
+const qualityScore=image=>Math.min(image.vote_count||0,100)*0.08+(image.vote_average||0)*2;
+const ratioScore=image=>Math.max(0,12-Math.abs((image.width/image.height)-0.667)*20);
+return (langScore(b)+qualityScore(b)+ratioScore(b))-(langScore(a)+qualityScore(a)+ratioScore(a));
+});
+const posterUrl=image=>'https://image.tmdb.org/t/p/w500'+image.file_path;
+const crew=details.credits?.crew||[];
+const cast=details.credits?.cast||[];
+const director=crew.find(person=>person.job==='Director')?.name||'';
+const releaseYear=String(details.release_date||match.release_date||'').slice(0,4);
+const overview=String(details.overview||match.overview||'').trim();
+const tagline=String(details.tagline||'').trim();
+const runtimeMinutes=Number(details.runtime)||0;
+const runtime=runtimeMinutes?(runtimeMinutes>=60?Math.floor(runtimeMinutes/60)+' h '+runtimeMinutes%60+' min':runtimeMinutes+' min'):'';
+const countries=(details.production_countries||[]).map(item=>item.name).filter(Boolean).slice(0,3);
+const languages=(details.spoken_languages||[]).map(item=>item.english_name||item.name).filter(Boolean).slice(0,3);
+const genres=(details.genres||[]).map(item=>item.name).filter(Boolean);
+const fallbackPosterPaths=[details.poster_path,match.poster_path].filter(Boolean).map(path=>'https://image.tmdb.org/t/p/w500'+path);
+const tmdbPosters=[...new Set([...allPosters.map(posterUrl),...fallbackPosterPaths])];
+return {
+title:details.title||match.title||title,
+year:releaseYear||year||'N/A',
+synopsis:overview||'Synopsis currently unavailable from TMDB.',
+blurb:tagline||buildMovieBlurb(overview,'',title,year),
+plotSummary:'',
+details:{director,cast:cast.slice(0,8).map(person=>person.name).filter(Boolean),genre:genres,runtime,country:countries,language:languages},
+poster:tmdbPosters[0]||fallbackPoster,
+original:tmdbPosters[1]||null,
+tmdbPosters,
+tmdbId:details.id||match.id,
+tmdbSource:true
+};
+}catch(error){
+console.warn('TMDB lookup failed; using existing movie sources:',error);
+return null;
+}
+}
+async function fetchMovieDetails(title,year){
+const apiKey=getTmdbApiKey();
+if(apiKey){
+const tmdbMovie=await fetchMovieDetailsFromTmdb(title,year,apiKey);
+if(tmdbMovie)return tmdbMovie;
+}
+return fetchMovieDetailsFromWikipedia(title,year);
+}
 async function fetchMovieDetailsFromWikipedia(title,year){
 try{
 const wikidata=await searchWikidata(title,year);
@@ -1214,6 +1301,7 @@ add('Released',movie.year&&movie.year!=='N/A'?movie.year:'');
 add('Country',d.country?.join(' · '));
 add('Language',d.language?.join(' · '));
 if(movie.tmdbSource)rows.push('<div class="tmdb-attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>');
+if(movie.tmdbSource)rows.push('<div class="tmdb-attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>');
 return rows.length?rows.join(''):'<div class="detail-row"><span class="detail-value">Additional details unavailable.</span></div>';
 }
 
@@ -1315,6 +1403,7 @@ if(!filename||typeof filename!=='string')return '';
 return 'https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(filename.replace(/^File:/i,''));
 }
 
+
 async function loadPoster(movie){
 const loadImage=url=>new Promise(resolve=>{
 const img=new Image();
@@ -1322,8 +1411,9 @@ img.onload=()=>resolve({url:img.currentSrc||img.src,width:img.naturalWidth,heigh
 img.onerror=()=>resolve(null);
 img.src=url;
 });
+const tmdbCandidates=(movie.tmdbPosters||[movie.poster,movie.original]).filter(Boolean).filter(url=>url!==fallbackPoster);
 const wikidataCandidates=[movie.wikidataPoster].filter(Boolean);
-const wikipediaCandidates=[movie.poster,movie.original].filter(url=>url&&url!==fallbackPoster);
+const wikipediaCandidates=[movie.poster,movie.original].filter(url=>url&&url!==fallbackPoster&&!tmdbCandidates.includes(url));
 const tested=new Map();
 const findPortrait=async group=>{
 for(const url of group){
@@ -1334,27 +1424,34 @@ if(image&&image.width>0&&image.height>image.width)return image;
 }
 return null;
 };
-let portrait=await findPortrait(wikidataCandidates);
+let portrait=await findPortrait(tmdbCandidates);
+if(portrait){movie.poster=portrait.url;return;}
+portrait=await findPortrait(wikidataCandidates);
 if(portrait){movie.poster=portrait.url;return;}
 portrait=await findPortrait(wikipediaCandidates);
 if(portrait){movie.poster=portrait.url;return;}
+if(movie.tmdbSource){
+let wikiFallback=null;
+try{wikiFallback=await fetchMovieDetailsFromWikipedia(movie.title||'',movie.year||'');}catch(error){}
+if(wikiFallback){
+if(wikiFallback.wikidataPoster&&!wikidataCandidates.includes(wikiFallback.wikidataPoster))wikidataCandidates.push(wikiFallback.wikidataPoster);
+for(const url of [wikiFallback.poster,wikiFallback.original])if(url&&url!==fallbackPoster&&!wikipediaCandidates.includes(url))wikipediaCandidates.push(url);
+portrait=await findPortrait(wikidataCandidates);
+if(portrait){movie.poster=portrait.url;return;}
+portrait=await findPortrait(wikipediaCandidates);
+if(portrait){movie.poster=portrait.url;return;}
+}
+}
 const commonsCandidates=await findCommonsPosters(movie.title||'',movie.year||'');
 const commonsUrls=commonsCandidates.map(candidate=>candidate.url);
 portrait=await findPortrait(commonsUrls);
 if(portrait){movie.poster=portrait.url;movie.original=null;return;}
-for(const group of [wikidataCandidates,wikipediaCandidates,commonsUrls]){
+for(const group of [tmdbCandidates,wikidataCandidates,wikipediaCandidates,commonsUrls]){
 for(const url of group){
 if(!url)continue;
 let image=tested.get(url);
-if(!tested.has(url)){
-image=await loadImage(url);
-tested.set(url,image);
-}
-if(image&&image.width>0&&image.height>0){
-movie.poster=image.url;
-movie.original=null;
-return;
-}
+if(!tested.has(url)){image=await loadImage(url);tested.set(url,image);}
+if(image&&image.width>0&&image.height>0){movie.poster=image.url;movie.original=null;return;}
 }
 }
 movie.poster=fallbackPoster;
