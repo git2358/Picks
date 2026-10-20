@@ -981,7 +981,7 @@ plotSummary,
 details:{},
 poster:fallback.thumbnail?.source||fallback.originalimage?.source||fallbackPoster,
 original:fallback.originalimage?.source||null,
-wikidataPoster:''
+wikidataPoster:getWikidataPosterUrl(wikidata)
 };
 }
 }catch(error){
