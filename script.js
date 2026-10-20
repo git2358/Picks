@@ -958,7 +958,7 @@ return{
 title:title,
 year:year||wikidata.year||'N/A',
 synopsis:summary.extract,
-blurb:buildMovieBlurb(summary.extract,title,year||wikidata.year),
+blurb:buildMovieBlurb(plotSummary||summary.extract,title,year||wikidata.year),
 plotSummary,
 details,
 poster:summary.thumbnail?.source||summary.originalimage?.source||fallbackPoster,
@@ -974,7 +974,7 @@ return{
 title:title,
 year:year||'N/A',
 synopsis:fallback.extract,
-blurb:buildMovieBlurb(fallback.extract,title,year),
+blurb:buildMovieBlurb(plotSummary||fallback.extract,title,year),
 plotSummary,
 details:{},
 poster:fallback.thumbnail?.source||fallback.originalimage?.source||fallbackPoster,
@@ -1062,33 +1062,42 @@ runtime
 };
 }
 
-function buildMovieBlurb(extract,title,year){
-if(!extract)return '';
+function buildMovieBlurb(source,title,year){
+if(!source)return '';
 
-const sentences=(extract.match(/[^.!?]+[.!?]+(?:\s|$)/g)||[])
+const cleanText=String(source)
+.replace(/<[^>]*>/g,' ')
+.replace(/\[\s*\d+\s*\]/g,'')
+.replace(/\([^)]*(?:citation needed|verification needed|when\?)[^)]*\)/gi,'')
+.replace(/\s+/g,' ')
+.trim();
+
+const sentences=(cleanText.match(/[^.!?]+[.!?]+(?:\s|$)/g)||[])
 .map(sentence=>sentence.trim())
 .filter(Boolean);
 
 const metadata=/\b(?:is|was)\s+(?:an?|the)\s+(?:19|20)\d{2}\s+(?:American|British|Australian|Canadian|French|German|Italian|Spanish|Japanese|film|movie)\b|\b(?:film|movie)\s+(?:directed|written|produced)\b|\b(?:directed|written|produced)\s+by\b|\b(?:released|premiered)\b|\b(?:starring|stars)\b/i;
-
-const story=/\b(?:follows|follows the|centers on|centres on|about|after|when|where|whose|must|tries|attempts|sets out|travels|returns|discovers|finds|becomes|joins|seeks|searches|escapes|fights|battles|protects|survives|struggles|investigates|is sent|is tasked|is forced|is hired|is drawn|is caught|is stranded|is trapped|is pursued|is targeted|is recruited)\b/i;
+const story=/\b(?:follows|centers on|centres on|about|after|when|where|whose|must|tries|attempts|sets out|travels|returns|discovers|finds|becomes|joins|seeks|searches|escapes|fights|battles|protects|survives|struggles|investigates|is sent|is tasked|is forced|is hired|is drawn|is caught|is stranded|is trapped|is pursued|is targeted|is recruited|is a|is an|is the)\b/i;
 
 const candidates=sentences.filter(sentence=>!metadata.test(sentence));
-
 let selected=candidates.filter(sentence=>story.test(sentence));
-
 if(!selected.length)selected=candidates;
-
 if(!selected.length)return '';
 
-let blurb=selected.slice(0,2).join(' ');
-
-blurb=blurb.replace(/\s+/g,' ').trim();
-
-if(blurb.length>360){
-blurb=blurb.slice(0,357).replace(/\s+\S*$/,'')+'...';
+const chosen=[];
+let wordCount=0;
+for(const sentence of selected){
+const words=sentence.split(/\s+/).length;
+if(chosen.length&&wordCount+words>75)break;
+chosen.push(sentence);
+wordCount+=words;
+if(wordCount>=40)break;
 }
-
+let blurb=chosen.join(' ').replace(/\s+/g,' ').trim();
+if(blurb.length>520){
+const cut=blurb.slice(0,517).lastIndexOf(' ');
+blurb=blurb.slice(0,cut)+'...';
+}
 return blurb;
 }
 
