@@ -15,7 +15,7 @@ let pullTracking=false;
 let isPullRefreshing=false;
 const pullRefreshThreshold=90;
 
-const fallbackPoster='https://upload.wikimedia.org/wikipedia/commons/2/29/ButterflyDancebis.jpg';
+const fallbackPoster='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 600%22%3E%3Crect width=%22400%22 height=%22600%22 fill=%22%231b1b1b%22/%3E%3Crect x=%22120%22 y=%22170%22 width=%22160%22 height=%22190%22 rx=%2210%22 fill=%22none%22 stroke=%22%23777777%22 stroke-width=%228%22/%3E%3Cpath d=%22M150 315l40-45 35 35 25-25 25 35%22 fill=%22none%22 stroke=%22%23777777%22 stroke-width=%228%22/%3E%3Ctext x=%22200%22 y=%22415%22 text-anchor=%22middle%22 fill=%22%23aaaaaa%22 font-size=%2224%22 font-family=%22Arial,sans-serif%22%3ENO POSTER%3C/text%3E%3C/svg%3E';
 const wikidataCache=new Map();
 const wikipediaCache=new Map();
 const wikidataEntityCache=new Map();
@@ -1182,33 +1182,73 @@ container.style.removeProperty('--poster-image');
 
 window.addEventListener('resize',fitCardToPoster);
 
-function loadPoster(movie){
-return new Promise(resolve=>{
-const img=new Image();
 
-img.onload=()=>{
-movie.poster=img.src;
-resolve();
-};
+const commonsPosterCache=new Map();
 
-img.onerror=()=>{
-if(movie.original&&img.src!==movie.original){
-img.src=movie.original;
-}else{
-movie.poster=fallbackPoster;
-resolve();
-}
-};
-
-if(movie.poster){
-img.src=movie.poster;
-}else if(movie.original){
-img.src=movie.original;
-}else{
-movie.poster=fallbackPoster;
-resolve();
-}
+async function findPortraitPoster(title,year){
+const cacheKey=normaliseTitle(title)+'|'+year;
+if(commonsPosterCache.has(cacheKey))return commonsPosterCache.get(cacheKey);
+const searches=[`"${title}" ${year} film poster`,`"${title}" movie poster`];
+const candidates=new Map();
+for(const search of searches){
+try{
+const url='https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch='+encodeURIComponent('filetype:bitmap '+search+' poster')+'&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url|size&iiurlwidth=600&format=json&origin=*';
+const response=await fetch(url);
+if(!response.ok)continue;
+const data=await response.json();
+Object.values(data.query?.pages||{}).forEach(page=>{
+const info=page.imageinfo?.[0];
+if(!info||!info.width||!info.height||info.height<=info.width)return;
+const filename=(page.title||'').replace(/^File:/i,'');
+if(!/poster|theatrical|affiche|one.sheet/i.test(filename))return;
+const titleScore=titleSimilarity(title,filename);
+const hasYear=year&&filename.includes(year);
+const score=titleScore*100+(hasYear?25:0);
+if(titleScore<0.45)return;
+const imageUrl=info.thumburl||info.url;
+if(!imageUrl)return;
+const existing=candidates.get(imageUrl);
+if(!existing||existing.score<score)candidates.set(imageUrl,{url:imageUrl,score,width:info.width,height:info.height});
 });
+}catch(error){}
+}
+const ranked=[...candidates.values()].sort((a,b)=>b.score-a.score);
+const result=ranked[0]?.url||'';
+commonsPosterCache.set(cacheKey,result);
+return result;
+}
+
+async function loadPoster(movie){
+const candidates=[];
+if(movie.poster&&movie.poster!==fallbackPoster)candidates.push(movie.poster);
+if(movie.original&&movie.original!==movie.poster)candidates.push(movie.original);
+const seen=new Set();
+const loadImage=url=>new Promise(resolve=>{
+const img=new Image();
+img.onload=()=>resolve({url:img.currentSrc||img.src,width:img.naturalWidth,height:img.naturalHeight});
+img.onerror=()=>resolve(null);
+img.src=url;
+});
+for(const url of candidates){
+if(seen.has(url))continue;
+seen.add(url);
+const image=await loadImage(url);
+if(image&&image.width>0&&image.height>image.width){
+movie.poster=image.url;
+return;
+}
+}
+const alternative=await findPortraitPoster(movie.title||'',movie.year||'');
+if(alternative){
+const image=await loadImage(alternative);
+if(image&&image.width>0&&image.height>image.width){
+movie.poster=image.url;
+movie.original=null;
+return;
+}
+}
+movie.poster=fallbackPoster;
+movie.original=null;
 }
 
 function yearToSpeech(year){
