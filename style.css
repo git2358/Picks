@@ -1297,3 +1297,5 @@ white-space:nowrap;
 font-size:.95rem;
 }
 }
+
+.tmdb-attribution { margin-top:.7rem; font-size:.72rem; line-height:1.4; opacity:.7; }
