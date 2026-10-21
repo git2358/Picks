@@ -361,8 +361,19 @@ return {index,title:movie.title,year:movie.year,similarity:titleSimilarity(reque
 }).filter(movie=>requestedYear?movie.year===requestedYear&&movie.similarity>=0.8:movie.similarity>=0.8);
 if(!candidates.length)return -1;
 candidates.sort((a,b)=>b.similarity-a.similarity||Number(b.year||0)-Number(a.year||0)||a.index-b.index);
-if(candidates.length>1&&candidates[0].similarity===candidates[1].similarity&&candidates[0].title!==candidates[1].title)return -1;
-return candidates[0].index;
+if(candidates.length>1&&candidates[0].similarity===candidates[1].similarity&&normaliseTitle(candidates[0].title)!==normaliseTitle(candidates[1].title))return -1;
+if(requestedYear)return candidates[0].index;
+const bestSimilarity=candidates[0].similarity;
+const bestTitle=normaliseTitle(candidates[0].title);
+const sameTitleCandidates=candidates.filter(movie=>movie.similarity===bestSimilarity&&normaliseTitle(movie.title)===bestTitle);
+if(sameTitleCandidates.length<2)return candidates[0].index;
+const storageKey='picksTitleMatch:'+slug;
+let previousIndex=-1;
+try{previousIndex=Number(sessionStorage.getItem(storageKey));}catch(error){}
+const previousPosition=sameTitleCandidates.findIndex(movie=>movie.index===previousIndex);
+const selected=sameTitleCandidates[(previousPosition+1)%sameTitleCandidates.length];
+try{sessionStorage.setItem(storageKey,String(selected.index));}catch(error){}
+return selected.index;
 }
 
 function resetPosterFlipCard(){
