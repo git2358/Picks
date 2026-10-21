@@ -1132,9 +1132,9 @@ const getCertification=countryCode=>(releaseCountries.find(country=>country.iso_
 .map(release=>String(release.certification||'').trim()).find(value=>value&&!/^(?:NR|N\/A|NOT RATED|UNRATED)$/i.test(value))||'';
 const nativeCountryCodes=(details.production_countries||[]).map(country=>country.iso_3166_1).filter(code=>code&&code!=='AU'&&code!=='US');
 const classificationCandidates=[
-{value:getCertification('AU'),country:'AU',priority:0},
-{value:getCertification('US'),country:'US',priority:1},
-...nativeCountryCodes.map(country=>({value:getCertification(country),country,priority:2}))
+{value:getCertification('AU'),country:'AU',source:'TMDB'},
+{value:getCertification('US'),country:'US',source:'TMDB'},
+...nativeCountryCodes.map(country=>({value:getCertification(country),country,source:'TMDB'}))
 ].filter(item=>item.value);
 const classification=classificationCandidates.length?{value:formatClassification(classificationCandidates[0].value),country:classificationCandidates[0].country}:null;
 const allPosters=(images.posters||[]).filter(image=>image.file_path).sort((a,b)=>{
@@ -1181,44 +1181,55 @@ console.warn('TMDB lookup failed; using existing movie sources:',error);
 return null;
 }
 }
+function choosePreferredClassification(australianClassification,wikiMovie,tmdbMovie){
+if(australianClassification?.value)return australianClassification;
+const candidates=[
+...(wikiMovie?.classificationCandidates||[]).map(item=>({...item,source:'Wikidata'})),
+...(tmdbMovie?.classificationCandidates||[]).map(item=>({...item,source:'TMDB'}))
+];
+if(wikiMovie?.classification?.value)candidates.push({...wikiMovie.classification,source:'Wikidata'});
+if(tmdbMovie?.classification?.value)candidates.push({...tmdbMovie.classification,source:'TMDB'});
+const countryPriority=country=>{
+const code=String(country||'').trim().toUpperCase();
+if(code==='AU'||code==='AUSTRALIA')return 0;
+if(code==='US'||code==='UNITED STATES'||code==='UNITED STATES OF AMERICA')return 1;
+return 2;
+};
+const sourcePriority=source=>source==='Wikidata'?0:1;
+const valid=candidates.filter(item=>item?.value&&!/^(?:NR|N\\/?A|NOT RATED|UNRATED)$/i.test(String(item.value).trim()));
+valid.sort((a,b)=>countryPriority(a.country)-countryPriority(b.country)||sourcePriority(a.source)-sourcePriority(b.source));
+return valid[0]||null;
+}
+
 async function fetchMovieDetails(title,year){
 const apiKey=getTmdbApiKey();
 
 if(!apiKey){
 const wikiMovie=await fetchMovieDetailsFromWikipedia(title,year);
 const australianClassification=await fetchAustralianClassification(title,year,wikiMovie).catch(()=>null);
-if(australianClassification)wikiMovie.classification=australianClassification;
+wikiMovie.classification=choosePreferredClassification(australianClassification,wikiMovie,null);
 return wikiMovie;
 }
 
-// Run TMDB and Wikipedia together; validate the official Australian record against whichever metadata is available.
 const wikipediaPromise=fetchMovieDetailsFromWikipedia(title,year).catch(()=>null);
 const tmdbMovie=await fetchMovieDetailsFromTmdb(title,year,apiKey);
 const wikiMovie=await wikipediaPromise;
 const referenceMovie=tmdbMovie||wikiMovie;
 const australianClassification=await fetchAustralianClassification(title,year,referenceMovie).catch(()=>null);
-const sourceCandidates=[
-...(tmdbMovie?.classificationCandidates||[]),
-...(wikiMovie?.classificationCandidates||[])
-];
-const classificationPriority={AU:0,US:1};
-const selectedSourceClassification=sourceCandidates
-.map(item=>({...item,priority:classificationPriority[item.country]??2}))
-.sort((a,b)=>a.priority-b.priority)[0]||tmdbMovie?.classification||wikiMovie?.classification||null;
-const preferredClassification=australianClassification||selectedSourceClassification;
+const preferredClassification=choosePreferredClassification(australianClassification,wikiMovie,tmdbMovie);
 
 if(!tmdbMovie){
 const result=wikiMovie||await fetchMovieDetailsFromWikipedia(title,year);
-if(preferredClassification)result.classification=preferredClassification;
+result.classification=preferredClassification;
 return result;
 }
 
-if(preferredClassification)tmdbMovie.classification=preferredClassification;
+tmdbMovie.classification=preferredClassification;
 if(!wikiMovie){
 return{
 ...tmdbMovie,
 synopsis:tmdbMovie.tmdbOverview||'Synopsis currently unavailable.',
-blurb:[tmdbMovie.tmdbTagline,tmdbMovie.tmdbOverview].filter(Boolean).join('\n\n'),
+blurb:[tmdbMovie.tmdbTagline,tmdbMovie.tmdbOverview].filter(Boolean).join('\\n\\n'),
 details:tmdbMovie.details||{},
 wikiPosterCandidates:[]
 };
@@ -1230,10 +1241,10 @@ return{
 title:wikiMovie.title||tmdbMovie.title,
 year:wikiMovie.year||tmdbMovie.year,
 synopsis:wikiMovie.synopsis||overview||'Synopsis currently unavailable.',
-blurb:[tagline,overview].filter(Boolean).join('\n\n'),
+blurb:[tagline,overview].filter(Boolean).join('\\n\\n'),
 plotSummary:wikiMovie.plotSummary||'',
 details:wikiMovie.details||tmdbMovie.details||{},
-classification:preferredClassification||tmdbMovie.classification||wikiMovie.classification||null,
+classification:preferredClassification,
 wikiPosterCandidates:[wikiMovie.poster,wikiMovie.original,wikiMovie.wikidataPoster].filter(url=>url&&url!==fallbackPoster),
 tmdbSource:true
 };
@@ -1444,15 +1455,14 @@ return rating||String(value||'').trim();
 const classificationCandidates=[];
 const auRating=getRating('P3156');
 const usRating=getRating('P1657');
-if(auRating)classificationCandidates.push({value:formatClassification(cleanRating(auRating,'P3156')),country:'AU',priority:0});
-if(usRating)classificationCandidates.push({value:formatClassification(cleanRating(usRating,'P1657')),country:'US',priority:1});
+if(auRating)classificationCandidates.push({value:formatClassification(cleanRating(auRating,'P3156')),country:'AU',source:'Wikidata'});
+if(usRating)classificationCandidates.push({value:formatClassification(cleanRating(usRating,'P1657')),country:'US',source:'Wikidata'});
 for(const countryName of countryNames){
 const property=ratingPropertyByCountry[countryName];
 if(!property||property==='P3156'||property==='P1657')continue;
 const rating=getRating(property);
-if(rating)classificationCandidates.push({value:formatClassification(cleanRating(rating,property)),country:countryName,priority:2});
+if(rating)classificationCandidates.push({value:formatClassification(cleanRating(rating,property)),country:countryName,source:'Wikidata'});
 }
-classificationCandidates.sort((a,b)=>a.priority-b.priority);
 const classification=classificationCandidates[0]||null;
 const runtimeClaim=claims.P2047?.[0]?.mainsnak?.datavalue?.value;
 let runtime='';
@@ -1472,7 +1482,8 @@ genre:formatGenres(list('P136').slice(0,3)),
 country:list('P495').slice(0,2),
 language:list('P364').slice(0,2),
 runtime,
-classification
+classification,
+classificationCandidates
 };
 }
 
