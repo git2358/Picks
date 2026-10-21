@@ -1195,7 +1195,7 @@ if(code==='US'||code==='UNITED STATES'||code==='UNITED STATES OF AMERICA')return
 return 2;
 };
 const sourcePriority=source=>source==='Wikidata'?0:1;
-const ignored=/^(?:NR|N\\/?A|NOT RATED|UNRATED)$/i;
+const ignored=/^(?:NR|N\/?A|NOT RATED|UNRATED)$/i;
 const ordered=candidates.filter(item=>item?.value&&String(item.value).trim());
 ordered.sort((a,b)=>countryPriority(a.country)-countryPriority(b.country)||sourcePriority(a.source)-sourcePriority(b.source));
 const valid=ordered.find(item=>!ignored.test(String(item.value).trim()));
