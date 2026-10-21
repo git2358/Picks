@@ -1007,7 +1007,9 @@ return {
 title:details.title||match.title||title,
 year:releaseYear||year||'N/A',
 synopsis:overview||'Synopsis currently unavailable from TMDB.',
-blurb:tagline||buildMovieBlurb(overview,'',title,year),
+blurb:[tagline,overview].filter(Boolean).join(' '),
+tmdbTagline:tagline,
+tmdbOverview:overview,
 plotSummary:'',
 details:{director,cast:cast.slice(0,8).map(person=>person.name).filter(Boolean),genre:genres,runtime,country:countries,language:languages},
 poster:tmdbPosters[0]||fallbackPoster,
@@ -1025,7 +1027,22 @@ async function fetchMovieDetails(title,year){
 const apiKey=getTmdbApiKey();
 if(apiKey){
 const tmdbMovie=await fetchMovieDetailsFromTmdb(title,year,apiKey);
-if(tmdbMovie)return tmdbMovie;
+if(tmdbMovie){
+const wikiMovie=await fetchMovieDetailsFromWikipedia(title,year);
+const tagline=tmdbMovie.tmdbTagline||'';
+const overview=tmdbMovie.tmdbOverview||'';
+return{
+...tmdbMovie,
+title:wikiMovie?.title||tmdbMovie.title,
+year:wikiMovie?.year||tmdbMovie.year,
+synopsis:wikiMovie?.synopsis||'Synopsis currently unavailable from Wikipedia.',
+blurb:[tagline,overview].filter(Boolean).join(' '),
+plotSummary:wikiMovie?.plotSummary||'',
+details:wikiMovie?.details||{},
+wikiPosterCandidates:wikiMovie?[wikiMovie.poster,wikiMovie.original,wikiMovie.wikidataPoster].filter(url=>url&&url!==fallbackPoster):[],
+tmdbSource:true
+};
+}
 }
 return fetchMovieDetailsFromWikipedia(title,year);
 }
@@ -1373,53 +1390,45 @@ img.onload=()=>resolve({url:img.currentSrc||img.src,width:img.naturalWidth,heigh
 img.onerror=()=>resolve(null);
 img.src=url;
 });
-const tmdbCandidates=(movie.tmdbPosters||[movie.poster,movie.original]).filter(Boolean).filter(url=>url!==fallbackPoster);
-const wikidataCandidates=[movie.wikidataPoster].filter(Boolean);
-const wikipediaCandidates=[movie.poster,movie.original].filter(url=>url&&url!==fallbackPoster&&!tmdbCandidates.includes(url));
+const isValidUrl=url=>Boolean(url&&url!==fallbackPoster);
+const tmdbCandidates=[...(movie.tmdbPosters||[]),...(movie.tmdbPosters?.length?[]:[movie.tmdbPoster])].filter(isValidUrl);
+const wikiCandidates=(movie.tmdbSource
+?movie.wikiPosterCandidates||[]
+:[movie.poster,movie.original,movie.wikidataPoster]).filter(isValidUrl);
 const tested=new Map();
-const findPortrait=async group=>{
+const testImage=async url=>{
+if(!tested.has(url))tested.set(url,await loadImage(url));
+return tested.get(url);
+};
+const findImage=async (group,portraitOnly)=>{
 for(const url of group){
-if(!url||tested.has(url))continue;
-const image=await loadImage(url);
-tested.set(url,image);
-if(image&&image.width>0&&image.height>image.width)return image;
+const image=await testImage(url);
+if(image&&image.width>0&&image.height>0&&(!portraitOnly||image.height>image.width))return image;
 }
 return null;
 };
-let portrait=await findPortrait(tmdbCandidates);
-if(portrait){movie.poster=portrait.url;return;}
-portrait=await findPortrait(wikidataCandidates);
-if(portrait){movie.poster=portrait.url;return;}
-portrait=await findPortrait(wikipediaCandidates);
-if(portrait){movie.poster=portrait.url;return;}
-if(movie.tmdbSource){
-let wikiFallback=null;
-try{wikiFallback=await fetchMovieDetailsFromWikipedia(movie.title||'',movie.year||'');}catch(error){}
-if(wikiFallback){
-if(wikiFallback.wikidataPoster&&!wikidataCandidates.includes(wikiFallback.wikidataPoster))wikidataCandidates.push(wikiFallback.wikidataPoster);
-for(const url of [wikiFallback.poster,wikiFallback.original])if(url&&url!==fallbackPoster&&!wikipediaCandidates.includes(url))wikipediaCandidates.push(url);
-portrait=await findPortrait(wikidataCandidates);
-if(portrait){movie.poster=portrait.url;return;}
-portrait=await findPortrait(wikipediaCandidates);
-if(portrait){movie.poster=portrait.url;return;}
+
+// Prefer portrait artwork from Wikipedia/Wikidata/Commons before considering TMDB.
+let selected=await findImage(wikiCandidates,true);
+if(!selected){
+const commons=await findCommonsPosters(movie.title||'',movie.year||'');
+movie.commonsPosterCandidates=commons.map(candidate=>candidate.url);
+selected=await findImage(movie.commonsPosterCandidates,true);
 }
-}
-const commonsCandidates=await findCommonsPosters(movie.title||'',movie.year||'');
-const commonsUrls=commonsCandidates.map(candidate=>candidate.url);
-portrait=await findPortrait(commonsUrls);
-if(portrait){movie.poster=portrait.url;movie.original=null;return;}
-for(const group of [tmdbCandidates,wikidataCandidates,wikipediaCandidates,commonsUrls]){
-for(const url of group){
-if(!url)continue;
-let image=tested.get(url);
-if(!tested.has(url)){image=await loadImage(url);tested.set(url,image);}
-if(image&&image.width>0&&image.height>0){movie.poster=image.url;movie.original=null;return;}
-}
-}
+if(selected){movie.poster=selected.url;movie.original=null;return;}
+
+// TMDB portrait artwork is only a backup when no Wiki portrait is available.
+selected=await findImage(tmdbCandidates,true);
+if(selected){movie.poster=selected.url;movie.original=null;return;}
+
+// No portrait poster found: try any Wiki image (wide or square) before TMDB.
+selected=await findImage([...wikiCandidates,...(movie.commonsPosterCandidates||[])],false);
+if(selected){movie.poster=selected.url;movie.original=null;return;}
+selected=await findImage(tmdbCandidates,false);
+if(selected){movie.poster=selected.url;movie.original=null;return;}
 movie.poster=fallbackPoster;
 movie.original=null;
 }
-
 function yearToSpeech(year){
 const value=Number(year);
 if(!Number.isInteger(value)||value<1000||value>2099)return year;
