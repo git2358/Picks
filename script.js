@@ -1036,7 +1036,7 @@ return{
 title:wikiMovie?.title||tmdbMovie.title,
 year:wikiMovie?.year||tmdbMovie.year,
 synopsis:wikiMovie?.synopsis||'Synopsis currently unavailable from Wikipedia.',
-blurb:[tagline,overview].filter(Boolean).join(' '),
+blurb:[tagline,overview].filter(Boolean).join('\n\n'),
 plotSummary:wikiMovie?.plotSummary||'',
 details:wikiMovie?.details||{},
 wikiPosterCandidates:wikiMovie?[wikiMovie.poster,wikiMovie.original,wikiMovie.wikidataPoster].filter(url=>url&&url!==fallbackPoster):[],
