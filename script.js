@@ -1065,7 +1065,8 @@ const summary=await getWikipediaSummary(result.title);
 if(!summary)continue;
 
 const summaryTitle=summary.title||result.title;
-const similarity=titleSimilarity(title,summaryTitle);
+const baseSummaryTitle=summaryTitle.replace(/\s*\((?:19|20)\d{2}(?:\s+[^)]*)?\)\s*$/,'').trim();
+const similarity=Math.max(titleSimilarity(title,summaryTitle),titleSimilarity(title,baseSummaryTitle));
 const summaryText=(summary.extract||'').toLowerCase();
 
 if(similarity<0.85)continue;
@@ -1075,7 +1076,7 @@ const foundYears=summary.extract.match(/\b(19|20)\d{2}\b/g)||[];
 
 const articleYear=String(summaryTitle).match(/\b(19|20)\d{2}\b/)?.[0]||'';
 if(year&&!foundYears.includes(year)&&articleYear!==year){
-if(normaliseTitle(summaryTitle)===normaliseTitle(title)){
+if(normaliseTitle(baseSummaryTitle)===normaliseTitle(title)){
 if(!exactTitleYearFallback)exactTitleYearFallback=summary;
 }else if(articleYear){
 const distance=Math.abs(Number(articleYear)-Number(year));
