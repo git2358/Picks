@@ -1227,6 +1227,7 @@ synopsis:summary.extract,
 blurb:buildMovieBlurb(summary.extract,plotSummary,title,year||wikidata.year),
 plotSummary,
 details,
+classification:details.classification||null,
 poster:summary.thumbnail?.source||summary.originalimage?.source||fallbackPoster,
 original:summary.originalimage?.source||null,
 wikidataPoster:getWikidataPosterUrl(wikidata)
@@ -1284,12 +1285,14 @@ return (claims?.[property]||[]).map(claim=>claim.mainsnak?.datavalue?.value?.id)
 
 async function getMovieDetails(wikidata){
 const claims=wikidata.claims||{};
+const ratingProperties=['P3156','P1657','P2758','P2629','P1981'];
 const ids=[...new Set([
 ...getClaimIds(claims,'P57'),
 ...getClaimIds(claims,'P161'),
 ...getClaimIds(claims,'P136'),
 ...getClaimIds(claims,'P495'),
-...getClaimIds(claims,'P364')
+...getClaimIds(claims,'P364'),
+...ratingProperties.flatMap(property=>getClaimIds(claims,property))
 ])];
 
 let labels={};
@@ -1309,6 +1312,46 @@ labels[id]=entity.labels?.en?.value||'';
 }
 
 const list=property=>getClaimIds(claims,property).map(id=>labels[id]).filter(Boolean);
+const countryNames=list('P495');
+const ratingPropertyByCountry={
+'Australia':'P3156',
+'United States of America':'P1657',
+'United States':'P1657',
+'France':'P2758',
+'United Kingdom':'P2629',
+'Germany':'P1981'
+};
+const getRating=property=>getClaimIds(claims,property).map(id=>labels[id]).find(Boolean)||'';
+const cleanRating=(value,property)=>{
+let rating=String(value||'').trim();
+if(!rating)return '';
+const prefixes={
+'P3156':/^(?:Australian Classification)\s*/i,
+'P1657':/^(?:MPAA film rating|Motion Picture Association film rating)\s*/i,
+'P2758':/^(?:CNC film rating|French film rating)\s*/i,
+'P2629':/^(?:British Board of Film Classification|BBFC film rating)\s*/i,
+'P1981':/^(?:FSK film rating|German film rating)\s*/i
+};
+rating=rating.replace(prefixes[property]||/$^/,'').trim();
+rating=rating.replace(/^(?:Rated)\s+/i,'').trim();
+return rating||String(value||'').trim();
+};
+let classification=null;
+const auRating=getRating('P3156');
+const usRating=getRating('P1657');
+if(auRating)classification={value:formatClassification(cleanRating(auRating,'P3156')),country:'AU'};
+else if(usRating)classification={value:formatClassification(cleanRating(usRating,'P1657')),country:'US'};
+else{
+for(const countryName of countryNames){
+const property=ratingPropertyByCountry[countryName];
+if(!property||property==='P3156'||property==='P1657')continue;
+const rating=getRating(property);
+if(rating){
+classification={value:formatClassification(cleanRating(rating,property)),country:countryName};
+break;
+}
+}
+}
 const runtimeClaim=claims.P2047?.[0]?.mainsnak?.datavalue?.value;
 let runtime='';
 
@@ -1326,7 +1369,8 @@ cast:list('P161').slice(0,5),
 genre:formatGenres(list('P136').slice(0,3)),
 country:list('P495').slice(0,2),
 language:list('P364').slice(0,2),
-runtime
+runtime,
+classification
 };
 }
 
@@ -1451,7 +1495,8 @@ add('Runtime',d.runtime);
 add('Released',movie.year&&movie.year!=='N/A'?movie.year:'');
 add('Country',d.country?.join(' · '));
 add('Language',d.language?.join(' · '));
-add('Classification',movie.classification?.value?'Rated '+movie.classification.value:'');
+const classification=movie.classification||d.classification;
+add('Classification',classification?.value?'Rated '+classification.value:'');
 if(movie.tmdbSource)rows.push('<div class="tmdb-attribution"><span class="tmdb-attribution-label">TMDB Credits</span><a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer"><img src="https://www.themoviedb.org/assets/2/v4/logos/blue_long_2.svg" alt="The Movie Database (TMDB)" loading="lazy"></a><p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p></div>');
 if(movie.tmdbSource)rows.push('<div class="tmdb-attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>');
 return rows.length?rows.join(''):'<div class="detail-row"><span class="detail-value">Additional details unavailable.</span></div>';
