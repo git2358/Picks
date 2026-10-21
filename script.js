@@ -1617,6 +1617,34 @@ const text=document.getElementById(section)?.innerText?.trim();
 if(text)speakTexts([{text,delay:250}]);
 }
 
+function setupMovieTitleClipboard(){
+const title=document.getElementById('movieTitle');
+if(!title)return;
+title.style.cursor='pointer';
+title.title='Tap or click to copy movie title and year';
+title.setAttribute('aria-label','Copy movie title and year to clipboard');
+title.addEventListener('click',async()=>{
+const movieTitle=currentMovie?.title||title.textContent.trim();
+const year=currentMovie?.year||document.getElementById('movieYear')?.textContent.trim()||'';
+if(!movieTitle||movieTitle==='Loading...')return;
+const text=[movieTitle,year&&year!=='N/A'?year:''].filter(Boolean).join(' ');
+try{
+await navigator.clipboard.writeText(text);
+}catch(error){
+const textarea=document.createElement('textarea');
+textarea.value=text;
+textarea.setAttribute('readonly','');
+textarea.style.position='fixed';
+textarea.style.opacity='0';
+document.body.append(textarea);
+textarea.select();
+const copied=document.execCommand('copy');
+textarea.remove();
+if(!copied)console.warn('Could not copy movie title and year to clipboard.');
+}
+});
+}
+
 function setupMovieSpeech(){
 const details=document.getElementById('movieDetails');
 if(details){
