@@ -1234,7 +1234,6 @@ if(typeof DOMParser==='undefined')return null;
 const documentNode=new DOMParser().parseFromString(html,'text/html');
 const normalise=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const requestedTitle=normalise(query);
-const ratingPattern=/\b(?:G|PG|M|MA\s?15\+|R\s?18\+|X\s?18\+|RC)\b/i;
 const candidates=[...documentNode.querySelectorAll('a[href*="/titles/"]')].filter(anchor=>{
 const text=normalise(anchor.textContent);
 return text===requestedTitle||text.startsWith(requestedTitle+' ');
