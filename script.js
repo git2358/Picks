@@ -307,7 +307,7 @@ const closeMenu=returnFocus=>{setFlipped(false);if(returnFocus)posterLink.focus(
 posterLink.addEventListener('click',event=>{event.preventDefault();openMenu();});
 posterLink.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openMenu();}});
 closeButton.addEventListener('click',()=>closeMenu(true));
-menu.addEventListener('click',event=>{if(event.target.closest('.poster-back-controls'))return;const button=event.target.closest('button[data-search-type]');if(!button){closeMenu(true);return;}if(button.classList.contains('movie-search-close'))return;const movieTitle=document.getElementById('movieTitle').textContent.trim();const movieYear=document.getElementById('movieYear').textContent.trim();const searchType=button.dataset.searchType;const movieLabel=movieTitle+(movieYear?' '+movieYear:'');if(searchType==='wikipedia'){const wikiQuery=movieYear&&movieYear!=='N/A'?'\"'+movieTitle+'\" '+movieYear+' film':'\"'+movieTitle+'\" film';window.open('https://en.wikipedia.org/w/index.php?search='+encodeURIComponent(wikiQuery),'_blank','noopener,noreferrer');return;}if(searchType==='imdb'){window.open('https://www.imdb.com/find/?q='+encodeURIComponent(movieLabel),'_blank','noopener,noreferrer');return;}const searchTerms={trailer:'original theatrical trailer','bts-making-of':'behind the scenes BTS making of documentary featurette production footage cast interviews',history:'film history retrospective documentary'};window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(movieLabel+' '+(searchTerms[searchType]||searchType)),'_blank','noopener,noreferrer');});
+menu.addEventListener('click',event=>{if(event.target.closest('.poster-back-controls'))return;const button=event.target.closest('button[data-search-type]');if(!button){closeMenu(true);return;}if(button.classList.contains('movie-search-close'))return;const movieTitle=document.getElementById('movieTitle').textContent.trim();const movieYear=document.getElementById('movieYear').textContent.trim();const searchType=button.dataset.searchType;const movieLabel=movieTitle+(movieYear?' '+movieYear:'');if(searchType==='wikipedia'){const wikiQuery=movieYear&&movieYear!=='N/A'?'\"'+movieTitle+'\" '+movieYear+' film':'\"'+movieTitle+'\" film';window.open('https://en.wikipedia.org/w/index.php?search='+encodeURIComponent(wikiQuery),'_blank','noopener,noreferrer');return;}if(searchType==='imdb'){window.open('https://www.imdb.com/find/?q='+encodeURIComponent(movieLabel),'_blank','noopener,noreferrer');return;}if(searchType==='parents-guide'){const imdbId=currentMovie?.imdbId||currentMovie?.imdb_id||currentMovie?.externalIds?.imdb_id;const imdbSearch='https://www.imdb.com/find/?q='+encodeURIComponent(movieLabel+' Parents Guide');const googleSearch='https://www.google.com/search?q='+encodeURIComponent('site:imdb.com/title/ '+movieLabel+' Parents Guide');if(imdbId&&/^tt\\d+$/.test(imdbId)){window.open('https://www.imdb.com/title/'+imdbId+'/parentalguide/','_blank','noopener,noreferrer');}else{const opened=window.open(imdbSearch,'_blank','noopener,noreferrer');if(!opened)window.location.href=googleSearch;}return;}const searchTerms={trailer:'original theatrical trailer','bts-making-of':'behind the scenes BTS making of documentary featurette production footage cast interviews',history:'film history retrospective documentary'};window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(movieLabel+' '+(searchTerms[searchType]||searchType)),'_blank','noopener,noreferrer');});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&card.classList.contains('is-flipped'))closeMenu(true);});
 }
 function parseMovieLine(line){
@@ -1122,10 +1122,11 @@ return {...result,resultYear,similarity,yearMatch,score};
 }).filter(result=>result.similarity>=0.72&&result.yearMatch).sort((a,b)=>b.score-a.score);
 if(!results.length)return null;
 const match=results[0];
-const [details,images,releaseDates]=await Promise.all([
+const [details,images,releaseDates,externalIds]=await Promise.all([
 tmdbRequest('/movie/'+match.id+'?language=en-US&append_to_response=credits',apiKey),
 tmdbRequest('/movie/'+match.id+'/images?include_image_language=en,null',apiKey).catch(()=>({posters:[]})),
-tmdbRequest('/movie/'+match.id+'/release_dates',apiKey).catch(()=>({results:[]}))
+tmdbRequest('/movie/'+match.id+'/release_dates',apiKey).catch(()=>({results:[]})),
+tmdbRequest('/movie/'+match.id+'/external_ids',apiKey).catch(()=>({imdb_id:null}))
 ]);
 const releaseCountries=releaseDates.results||[];
 const getCertifications=countryCode=>(releaseCountries.find(country=>country.iso_3166_1===countryCode)?.release_dates||[])
@@ -1174,6 +1175,7 @@ poster:tmdbPosters[0]||fallbackPoster,
 original:tmdbPosters[1]||null,
 tmdbPosters,
 tmdbId:details.id||match.id,
+imdbId:externalIds.imdb_id||details.imdb_id||match.imdb_id||null,
 tmdbSource:true
 };
 }catch(error){
