@@ -447,7 +447,6 @@ return;
 }
 
 if(!isInitial){
-document.getElementById('movieBlurbSection').style.display='none';
 updateDocumentTitle(false);
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
