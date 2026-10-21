@@ -175,42 +175,54 @@ setupEdgeSwipes();
 }
 
 function setupEdgeSwipes(){
+const poster=document.getElementById('posterLink');
+if(!poster)return;
 let startX=0;
 let startY=0;
-let edge='';
+let tracking=false;
+let horizontalSwipe=false;
 let navigating=false;
-const edgeWidth=36;
 const swipeThreshold=80;
-window.addEventListener('touchstart',event=>{
+poster.addEventListener('touchstart',event=>{
 if(event.touches.length!==1||navigating)return;
-const target=event.target;
-if(target.closest('input,textarea,select,button,a,[contenteditable="true"]'))return;
 startX=event.touches[0].clientX;
 startY=event.touches[0].clientY;
-edge=startX<=edgeWidth?'left':startX>=window.innerWidth-edgeWidth?'right':'';
+tracking=true;
+horizontalSwipe=false;
 },{passive:true});
-window.addEventListener('touchend',event=>{
-if(!edge||event.changedTouches.length!==1||navigating)return;
+poster.addEventListener('touchmove',event=>{
+if(!tracking||event.touches.length!==1)return;
+const deltaX=event.touches[0].clientX-startX;
+const deltaY=event.touches[0].clientY-startY;
+if(Math.abs(deltaX)>12&&Math.abs(deltaX)>Math.abs(deltaY)){
+horizontalSwipe=true;
+event.preventDefault();
+}
+},{passive:false});
+poster.addEventListener('touchend',event=>{
+if(!tracking||event.changedTouches.length!==1)return;
+tracking=false;
 const endX=event.changedTouches[0].clientX;
 const endY=event.changedTouches[0].clientY;
 const deltaX=endX-startX;
 const deltaY=endY-startY;
-const validSwipe=Math.abs(deltaX)>=swipeThreshold&&Math.abs(deltaY)<Math.abs(deltaX)*0.8;
-const swipeEdge=edge;
-edge='';
-if(!validSwipe)return;
-if(swipeEdge==='right'&&deltaX<0){
+if(Math.abs(deltaX)<swipeThreshold||Math.abs(deltaY)>=Math.abs(deltaX)*0.8)return;
+if(deltaX<0){
 navigating=true;
 fetchNextMovie().finally(()=>{navigating=false;});
-}else if(swipeEdge==='left'&&deltaX>0){
-if(history.state?.movie&&history.length>1){
+}else if(history.state?.movie&&history.length>1){
 navigating=true;
 history.back();
 setTimeout(()=>{navigating=false;},1200);
 }
-}
 },{passive:true});
-window.addEventListener('touchcancel',()=>{edge='';},{passive:true});
+poster.addEventListener('touchcancel',()=>{tracking=false;horizontalSwipe=false;},{passive:true});
+poster.addEventListener('click',event=>{
+if(!horizontalSwipe)return;
+event.preventDefault();
+event.stopImmediatePropagation();
+horizontalSwipe=false;
+},true);
 }
 
 function setupMoviePosterSearch(){
