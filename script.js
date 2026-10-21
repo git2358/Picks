@@ -1706,5 +1706,6 @@ mobile.addEventListener('change',updateLabels);
 window.onload=()=>{
 setupMobileActionLabels();
 setupMovieSpeech();
+setupMovieTitleClipboard();
 loadMoviesDatabase();
 };
