@@ -1545,7 +1545,7 @@ add('Released',movie.year&&movie.year!=='N/A'?movie.year:'');
 add('Country',d.country?.join(' · '));
 add('Language',d.language?.join(' · '));
 const classification=movie.classification||d.classification;
-add('Classification',classification?.value?'Rated '+classification.value:'');
+add('Classification',classification?.value||'');
 if(movie.tmdbSource)rows.push('<div class="tmdb-attribution"><span class="tmdb-attribution-label">TMDB Credits</span><a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer"><img src="https://www.themoviedb.org/assets/2/v4/logos/blue_long_2.svg" alt="The Movie Database (TMDB)" loading="lazy"></a><p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p></div>');
 if(movie.tmdbSource)rows.push('<div class="tmdb-attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>');
 return rows.length?rows.join(''):'<div class="detail-row"><span class="detail-value">Additional details unavailable.</span></div>';
