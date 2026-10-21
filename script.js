@@ -1128,14 +1128,14 @@ tmdbRequest('/movie/'+match.id+'/images?include_image_language=en,null',apiKey).
 tmdbRequest('/movie/'+match.id+'/release_dates',apiKey).catch(()=>({results:[]}))
 ]);
 const releaseCountries=releaseDates.results||[];
-const getCertification=countryCode=>(releaseCountries.find(country=>country.iso_3166_1===countryCode)?.release_dates||[])
-.map(release=>String(release.certification||'').trim()).find(value=>value&&!/^(?:NR|N\/A|NOT RATED|UNRATED)$/i.test(value))||'';
-const nativeCountryCodes=(details.production_countries||[]).map(country=>country.iso_3166_1).filter(code=>code&&code!=='AU'&&code!=='US');
+const getCertifications=countryCode=>(releaseCountries.find(country=>country.iso_3166_1===countryCode)?.release_dates||[])
+.map(release=>String(release.certification||'').trim()).filter(Boolean);
+const nativeCountryCodes=[...new Set((details.production_countries||[]).map(country=>country.iso_3166_1).filter(code=>code&&code!=='AU'&&code!=='US'))];
 const classificationCandidates=[
-{value:getCertification('AU'),country:'AU',source:'TMDB'},
-{value:getCertification('US'),country:'US',source:'TMDB'},
-...nativeCountryCodes.map(country=>({value:getCertification(country),country,source:'TMDB'}))
-].filter(item=>item.value);
+...getCertifications('AU').map(value=>({value,country:'AU',source:'TMDB'})),
+...getCertifications('US').map(value=>({value,country:'US',source:'TMDB'})),
+...nativeCountryCodes.flatMap(country=>getCertifications(country).map(value=>({value,country,source:'TMDB'})))
+];
 const classification=classificationCandidates.length?{value:formatClassification(classificationCandidates[0].value),country:classificationCandidates[0].country}:null;
 const allPosters=(images.posters||[]).filter(image=>image.file_path).sort((a,b)=>{
 const portraitA=a.height>a.width,portraitB=b.height>b.width;
@@ -1195,9 +1195,12 @@ if(code==='US'||code==='UNITED STATES'||code==='UNITED STATES OF AMERICA')return
 return 2;
 };
 const sourcePriority=source=>source==='Wikidata'?0:1;
-const valid=candidates.filter(item=>item?.value&&!/^(?:NR|N\/?A|NOT RATED|UNRATED)$/i.test(String(item.value).trim()));
-valid.sort((a,b)=>countryPriority(a.country)-countryPriority(b.country)||sourcePriority(a.source)-sourcePriority(b.source));
-return valid[0]||null;
+const ignored=/^(?:NR|N\\/?A|NOT RATED|UNRATED)$/i;
+const ordered=candidates.filter(item=>item?.value&&String(item.value).trim());
+ordered.sort((a,b)=>countryPriority(a.country)-countryPriority(b.country)||sourcePriority(a.source)-sourcePriority(b.source));
+const valid=ordered.find(item=>!ignored.test(String(item.value).trim()));
+if(valid)return valid;
+return ordered.find(item=>ignored.test(String(item.value).trim()))||ordered[0]||null;
 }
 
 async function fetchMovieDetails(title,year){
