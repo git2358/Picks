@@ -1178,12 +1178,25 @@ return null;
 }
 async function fetchMovieDetails(title,year){
 const apiKey=getTmdbApiKey();
-if(!apiKey)return fetchMovieDetailsFromWikipedia(title,year);
+const australianClassificationPromise=fetchAustralianClassification(title,year).catch(()=>null);
+
+if(!apiKey){
+const wikiMovie=await fetchMovieDetailsFromWikipedia(title,year);
+const australianClassification=await australianClassificationPromise;
+if(australianClassification)wikiMovie.classification=australianClassification;
+return wikiMovie;
+}
 
 // Run both providers together rather than waiting for TMDB before starting Wikipedia.
 const wikipediaPromise=fetchMovieDetailsFromWikipedia(title,year).catch(()=>null);
 const tmdbMovie=await fetchMovieDetailsFromTmdb(title,year,apiKey);
-if(!tmdbMovie)return (await wikipediaPromise)||fetchMovieDetailsFromWikipedia(title,year);
+const australianClassification=await australianClassificationPromise;
+if(!tmdbMovie){
+const wikiMovie=(await wikipediaPromise)||await fetchMovieDetailsFromWikipedia(title,year);
+if(australianClassification)wikiMovie.classification=australianClassification;
+return wikiMovie;
+}
+if(australianClassification)tmdbMovie.classification=australianClassification;
 const wikiMovie=await wikipediaPromise;
 if(!wikiMovie){
 return{
@@ -1204,9 +1217,46 @@ synopsis:wikiMovie.synopsis||overview||'Synopsis currently unavailable.',
 blurb:[tagline,overview].filter(Boolean).join('\n\n'),
 plotSummary:wikiMovie.plotSummary||'',
 details:wikiMovie.details||tmdbMovie.details||{},
+classification:tmdbMovie.classification||wikiMovie.classification||null,
 wikiPosterCandidates:[wikiMovie.poster,wikiMovie.original,wikiMovie.wikidataPoster].filter(url=>url&&url!==fallbackPoster),
 tmdbSource:true
 };
+}
+async function fetchAustralianClassification(title,year){
+const query=String(title||'').trim();
+if(!query)return null;
+try{
+const url='https://www.classification.gov.au/titles/search?search_api_fulltext='+encodeURIComponent(query);
+const response=await fetch(url,{headers:{Accept:'text/html'}});
+if(!response.ok)return null;
+const html=await response.text();
+if(typeof DOMParser==='undefined')return null;
+const documentNode=new DOMParser().parseFromString(html,'text/html');
+const normalise=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const requestedTitle=normalise(query);
+const ratingPattern=/\b(?:G|PG|M|MA\s?15\+|R\s?18\+|X\s?18\+|RC)\b/i;
+const candidates=[...documentNode.querySelectorAll('a[href*="/titles/"]')].filter(anchor=>{
+const text=normalise(anchor.textContent);
+return text===requestedTitle||text.startsWith(requestedTitle+' ');
+});
+for(const anchor of candidates){
+const resultYear=String(anchor.textContent||'').match(/\b(19\d{2}|20\d{2})\b/)?.[1];
+if(year&&resultYear&&String(year)!==resultYear)continue;
+let node=anchor;
+for(let level=0;node&&level<5;level++,node=node.parentElement){
+const text=String(node.textContent||'').replace(/\s+/g,' ').trim();
+if(!text||text.length>2500)continue;
+const ratingLabel=text.match(/Classification\s*:?[\s]+(G|PG|M|MA\s?15\+|R\s?18\+|X\s?18\+|RC)\b/i);
+const rating=ratingLabel?.[1];
+if(rating){
+return{value:formatClassification(rating.replace(/\s+/g,'')),country:'AU',source:'Australian Classification'};
+}
+}
+}
+return null;
+}catch(error){
+return null;
+}
 }
 async function fetchMovieDetailsFromWikipedia(title,year){
 try{
