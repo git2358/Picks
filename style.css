@@ -342,6 +342,7 @@ color:#ddd;
 
 .movie-blurb {
 color:#fff;
+white-space:pre-line;
 }
 
 .movie-plot-summary {
