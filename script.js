@@ -159,8 +159,7 @@ indicator.classList.remove('visible','ready');
 indicator.style.transform='';
 if(shouldRefresh&&!isPullRefreshing){
 isPullRefreshing=true;
-const refreshUrl=location.pathname+'?__picks_refresh='+Date.now()+location.hash;
-location.replace(refreshUrl);
+refreshMovieWithCurtains();
 }
 pullDistance=0;
 };
@@ -172,6 +171,22 @@ indicator.classList.remove('visible','ready');
 indicator.style.transform='';
 },{passive:true});
 setupEdgeSwipes();
+}
+
+async function refreshMovieWithCurtains(){
+const overlay=document.getElementById('curtainOverlay');
+stopSpeech();
+updateDocumentTitle(false);
+await scrollToTopAndWait();
+resetPosterFlipCard();
+overlay.classList.remove('no-light');
+overlay.classList.add('loading-movie');
+await new Promise(resolve=>setTimeout(resolve,300));
+overlay.classList.remove('open');
+await new Promise(resolve=>setTimeout(resolve,1000));
+await new Promise(resolve=>setTimeout(resolve,300));
+const refreshUrl=location.pathname+'?__picks_refresh='+Date.now()+location.hash;
+location.replace(refreshUrl);
 }
 
 function setupEdgeSwipes(){
