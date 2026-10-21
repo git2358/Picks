@@ -1119,6 +1119,7 @@ display:none;
 
 .poster-back .movie-search-actions {
 flex:0 0 auto;
+margin-top:calc(.4rem + .82rem + 1px);
 }
 
 .wrapper {
