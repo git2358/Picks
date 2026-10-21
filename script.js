@@ -1496,9 +1496,15 @@ return null;
 // Prefer portrait artwork from Wikipedia/Wikidata/Commons before considering TMDB.
 let selected=await findImage(wikiCandidates,true);
 if(!selected){
-const commons=await findCommonsPosters(movie.title||'',movie.year||'');
+const commonsTimeout=Symbol('commons-timeout');
+const commons=await Promise.race([
+findCommonsPosters(movie.title||'',movie.year||''),
+new Promise(resolve=>setTimeout(()=>resolve(commonsTimeout),1800))
+]);
+if(commons!==commonsTimeout){
 movie.commonsPosterCandidates=commons.map(candidate=>candidate.url);
 selected=await findImage(movie.commonsPosterCandidates,true);
+}
 }
 if(selected){movie.poster=selected.url;movie.original=null;return;}
 
