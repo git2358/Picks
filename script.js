@@ -1178,26 +1178,28 @@ return null;
 }
 async function fetchMovieDetails(title,year){
 const apiKey=getTmdbApiKey();
-const australianClassificationPromise=fetchAustralianClassification(title,year).catch(()=>null);
 
 if(!apiKey){
 const wikiMovie=await fetchMovieDetailsFromWikipedia(title,year);
-const australianClassification=await australianClassificationPromise;
+const australianClassification=await fetchAustralianClassification(title,year,wikiMovie).catch(()=>null);
 if(australianClassification)wikiMovie.classification=australianClassification;
 return wikiMovie;
 }
 
-// Run both providers together rather than waiting for TMDB before starting Wikipedia.
+// Run TMDB and Wikipedia together; validate the official Australian record against whichever metadata is available.
 const wikipediaPromise=fetchMovieDetailsFromWikipedia(title,year).catch(()=>null);
 const tmdbMovie=await fetchMovieDetailsFromTmdb(title,year,apiKey);
-const australianClassification=await australianClassificationPromise;
-if(!tmdbMovie){
-const wikiMovie=(await wikipediaPromise)||await fetchMovieDetailsFromWikipedia(title,year);
-if(australianClassification)wikiMovie.classification=australianClassification;
-return wikiMovie;
-}
-if(australianClassification)tmdbMovie.classification=australianClassification;
 const wikiMovie=await wikipediaPromise;
+const referenceMovie=tmdbMovie||wikiMovie;
+const australianClassification=await fetchAustralianClassification(title,year,referenceMovie).catch(()=>null);
+
+if(!tmdbMovie){
+const result=wikiMovie||await fetchMovieDetailsFromWikipedia(title,year);
+if(australianClassification)result.classification=australianClassification;
+return result;
+}
+
+if(australianClassification)tmdbMovie.classification=australianClassification;
 if(!wikiMovie){
 return{
 ...tmdbMovie,
@@ -1222,7 +1224,7 @@ wikiPosterCandidates:[wikiMovie.poster,wikiMovie.original,wikiMovie.wikidataPost
 tmdbSource:true
 };
 }
-async function fetchAustralianClassification(title,year){
+async function fetchAustralianClassification(title,year,referenceMovie){
 const query=String(title||'').trim();
 if(!query)return null;
 try{
@@ -1231,26 +1233,63 @@ const response=await fetch(url,{headers:{Accept:'text/html'}});
 if(!response.ok)return null;
 const html=await response.text();
 if(typeof DOMParser==='undefined')return null;
-const documentNode=new DOMParser().parseFromString(html,'text/html');
+const searchDocument=new DOMParser().parseFromString(html,'text/html');
 const normalise=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-const requestedTitle=normalise(query);
-const candidates=[...documentNode.querySelectorAll('a[href*="/titles/"]')].filter(anchor=>{
-const text=normalise(anchor.textContent);
-return text===requestedTitle||text.startsWith(requestedTitle+' ');
+const canonicalTitle=value=>{
+let result=normalise(String(value||'').replace(/\([^)]*\)/g,' ').replace(/\b(19|20)\d{2}\b/g,' '));
+result=result.replace(/\b(.+),\s*(the|a|an)\b/,'$2 $1').replace(/\s+/g,' ').trim();
+return result;
+};
+const requestedTitle=canonicalTitle(query);
+const candidates=[...searchDocument.querySelectorAll('a[href*="/titles/"]')].filter(anchor=>{
+const text=canonicalTitle(anchor.textContent);
+return text===requestedTitle;
 });
+if(!candidates.length)return null;
+
+const referenceDetails=referenceMovie?.details||{};
+const referenceDirector=String(referenceDetails.director||'').trim();
+const referenceDirectorSurname=normalise(referenceDirector).split(' ').filter(Boolean).pop()||'';
+const referenceRuntime=String(referenceDetails.runtime||'').match(/\b(\d{2,3})\s*min\b/i)?.[1];
+const referenceRuntimeMinutes=referenceRuntime?Number(referenceRuntime):0;
+const requestedYear=String(year||referenceMovie?.year||'').match(/\b(19|20)\d{2}\b/)?.[0]||'';
+
 for(const anchor of candidates){
-const resultYear=String(anchor.textContent||'').match(/\b(19\d{2}|20\d{2})\b/)?.[1];
-if(year&&resultYear&&String(year)!==resultYear)continue;
-let node=anchor;
-for(let level=0;node&&level<5;level++,node=node.parentElement){
-const text=String(node.textContent||'').replace(/\s+/g,' ').trim();
-if(!text||text.length>2500)continue;
-const ratingLabel=text.match(/Classification\s*:?[\s]+(G|PG|M|MA\s?15\+|R\s?18\+|X\s?18\+|RC)\b/i);
-const rating=ratingLabel?.[1];
-if(rating){
-return{value:formatClassification(rating.replace(/\s+/g,'')),country:'AU',source:'Australian Classification'};
+const href=anchor.getAttribute('href');
+if(!href)continue;
+const recordUrl=new URL(href,'https://www.classification.gov.au').href;
+let recordDocument;
+try{
+const recordResponse=await fetch(recordUrl,{headers:{Accept:'text/html'}});
+if(!recordResponse.ok)continue;
+recordDocument=new DOMParser().parseFromString(await recordResponse.text(),'text/html');
+}catch(error){continue;}
+
+const recordText=String(recordDocument.body?.innerText||recordDocument.body?.textContent||'').replace(/\s+/g,' ').trim();
+const heading=recordDocument.querySelector('h1')?.textContent||anchor.textContent||'';
+if(canonicalTitle(heading)!==requestedTitle)continue;
+
+const productionYear=recordText.match(/Year of production\s+((?:19|20)\d{2})\b/i)?.[1]||'';
+if(requestedYear&&productionYear&&requestedYear!==productionYear)continue;
+
+const directorText=(recordText.match(/Director\/Creator\s+(.+?)(?=\s+Producer\s+|\s+Production company\s+|\s+Country of origin\s+|\s+Language\s+|$)/i)||[])[1]||'';
+const recordDirectorSurnames=normalise(directorText).split(' ').filter(Boolean);
+const directorMatches=Boolean(referenceDirectorSurname&&recordDirectorSurnames.includes(referenceDirectorSurname));
+const recordRuntime=Number((recordText.match(/Duration\s+(\d{2,3})\s+minutes\b/i)||[])[1]||0);
+const runtimeMatches=Boolean(referenceRuntimeMinutes&&recordRuntime&&Math.abs(referenceRuntimeMinutes-recordRuntime)<=5);
+
+// When the record has no production year (common for older decisions), require independent movie-metadata corroboration.
+// This avoids assigning a same-title film's rating to a different remake.
+if(requestedYear&&!productionYear){
+if(!directorMatches)continue;
+if(referenceRuntimeMinutes&&recordRuntime&&!runtimeMatches)continue;
+if(!referenceRuntimeMinutes||!recordRuntime)continue;
 }
-}
+if(requestedYear&&productionYear&&requestedYear!==productionYear)continue;
+
+const classification=(recordText.match(/\bClassification\s+(G|PG|M|MA\s?15\+|R\s?18\+|X\s?18\+|RC)\b/i)||[])[1];
+if(!classification)continue;
+return{value:formatClassification(classification.replace(/\s+/g,'')),country:'AU',source:'Australian Classification',url:recordUrl};
 }
 return null;
 }catch(error){
