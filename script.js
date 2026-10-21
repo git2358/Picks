@@ -1250,8 +1250,10 @@ if(!candidates.length)return null;
 const referenceDetails=referenceMovie?.details||{};
 const referenceDirector=String(referenceDetails.director||'').trim();
 const referenceDirectorSurname=normalise(referenceDirector).split(' ').filter(Boolean).pop()||'';
-const referenceRuntime=String(referenceDetails.runtime||'').match(/\b(\d{2,3})\s*min\b/i)?.[1];
-const referenceRuntimeMinutes=referenceRuntime?Number(referenceRuntime):0;
+const referenceRuntimeText=String(referenceDetails.runtime||'');
+const referenceHours=Number((referenceRuntimeText.match(/\b(\d+)\s*h\b/i)||[])[1]||0);
+const referenceMinutes=Number((referenceRuntimeText.match(/\b(\d{1,3})\s*min\b/i)||[])[1]||0);
+const referenceRuntimeMinutes=referenceHours*60+referenceMinutes;
 const requestedYear=String(year||referenceMovie?.year||'').match(/\b(19|20)\d{2}\b/)?.[0]||'';
 
 for(const anchor of candidates){
