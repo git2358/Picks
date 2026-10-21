@@ -1517,6 +1517,13 @@ if(isSpeaking){
 stopSpeech();
 return;
 }
+if(section==='movieBlurb'&&(currentMovie.tmdbTagline||currentMovie.tmdbOverview)){
+speakTexts([
+{text:currentMovie.tmdbTagline||'',delay:250},
+{text:currentMovie.tmdbOverview||'',delay:250}
+]);
+return;
+}
 const text=document.getElementById(section)?.innerText?.trim();
 if(text)speakTexts([{text,delay:250}]);
 }
