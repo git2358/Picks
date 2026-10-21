@@ -22,6 +22,7 @@ const wikidataEntityCache=new Map();
 const movieDetailsCache=new Map();
 const plotSummaryCache=new Map();
 let prefetchedNextIndex=null;
+let prefetchCandidateIndex=null;
 let prefetchInProgress=null;
 
 function updateDocumentTitle(showMovieTitle=false){
@@ -462,27 +463,26 @@ await new Promise(resolve=>setTimeout(resolve,300));
 }
 if(requestId!==nextMovieRequest)return;
 
-if(prefetchInProgress){
-const prefetchResult=await Promise.race([
-prefetchInProgress.then(()=>true),
-new Promise(resolve=>setTimeout(()=>resolve(false),movieLoadTimeout))
-]);
-if(requestId!==nextMovieRequest)return;
-if(!prefetchResult){
-prefetchedNextIndex=null;
-prefetchInProgress=null;
-}
-}
-
 const chooseRandomMovie=()=>{
-const candidates=movies.map((_,index)=>index).filter(index=>!watchedIndices.includes(index));
-return candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:-1;
+const candidates=movies.map((_,index)=>index).filter(index=>
+!watchedIndices.includes(index)&&
+index!==activeMovieIndex&&
+index!==prefetchCandidateIndex
+);
+if(!candidates.length){
+const remaining=movies.map((_,index)=>index).filter(index=>!watchedIndices.includes(index));
+return remaining.length?remaining[Math.floor(Math.random()*remaining.length)]:-1;
+}
+return candidates[Math.floor(Math.random()*candidates.length)];
 };
 
 let nextIndex=prefetchedNextIndex!==null&&!watchedIndices.includes(prefetchedNextIndex)
 ?prefetchedNextIndex
 :chooseRandomMovie();
-prefetchedNextIndex=null;
+if(nextIndex===-1&&prefetchCandidateIndex!==null&&!watchedIndices.includes(prefetchCandidateIndex)){
+nextIndex=prefetchCandidateIndex;
+}
+if(nextIndex===prefetchedNextIndex)prefetchedNextIndex=null;
 
 while(nextIndex>=0&&requestId===nextMovieRequest){
 const index=nextIndex;
@@ -513,12 +513,9 @@ new Promise(resolve=>setTimeout(()=>resolve(false),movieLoadTimeout))
 if(requestId!==nextMovieRequest)return;
 if(result)return;
 
-// A movie that fails to display is counted as attempted for this session.
-// This prevents endless retries and lets the end-of-list message appear.
 movieDisplayRequest++;
 if(!watchedIndices.includes(index))watchedIndices.push(index);
-prefetchedNextIndex=null;
-prefetchInProgress=null;
+if(prefetchedNextIndex===index)prefetchedNextIndex=null;
 
 const overlay=document.getElementById('curtainOverlay');
 overlay.classList.remove('open','no-light','loading-movie');
@@ -639,16 +636,21 @@ prefetchNextMovie();
 
 async function prefetchNextMovie(){
 if(prefetchInProgress||prefetchedNextIndex!==null||!movies.length||watchedIndices.length>=movies.length)return;
-prefetchInProgress=(async()=>{
 const attempted=new Set();
 const timeoutResult=Symbol('prefetch-timeout');
 const maxPrefetchAttempts=Math.min(3,movies.length);
+const task=(async()=>{
 try{
 while(attempted.size<maxPrefetchAttempts){
-const candidates=movies.map((_,index)=>index).filter(index=>!watchedIndices.includes(index)&&!attempted.has(index));
+const candidates=movies.map((_,index)=>index).filter(index=>
+!watchedIndices.includes(index)&&
+index!==activeMovieIndex&&
+!attempted.has(index)
+);
 if(!candidates.length)return;
 const index=candidates[Math.floor(Math.random()*candidates.length)];
 attempted.add(index);
+prefetchCandidateIndex=index;
 const attempt=(async()=>{
 let movie=movieDetailsCache.get(index);
 if(!movie){
@@ -669,20 +671,27 @@ new Promise(resolve=>setTimeout(()=>resolve(timeoutResult),movieLoadTimeout))
 ]);
 if(movie===timeoutResult){
 console.warn('Movie preloading timed out; trying another movie:',movies[index]);
+if(prefetchCandidateIndex===index)prefetchCandidateIndex=null;
 continue;
 }
-if(watchedIndices.includes(index))continue;
+if(watchedIndices.includes(index)||index===activeMovieIndex){
+if(prefetchCandidateIndex===index)prefetchCandidateIndex=null;
+continue;
+}
 prefetchedNextIndex=index;
 return;
 }catch(error){
 console.error('Movie preloading failed; trying another movie:',movies[index],error);
+if(prefetchCandidateIndex===index)prefetchCandidateIndex=null;
 }
 }
 }finally{
-prefetchInProgress=null;
+if(prefetchInProgress===task)prefetchInProgress=null;
+if(prefetchCandidateIndex!==null&&prefetchedNextIndex!==prefetchCandidateIndex)prefetchCandidateIndex=null;
 }
 })();
-await prefetchInProgress;
+prefetchInProgress=task;
+await task;
 }
 
 function normaliseTitle(title){
@@ -1092,26 +1101,35 @@ return null;
 }
 async function fetchMovieDetails(title,year){
 const apiKey=getTmdbApiKey();
-if(apiKey){
+if(!apiKey)return fetchMovieDetailsFromWikipedia(title,year);
+
+// Run both providers together rather than waiting for TMDB before starting Wikipedia.
+const wikipediaPromise=fetchMovieDetailsFromWikipedia(title,year).catch(()=>null);
 const tmdbMovie=await fetchMovieDetailsFromTmdb(title,year,apiKey);
-if(tmdbMovie){
-const wikiMovie=await fetchMovieDetailsFromWikipedia(title,year);
+if(!tmdbMovie)return (await wikipediaPromise)||fetchMovieDetailsFromWikipedia(title,year);
+const wikiMovie=await wikipediaPromise;
+if(!wikiMovie){
+return{
+...tmdbMovie,
+synopsis:tmdbMovie.tmdbOverview||'Synopsis currently unavailable.',
+blurb:[tmdbMovie.tmdbTagline,tmdbMovie.tmdbOverview].filter(Boolean).join('\n\n'),
+details:tmdbMovie.details||{},
+wikiPosterCandidates:[]
+};
+}
 const tagline=tmdbMovie.tmdbTagline||'';
 const overview=tmdbMovie.tmdbOverview||'';
 return{
 ...tmdbMovie,
-title:wikiMovie?.title||tmdbMovie.title,
-year:wikiMovie?.year||tmdbMovie.year,
-synopsis:wikiMovie?.synopsis||'Synopsis currently unavailable from Wikipedia.',
+title:wikiMovie.title||tmdbMovie.title,
+year:wikiMovie.year||tmdbMovie.year,
+synopsis:wikiMovie.synopsis||overview||'Synopsis currently unavailable.',
 blurb:[tagline,overview].filter(Boolean).join('\n\n'),
-plotSummary:wikiMovie?.plotSummary||'',
-details:wikiMovie?.details||{},
-wikiPosterCandidates:wikiMovie?[wikiMovie.poster,wikiMovie.original,wikiMovie.wikidataPoster].filter(url=>url&&url!==fallbackPoster):[],
+plotSummary:wikiMovie.plotSummary||'',
+details:wikiMovie.details||tmdbMovie.details||{},
+wikiPosterCandidates:[wikiMovie.poster,wikiMovie.original,wikiMovie.wikidataPoster].filter(url=>url&&url!==fallbackPoster),
 tmdbSource:true
 };
-}
-}
-return fetchMovieDetailsFromWikipedia(title,year);
 }
 async function fetchMovieDetailsFromWikipedia(title,year){
 try{
