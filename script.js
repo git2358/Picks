@@ -1122,10 +1122,17 @@ return {...result,resultYear,similarity,yearMatch,score};
 }).filter(result=>result.similarity>=0.72&&result.yearMatch).sort((a,b)=>b.score-a.score);
 if(!results.length)return null;
 const match=results[0];
-const [details,images]=await Promise.all([
+const [details,images,releaseDates]=await Promise.all([
 tmdbRequest('/movie/'+match.id+'?language=en-US&append_to_response=credits',apiKey),
-tmdbRequest('/movie/'+match.id+'/images?include_image_language=en,null',apiKey).catch(()=>({posters:[]}))
+tmdbRequest('/movie/'+match.id+'/images?include_image_language=en,null',apiKey).catch(()=>({posters:[]})),
+tmdbRequest('/movie/'+match.id+'/release_dates',apiKey).catch(()=>({results:[]}))
 ]);
+const releaseCountries=releaseDates.results||[];
+const getCertification=countryCode=>(releaseCountries.find(country=>country.iso_3166_1===countryCode)?.release_dates||[])
+.map(release=>String(release.certification||'').trim()).find(Boolean)||'';
+const nativeCountryCodes=(details.production_countries||[]).map(country=>country.iso_3166_1).filter(code=>code&&code!=='AU'&&code!=='US');
+const certification=getCertification('AU')||getCertification('US')||nativeCountryCodes.map(getCertification).find(Boolean)||'';
+const classification=certification?{value:formatClassification(certification),country:getCertification('AU')?'AU':getCertification('US')?'US':nativeCountryCodes.find(code=>getCertification(code))||''}:null;
 const allPosters=(images.posters||[]).filter(image=>image.file_path).sort((a,b)=>{
 const portraitA=a.height>a.width,portraitB=b.height>b.width;
 if(portraitA!==portraitB)return portraitA?-1:1;
@@ -1157,6 +1164,7 @@ tmdbTagline:tagline,
 tmdbOverview:overview,
 plotSummary:'',
 details:{director,cast:cast.slice(0,8).map(person=>person.name).filter(Boolean),genre:genres,runtime,country:countries,language:languages},
+classification,
 poster:tmdbPosters[0]||fallbackPoster,
 original:tmdbPosters[1]||null,
 tmdbPosters,
@@ -1422,6 +1430,16 @@ return clean;
 }
 
 
+function formatClassification(value){
+const rating=String(value||'').trim();
+if(!rating)return '';
+return rating
+.replace(/^R18\+$/i,'R 18+')
+.replace(/^X18\+$/i,'X 18+')
+.replace(/^MA15\+$/i,'MA 15+')
+.replace(/^PG13$/i,'PG-13');
+}
+
 function renderMovieDetails(movie){
 const d=movie.details||{};
 const rows=[];
@@ -1433,6 +1451,7 @@ add('Runtime',d.runtime);
 add('Released',movie.year&&movie.year!=='N/A'?movie.year:'');
 add('Country',d.country?.join(' · '));
 add('Language',d.language?.join(' · '));
+add('Classification',movie.classification?.value?'Rated '+movie.classification.value:'');
 if(movie.tmdbSource)rows.push('<div class="tmdb-attribution"><span class="tmdb-attribution-label">TMDB Credits</span><a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer"><img src="https://www.themoviedb.org/assets/2/v4/logos/blue_long_2.svg" alt="The Movie Database (TMDB)" loading="lazy"></a><p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p></div>');
 if(movie.tmdbSource)rows.push('<div class="tmdb-attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>');
 return rows.length?rows.join(''):'<div class="detail-row"><span class="detail-value">Additional details unavailable.</span></div>';
