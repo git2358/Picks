@@ -1200,7 +1200,7 @@ const ordered=candidates.filter(item=>item?.value&&String(item.value).trim());
 ordered.sort((a,b)=>countryPriority(a.country)-countryPriority(b.country)||sourcePriority(a.source)-sourcePriority(b.source));
 const valid=ordered.find(item=>!ignored.test(String(item.value).trim()));
 if(valid)return valid;
-return ordered.find(item=>ignored.test(String(item.value).trim()))||ordered[0]||null;
+return ordered.find(item=>ignored.test(String(item.value).trim()))||ordered[0]||{value:'Unknown',country:'AU',source:'Fallback'};
 }
 
 async function fetchMovieDetails(title,year){
