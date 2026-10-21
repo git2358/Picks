@@ -184,7 +184,7 @@ const swipeThreshold=80;
 window.addEventListener('touchstart',event=>{
 if(event.touches.length!==1||navigating)return;
 const target=event.target;
-if(target.closest('input,textarea,select,button,a,[contenteditable="true"],.synopsis-scroll-area'))return;
+if(target.closest('input,textarea,select,button,a,[contenteditable="true"]'))return;
 startX=event.touches[0].clientX;
 startY=event.touches[0].clientY;
 edge=startX<=edgeWidth?'left':startX>=window.innerWidth-edgeWidth?'right':'';
