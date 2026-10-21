@@ -384,10 +384,15 @@ gap:.45rem;
 
 .detail-row {
 display:grid;
-grid-template-columns:90px 1fr;
+grid-template-columns:minmax(0,7.5rem) minmax(0,1fr);
 gap:.75rem;
 font-size:.9rem;
 line-height:1.45;
+}
+
+.detail-label {
+min-width:0;
+overflow-wrap:anywhere;
 }
 
 .detail-label {
@@ -1195,7 +1200,7 @@ line-height:1.6;
 }
 
 .detail-row {
-grid-template-columns:78px 1fr;
+grid-template-columns:minmax(0,6.25rem) minmax(0,1fr);
 gap:.6rem;
 font-size:.88rem;
 }
