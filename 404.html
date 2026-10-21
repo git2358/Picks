@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opening Picks…</title>
+<script>
+(function(){
+const base='/Picks/';
+let path=location.pathname;
+try{path=decodeURIComponent(path);}catch(error){}
+const route=path.startsWith(base)?path.slice(base.length).replace(/^\/+|\/+$/g,''):'';
+if(route&&!route.includes('/')){
+const title=route.replace(/_/g,' ').trim();
+if(title){
+location.replace(base+'#'+encodeURIComponent(title).replace(/%20/g,'_'));
+return;
+}
+}
+location.replace(base);
+})();
+</script>
+</head>
+<body>
+<p>Opening <a href="/Picks/">Picks</a>…</p>
+</body>
+</html>
