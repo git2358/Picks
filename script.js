@@ -1519,7 +1519,7 @@ return;
 }
 if(section==='movieBlurb'&&(currentMovie.tmdbTagline||currentMovie.tmdbOverview)){
 speakTexts([
-{text:currentMovie.tmdbTagline||'',delay:250},
+{text:currentMovie.tmdbTagline||'',delay:750},
 {text:currentMovie.tmdbOverview||'',delay:250}
 ]);
 return;
