@@ -906,27 +906,41 @@ const entities=Object.values(entityData.entities||{});
 
 entities.sort((a,b)=>scoreWikidataEntity(b,title,year)-scoreWikidataEntity(a,title,year));
 
-for(const entity of entities){
-const score=scoreWikidataEntity(entity,title,year);
-
-if(score<500)continue;
-
-const entityYear=getYearFromClaims(entity.claims);
-
-if(year&&entityYear&&entityYear!==year)continue;
-
+const buildResult=(entity,entityYear)=>{
 const wikipediaTitle=entity.sitelinks?.enwiki?.title;
-
-if(!wikipediaTitle)continue;
-
-const result={
+if(!wikipediaTitle)return null;
+return {
 id:entity.id,
 title:entity.labels?.en?.value||title,
 year:entityYear||year||'',
 wikipediaTitle,
 claims:entity.claims||{}
 };
+};
 
+// First pass: only accept candidates whose known release year matches the requested year.
+for(const entity of entities){
+const score=scoreWikidataEntity(entity,title,year);
+if(score<500)continue;
+const entityYear=getYearFromClaims(entity.claims);
+if(year&&entityYear&&entityYear!==year)continue;
+const result=buildResult(entity,entityYear);
+if(!result)continue;
+wikidataCache.set(cacheKey,result);
+return result;
+}
+
+// Fallback: if no exact-year match exists, accept a high-confidence exact title/alias match.
+// This handles films whose release year differs between reference sources.
+const requestedTitle=normaliseTitle(title);
+for(const entity of entities){
+if(scoreWikidataEntity(entity,title,year)<500)continue;
+const label=normaliseTitle(entity.labels?.en?.value||'');
+const exactLabel=label===requestedTitle;
+const exactAlias=getAliases(entity).some(alias=>normaliseTitle(alias)===requestedTitle);
+if(!exactLabel&&!exactAlias)continue;
+const result=buildResult(entity,getYearFromClaims(entity.claims));
+if(!result)continue;
 wikidataCache.set(cacheKey,result);
 return result;
 }
@@ -1012,6 +1026,7 @@ const queries=[
 `"${title}" film`,
 `"${title}"`
 ];
+let exactTitleYearFallback=null;
 
 for(const query of queries){
 try{
@@ -1037,8 +1052,12 @@ if(!summaryText.includes('film')&&!summaryText.includes('movie'))continue;
 
 const foundYears=summary.extract.match(/\b(19|20)\d{2}\b/g)||[];
 
-if(year&&!foundYears.includes(year)){
-if(result.title.match(/\b(19|20)\d{2}\b/)?.[0]!==year)continue;
+if(year&&!foundYears.includes(year)&&result.title.match(/\b(19|20)\d{2}\b/)?.[0]!==year){
+if(normaliseTitle(summaryTitle)===normaliseTitle(title)){
+if(!exactTitleYearFallback)exactTitleYearFallback=summary;
+continue;
+}
+continue;
 }
 
 return summary;
@@ -1048,7 +1067,7 @@ console.error('Wikipedia search error:',error);
 }
 }
 
-return null;
+return exactTitleYearFallback;
 }
 
 
