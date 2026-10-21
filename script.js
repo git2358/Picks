@@ -1129,7 +1129,7 @@ tmdbRequest('/movie/'+match.id+'/release_dates',apiKey).catch(()=>({results:[]})
 ]);
 const releaseCountries=releaseDates.results||[];
 const getCertification=countryCode=>(releaseCountries.find(country=>country.iso_3166_1===countryCode)?.release_dates||[])
-.map(release=>String(release.certification||'').trim()).find(Boolean)||'';
+.map(release=>String(release.certification||'').trim()).find(value=>value&&!/^(?:NR|N\/A|NOT RATED|UNRATED)$/i.test(value))||'';
 const nativeCountryCodes=(details.production_countries||[]).map(country=>country.iso_3166_1).filter(code=>code&&code!=='AU'&&code!=='US');
 const certification=getCertification('AU')||getCertification('US')||nativeCountryCodes.map(getCertification).find(Boolean)||'';
 const classification=certification?{value:formatClassification(certification),country:getCertification('AU')?'AU':getCertification('US')?'US':nativeCountryCodes.find(code=>getCertification(code))||''}:null;
