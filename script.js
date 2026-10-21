@@ -918,28 +918,48 @@ claims:entity.claims||{}
 };
 };
 
-// First pass: only accept candidates whose known release year matches the requested year.
-for(const entity of entities){
-const score=scoreWikidataEntity(entity,title,year);
-if(score<500)continue;
+const requestedTitle=normaliseTitle(title);
+const isExactTitleMatch=entity=>{
+const label=normaliseTitle(entity.labels?.en?.value||'');
+return label===requestedTitle||getAliases(entity).some(alias=>normaliseTitle(alias)===requestedTitle);
+};
+const exactTitleEntities=entities.filter(entity=>
+scoreWikidataEntity(entity,title,year)>=500&&
+isExactTitleMatch(entity)&&
+entity.sitelinks?.enwiki
+);
+
+// First pass: prefer a known release year that exactly matches the requested year.
+for(const entity of exactTitleEntities){
 const entityYear=getYearFromClaims(entity.claims);
-if(year&&entityYear&&entityYear!==year)continue;
+if(year&&entityYear!==year)continue;
 const result=buildResult(entity,entityYear);
 if(!result)continue;
 wikidataCache.set(cacheKey,result);
 return result;
 }
 
-// Fallback: if no exact-year match exists, accept a high-confidence exact title/alias match.
-// This handles films whose release year differs between reference sources.
-const requestedTitle=normaliseTitle(title);
-for(const entity of entities){
-if(scoreWikidataEntity(entity,title,year)<500)continue;
-const label=normaliseTitle(entity.labels?.en?.value||'');
-const exactLabel=label===requestedTitle;
-const exactAlias=getAliases(entity).some(alias=>normaliseTitle(alias)===requestedTitle);
-if(!exactLabel&&!exactAlias)continue;
-const result=buildResult(entity,getYearFromClaims(entity.claims));
+// Second pass: when no exact-year match exists, choose the closest known release year.
+// This avoids picking an arbitrary film when a title has several versions, such as Hercules.
+if(year){
+const nearestYearEntities=exactTitleEntities
+.map(entity=>({entity,entityYear:getYearFromClaims(entity.claims)}))
+.filter(item=>item.entityYear)
+.sort((a,b)=>Math.abs(Number(a.entityYear)-Number(year))-Math.abs(Number(b.entityYear)-Number(year))||
+scoreWikidataEntity(b.entity,title,year)-scoreWikidataEntity(a.entity,title,year));
+for(const item of nearestYearEntities){
+const result=buildResult(item.entity,item.entityYear);
+if(!result)continue;
+wikidataCache.set(cacheKey,result);
+return result;
+}
+}
+
+// Last fallback: exact title/alias with no known year, or a title mismatch only if there is no exact-title entity.
+for(const entity of exactTitleEntities){
+const entityYear=getYearFromClaims(entity.claims);
+if(entityYear)continue;
+const result=buildResult(entity,entityYear);
 if(!result)continue;
 wikidataCache.set(cacheKey,result);
 return result;
@@ -1027,6 +1047,7 @@ const queries=[
 `"${title}"`
 ];
 let exactTitleYearFallback=null;
+const nearestYearFallbacks=new Map();
 
 for(const query of queries){
 try{
@@ -1052,10 +1073,14 @@ if(!summaryText.includes('film')&&!summaryText.includes('movie'))continue;
 
 const foundYears=summary.extract.match(/\b(19|20)\d{2}\b/g)||[];
 
-if(year&&!foundYears.includes(year)&&result.title.match(/\b(19|20)\d{2}\b/)?.[0]!==year){
+const articleYear=String(summaryTitle).match(/\b(19|20)\d{2}\b/)?.[0]||'';
+if(year&&!foundYears.includes(year)&&articleYear!==year){
 if(normaliseTitle(summaryTitle)===normaliseTitle(title)){
 if(!exactTitleYearFallback)exactTitleYearFallback=summary;
-continue;
+}else if(articleYear){
+const distance=Math.abs(Number(articleYear)-Number(year));
+const existing=nearestYearFallbacks.get(summaryTitle);
+if(!existing||distance<existing.distance)nearestYearFallbacks.set(summaryTitle,{summary,distance,articleYear});
 }
 continue;
 }
@@ -1067,6 +1092,9 @@ console.error('Wikipedia search error:',error);
 }
 }
 
+if(nearestYearFallbacks.size){
+return [...nearestYearFallbacks.values()].sort((a,b)=>a.distance-b.distance)[0].summary;
+}
 return exactTitleYearFallback;
 }
 
