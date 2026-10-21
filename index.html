@@ -57,6 +57,8 @@ function sha256Hex(input) {
 }
 function readSource(path) {
   var request = new XMLHttpRequest();
+  var refreshToken = new URLSearchParams(location.search).get('__picks_refresh');
+  if (refreshToken) path += (path.indexOf('?') === -1 ? '?' : '&') + '__picks_refresh=' + encodeURIComponent(refreshToken);
   request.open('GET', path, false);
   request.send(null);
   if (request.status < 200 || request.status >= 300) throw new Error('Unable to read ' + path);
@@ -67,6 +69,7 @@ var sourceText = sourceFiles.map(function (path) {
   return path + '\n' + readSource(path);
 }).join('\n\n');
 var v = sha256Hex(sourceText).slice(0, 16);
+if (new URLSearchParams(location.search).has('__picks_refresh')) history.replaceState(history.state, '', location.pathname + location.hash);
 document.write('<link rel="stylesheet" href="style.css?v='+v+'">');
 </script>
 </head>
