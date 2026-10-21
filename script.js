@@ -1007,7 +1007,7 @@ return {
 title:details.title||match.title||title,
 year:releaseYear||year||'N/A',
 synopsis:overview||'Synopsis currently unavailable from TMDB.',
-blurb:[tagline,overview].filter(Boolean).join(' '),
+blurb:[tagline,overview].filter(Boolean).join('\n\n'),
 tmdbTagline:tagline,
 tmdbOverview:overview,
 plotSummary:'',
