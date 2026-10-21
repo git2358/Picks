@@ -112,22 +112,28 @@ overlay.classList.add('show-spotlight');
 function setupPullToRefresh(){
 const indicator=document.createElement('div');
 indicator.id='pullRefreshIndicator';
-indicator.textContent='↓ Pull to get another movie';
+indicator.textContent='↓ Pull to refresh movie';
 document.body.append(indicator);
-
 let pullDistance=0;
-
+let pullStartX=0;
 window.addEventListener('touchstart',event=>{
 if(event.touches.length!==1||window.scrollY>0||isPullRefreshing)return;
 if(event.target.closest('.synopsis-scroll-area'))return;
 pullStartY=event.touches[0].clientY;
+pullStartX=event.touches[0].clientX;
 pullDistance=0;
 pullTracking=true;
 },{passive:true});
-
 window.addEventListener('touchmove',event=>{
 if(!pullTracking||event.touches.length!==1)return;
+const deltaX=event.touches[0].clientX-pullStartX;
 pullDistance=event.touches[0].clientY-pullStartY;
+if(Math.abs(deltaX)>Math.abs(pullDistance)&&Math.abs(deltaX)>12){
+pullTracking=false;
+indicator.classList.remove('visible','ready');
+indicator.style.transform='';
+return;
+}
 if(pullDistance<=0){
 indicator.classList.remove('visible','ready');
 return;
@@ -141,28 +147,23 @@ event.preventDefault();
 if(pullDistance>8){
 indicator.classList.add('visible');
 indicator.classList.toggle('ready',pullDistance>=pullRefreshThreshold);
-indicator.textContent=pullDistance>=pullRefreshThreshold?'↑ Release for next movie':'↓ Pull to get another movie';
+indicator.textContent=pullDistance>=pullRefreshThreshold?'↑ Release to refresh movie':'↓ Pull to refresh movie';
 indicator.style.transform=`translate(-50%, ${Math.min(pullDistance*0.55,70)-70}px)`;
 }
 },{passive:false});
-
-const finishPull=async()=>{
+const finishPull=()=>{
 if(!pullTracking)return;
 pullTracking=false;
 const shouldRefresh=pullDistance>=pullRefreshThreshold;
 indicator.classList.remove('visible','ready');
 indicator.style.transform='';
-if(shouldRefresh&&!isPullRefreshing&&movies.length){
+if(shouldRefresh&&!isPullRefreshing){
 isPullRefreshing=true;
-try{
-await fetchNextMovie();
-}finally{
-isPullRefreshing=false;
-}
+const refreshUrl=location.pathname+'?__picks_refresh='+Date.now()+location.hash;
+location.replace(refreshUrl);
 }
 pullDistance=0;
 };
-
 window.addEventListener('touchend',finishPull,{passive:true});
 window.addEventListener('touchcancel',()=>{
 pullTracking=false;
@@ -170,8 +171,47 @@ pullDistance=0;
 indicator.classList.remove('visible','ready');
 indicator.style.transform='';
 },{passive:true});
+setupEdgeSwipes();
 }
 
+function setupEdgeSwipes(){
+let startX=0;
+let startY=0;
+let edge='';
+let navigating=false;
+const edgeWidth=36;
+const swipeThreshold=80;
+window.addEventListener('touchstart',event=>{
+if(event.touches.length!==1||navigating)return;
+const target=event.target;
+if(target.closest('input,textarea,select,button,a,[contenteditable="true"],.synopsis-scroll-area'))return;
+startX=event.touches[0].clientX;
+startY=event.touches[0].clientY;
+edge=startX<=edgeWidth?'left':startX>=window.innerWidth-edgeWidth?'right':'';
+},{passive:true});
+window.addEventListener('touchend',event=>{
+if(!edge||event.changedTouches.length!==1||navigating)return;
+const endX=event.changedTouches[0].clientX;
+const endY=event.changedTouches[0].clientY;
+const deltaX=endX-startX;
+const deltaY=endY-startY;
+const validSwipe=Math.abs(deltaX)>=swipeThreshold&&Math.abs(deltaY)<Math.abs(deltaX)*0.8;
+const swipeEdge=edge;
+edge='';
+if(!validSwipe)return;
+if(swipeEdge==='right'&&deltaX<0){
+navigating=true;
+fetchNextMovie().finally(()=>{navigating=false;});
+}else if(swipeEdge==='left'&&deltaX>0){
+if(history.state?.movie&&history.length>1){
+navigating=true;
+history.back();
+setTimeout(()=>{navigating=false;},1200);
+}
+}
+},{passive:true});
+window.addEventListener('touchcancel',()=>{edge='';},{passive:true});
+}
 
 function setupMoviePosterSearch(){
 const posterLink=document.getElementById('posterLink');
