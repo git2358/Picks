@@ -398,7 +398,6 @@ activeMovieSlug=slug;
 const navigationRequest=++historyNavigationRequest;
 if(!watchedIndices.includes(index))watchedIndices.push(index);
 
-document.getElementById('movieBlurbSection').style.display='none';
 updateDocumentTitle(false);
 const overlay=document.getElementById('curtainOverlay');
 stopSpeech();
