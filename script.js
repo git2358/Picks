@@ -1196,7 +1196,7 @@ if(code==='US'||code==='UNITED STATES'||code==='UNITED STATES OF AMERICA')return
 return 2;
 };
 const sourcePriority=source=>source==='Wikidata'?0:1;
-const valid=candidates.filter(item=>item?.value&&!/^(?:NR|N\\/?A|NOT RATED|UNRATED)$/i.test(String(item.value).trim()));
+const valid=candidates.filter(item=>item?.value&&!/^(?:NR|N\/?A|NOT RATED|UNRATED)$/i.test(String(item.value).trim()));
 valid.sort((a,b)=>countryPriority(a.country)-countryPriority(b.country)||sourcePriority(a.source)-sourcePriority(b.source));
 return valid[0]||null;
 }
@@ -1229,7 +1229,7 @@ if(!wikiMovie){
 return{
 ...tmdbMovie,
 synopsis:tmdbMovie.tmdbOverview||'Synopsis currently unavailable.',
-blurb:[tmdbMovie.tmdbTagline,tmdbMovie.tmdbOverview].filter(Boolean).join('\\n\\n'),
+blurb:[tmdbMovie.tmdbTagline,tmdbMovie.tmdbOverview].filter(Boolean).join('\n\n'),
 details:tmdbMovie.details||{},
 wikiPosterCandidates:[]
 };
@@ -1241,7 +1241,7 @@ return{
 title:wikiMovie.title||tmdbMovie.title,
 year:wikiMovie.year||tmdbMovie.year,
 synopsis:wikiMovie.synopsis||overview||'Synopsis currently unavailable.',
-blurb:[tagline,overview].filter(Boolean).join('\\n\\n'),
+blurb:[tagline,overview].filter(Boolean).join('\n\n'),
 plotSummary:wikiMovie.plotSummary||'',
 details:wikiMovie.details||tmdbMovie.details||{},
 classification:preferredClassification,
