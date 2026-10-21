@@ -347,10 +347,22 @@ let slug=location.hash.slice(1);
 try{slug=decodeURIComponent(slug);}catch(error){}
 slug=normaliseTitle(slug.replace(/_/g,' '));
 if(!slug)return -1;
-return movies.findIndex(line=>{
+const exactIndex=movies.findIndex(line=>{
 const movie=parseMovieLine(line);
 return movieSlug(movie.title,movie.year)===slug;
 });
+if(exactIndex>=0)return exactIndex;
+const requested=slug.match(/^(.*?)\s+((?:19|20)\d{2})$/);
+const requestedTitle=requested?requested[1]:slug;
+const requestedYear=requested?requested[2]:'';
+const candidates=movies.map((line,index)=>{
+const movie=parseMovieLine(line);
+return {index,title:movie.title,year:movie.year,similarity:titleSimilarity(requestedTitle,movie.title)};
+}).filter(movie=>requestedYear?movie.year===requestedYear&&movie.similarity>=0.8:movie.similarity>=0.8);
+if(!candidates.length)return -1;
+candidates.sort((a,b)=>b.similarity-a.similarity||Number(b.year||0)-Number(a.year||0)||a.index-b.index);
+if(candidates.length>1&&candidates[0].similarity===candidates[1].similarity&&candidates[0].title!==candidates[1].title)return -1;
+return candidates[0].index;
 }
 
 function resetPosterFlipCard(){
